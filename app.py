@@ -1,3 +1,8 @@
+# ==========================================
+# NULL LEGION - HOLOGRAPHIC RENDER ENGINE 
+# V33.0 - EXTREME COORDINATE CALIBRATION
+# ==========================================
+
 from flask import Flask, request, send_file
 import matplotlib
 matplotlib.use('Agg')
@@ -17,14 +22,14 @@ def parse_color(c):
     if isinstance(c, str):
         if c.startswith('rgba'):
             vals = re.findall(r'[\d.]+', c)
-            # 🛡️ FIX: Aumentar transparencia (Opacidad al 65% de su valor original)
+            # Transparencia base del 65%
             return (float(vals[0])/255, float(vals[1])/255, float(vals[2])/255, float(vals[3]) * 0.65)
         elif c.startswith('hsla'):
             vals = re.findall(r'[\d.]+', c)
             h = float(vals[0])/360.0
             s = float(vals[1])/100.0
             l = float(vals[2])/100.0
-            a = float(vals[3]) * 0.65 # 🛡️ FIX: Aumentar transparencia
+            a = float(vals[3]) * 0.65
             rgb = colorsys.hls_to_rgb(h, l, s)
             return (rgb[0], rgb[1], rgb[2], a)
         elif c.startswith('#'):
@@ -38,13 +43,12 @@ def render_map():
         datasets = data.get('datasets', [])
         show_legend = data.get('showLegend', False)
         
-        # 1. Lienzo Táctico (1000x1000 para mayor nitidez)
         fig, ax = plt.subplots(figsize=(10, 10), dpi=100)
         fig.patch.set_facecolor('#1e1e24')
         ax.set_facecolor('#1e1e24')
         
-        # 🛡️ FIX: Reducir márgenes al mínimo absoluto (98% del área es mapa)
-        plt.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
+        # Márgenes mínimos absolutos
+        plt.subplots_adjust(left=0.01, bottom=0.01, right=0.99, top=0.99)
 
         legend_handles = []
 
@@ -55,8 +59,6 @@ def render_map():
             label = ds.get('label', '')
             color = parse_color(ds.get('backgroundColor', 'white'))
             edgecolor = parse_color(ds.get('borderColor', 'none'))
-            
-            # 🛡️ FIX: Bordes ultra delgados para reducir saturación visual
             linewidth = 0.3 if edgecolor != 'none' else 0
             point_style = ds.get('pointStyle', 'circle')
 
@@ -79,11 +81,10 @@ def render_map():
             xs = [p['x'] for p in pts if 'x' in p]
             ys = [p['y'] for p in pts if 'y' in p]
             
-            # 🛡️ FIX: PONDERACIÓN DE BURBUJAS (Curva de escalado suavizada)
+            # Ponderación suavizada de burbujas
             sizes = []
             for p in pts:
                 r = p.get('r', 2)
-                # Se redujo el multiplicador de 5.0 a 1.6. Las aldeas gigantes ya no taparán medio sector.
                 if marker == 'D': sizes.append((r * 3)**2) 
                 else: sizes.append((r * 1.6)**2) 
 
@@ -110,17 +111,34 @@ def render_map():
         ax.set_xlim(-200, 200)
         ax.set_ylim(-200, 200)
         
-        # 🛡️ FIX: Mantener la cuadrícula pero ocultar los números por defecto que roban espacio
         ax.grid(color='white', alpha=0.08, linestyle='-', linewidth=0.5)
         ax.tick_params(labelbottom=False, labelleft=False, length=0) 
 
-        # 🛡️ FIX: DIBUJAR COORDENADAS INTERNAS
-        coord_style = dict(size=11, color='#DDDDDD', fontweight='bold', path_effects=[patheffects.withStroke(linewidth=2.5, foreground='#000000')])
-        for val in [-150, -100, -50, 0, 50, 100, 150]:
-            ax.text(val, -195, str(val), ha='center', va='bottom', zorder=7, **coord_style) # Eje X abajo
-            ax.text(-195, val, str(val), ha='left', va='center', zorder=7, **coord_style)  # Eje Y izquierda
+        # Configuración de estilo para coordenadas
+        pe_coords = [patheffects.withStroke(linewidth=2.5, foreground='#000000')]
+        coord_style = dict(size=11, color='#DDDDDD', fontweight='bold', path_effects=pe_coords, zorder=7)
 
-        # 🛡️ FIX: LEYENDA INTERNA FLOTANTE
+        # 1. Dibujar coordenadas normales internas (sin las esquinas)
+        for val in [-150, -100, -50, 0, 50, 100, 150]:
+            ax.text(val, -195, str(val), ha='center', va='bottom', **coord_style) # X abajo
+            ax.text(-195, val, str(val), ha='left', va='center', **coord_style)  # Y izquierda
+
+        # 🛡️ FIX: DIBUJAR COORDENADAS EXTREMAS (200/-200) ROTADAS EN LAS ESQUINAS
+        corner_style = dict(size=12, color='#FFFFFF', fontweight='bold', path_effects=pe_coords, zorder=8)
+        
+        # Esquina Superior Derecha (200, 200) - Rotado -45
+        ax.text(197, 197, "200", rotation=-45, ha='right', va='top', **corner_style)
+        
+        # Esquina Superior Izquierda (-200, 200) - Rotado 45 (para el eje Y)
+        ax.text(-197, 197, "200", rotation=45, ha='left', va='top', **corner_style)
+        
+        # Esquina Inferior Izquierda (-200, -200) - Rotado -45
+        ax.text(-197, -197, "-200", rotation=-45, ha='left', va='bottom', **corner_style)
+        
+        # Esquina Inferior Derecha (200, -200) - Rotado 45 (para el eje X)
+        ax.text(197, -197, "-200", rotation=45, ha='right', va='bottom', **corner_style)
+
+        # Leyenda Interna Flotante
         if show_legend and legend_handles:
             ax.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.99), ncol=4, frameon=True, facecolor='#1e1e24', framealpha=0.7, edgecolor='none', labelcolor='white', fontsize=10)
         
