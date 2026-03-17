@@ -1,6 +1,6 @@
 # ==========================================
 # NULL LEGION - HOLOGRAPHIC RENDER ENGINE 
-# V34.0 - FLAG CENTROIDS & BUG FIXES
+# V35.0 - FLAG CENTROIDS & DYNAMIC BUBBLE SCALING
 # ==========================================
 
 from flask import Flask, request, send_file
@@ -22,13 +22,14 @@ def parse_color(c):
     if isinstance(c, str):
         if c.startswith('rgba'):
             vals = re.findall(r'[\d.]+', c)
-            return (float(vals[0])/255, float(vals[1])/255, float(vals[2])/255, float(vals[3]) * 0.65)
+            # 🛡️ Aumentamos transparencia: Multiplicador baja a 0.50
+            return (float(vals[0])/255, float(vals[1])/255, float(vals[2])/255, float(vals[3]) * 0.50)
         elif c.startswith('hsla'):
             vals = re.findall(r'[\d.]+', c)
             h = float(vals[0])/360.0
             s = float(vals[1])/100.0
             l = float(vals[2])/100.0
-            a = float(vals[3]) * 0.65 
+            a = float(vals[3]) * 0.50 
             rgb = colorsys.hls_to_rgb(h, l, s)
             return (rgb[0], rgb[1], rgb[2], a)
         elif c.startswith('#'):
@@ -45,8 +46,7 @@ def render_map():
         fig, ax = plt.subplots(figsize=(10, 10), dpi=100)
         fig.patch.set_facecolor('#1e1e24')
         ax.set_facecolor('#1e1e24')
-        
-        plt.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
+        plt.subplots_adjust(left=0.01, bottom=0.01, right=0.99, top=0.99)
 
         legend_handles = []
 
@@ -61,7 +61,7 @@ def render_map():
             point_style = ds.get('pointStyle', 'circle')
             txt_color = ds.get('customLabelColor', '#FFFFFF')
 
-            # --- 🛡️ NUEVO: DIBUJO DE BANDERAS PARA CENTROIDES ---
+            # 🛡️ DIBUJO DE BANDERAS TÁCTICAS (CENTROIDES)
             if 'CENTROID' in label:
                 ally_name = label.replace(' CENTROID', '').replace('[', '').replace(']', '')
                 solid_color = parse_color(ds.get('borderColor', 'white'))
@@ -69,19 +69,18 @@ def render_map():
 
                 for p in pts:
                     px, py = p['x'], p['y']
-                    # 1. Poste de la Bandera (Gris claro)
-                    ax.plot([px, px], [py, py + 18], color='#DDDDDD', linewidth=2, zorder=6)
-                    # 2. Cruz Roja marcando la coordenada exacta en la base
-                    ax.plot(px, py, marker='x', color='#FF3333', markersize=8, markeredgewidth=2.5, zorder=7)
-                    # 3. La Bandera (Usando un Bounding Box con el nombre)
-                    ax.text(px + 1.5, py + 14, ally_name, color=flag_txt_color, fontsize=10, ha='left', va='center', fontweight='bold', zorder=8,
-                            bbox=dict(facecolor=solid_color, edgecolor='white', linewidth=1, boxstyle='square,pad=0.3'))
+                    # 1. Poste gris corto
+                    ax.plot([px, px], [py, py + 6], color='#AAAAAA', linewidth=1.5, zorder=6)
+                    # 2. Cruz roja pequeña en la base
+                    ax.plot(px, py, marker='x', color='#FF3333', markersize=5, markeredgewidth=1.5, zorder=7)
+                    # 3. Bandera ajustada con nombre de alianza
+                    ax.text(px + 0.8, py + 4.5, ally_name, color=flag_txt_color, fontsize=7, ha='left', va='center', fontweight='bold', zorder=8,
+                            bbox=dict(facecolor=solid_color, edgecolor='none', boxstyle='square,pad=0.2'))
 
-                # Añadir Centroide a la leyenda con el color sólido
                 if show_legend and label not in ['World', '[TACTICAL_NET]']:
                     patch = mpatches.Patch(color=solid_color, label=label)
                     legend_handles.append(patch)
-                continue # Saltamos el renderizado normal de burbujas para los Centroides
+                continue 
 
             z_order = 3
             if label == 'World': z_order = 1
@@ -100,10 +99,11 @@ def render_map():
             xs = [p['x'] for p in pts if 'x' in p]
             ys = [p['y'] for p in pts if 'y' in p]
             
+            # 🛡️ PONDERACIÓN DE TAMAÑOS: Reducido drásticamente para evitar saturación
             sizes = []
             for p in pts:
                 r = p.get('r', 2)
-                sizes.append((r * 1.6)**2) 
+                sizes.append((r * 1.1)**2) 
 
             ax.scatter(xs, ys, s=sizes, c=[color]*len(xs), edgecolors=[edgecolor]*len(xs), linewidths=linewidth, marker=marker, zorder=z_order)
 
@@ -118,9 +118,9 @@ def render_map():
                 elif 'radarId' in p: txt = str(p['radarId'])
 
                 if txt:
-                    # 🛡️ FIX CRÍTICO: Matplotlib exige tupla matemática (0,0,0,0.6) y no string para foreground
+                    # FIX: rgba debe ser una tupla para Matplotlib
                     pe = [patheffects.withStroke(linewidth=1.5, foreground=(0, 0, 0, 0.6))] if txt_color == '#FFFFFF' else []
-                    ax.text(p['x'], p['y'], txt, color=txt_color, fontsize=9, ha='center', va='center', fontweight='bold', zorder=6, path_effects=pe)
+                    ax.text(p['x'], p['y'], txt, color=txt_color, fontsize=8, ha='center', va='center', fontweight='bold', zorder=6, path_effects=pe)
 
         ax.set_xlim(-200, 200)
         ax.set_ylim(-200, 200)
@@ -141,7 +141,7 @@ def render_map():
         ax.text(197, -197, "-200", rotation=45, ha='right', va='bottom', **corner_style)
 
         if show_legend and legend_handles:
-            ax.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.99), ncol=4, frameon=True, facecolor='#1e1e24', framealpha=0.7, edgecolor='none', labelcolor='white', fontsize=10)
+            ax.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.99), ncol=5, frameon=True, facecolor='#1e1e24', framealpha=0.7, edgecolor='none', labelcolor='white', fontsize=9)
         
         buf = io.BytesIO()
         plt.savefig(buf, format='png', facecolor=fig.get_facecolor(), bbox_inches='tight', pad_inches=0)
@@ -156,7 +156,6 @@ def render_map():
             wm_width = int(img.width * 0.15)
             wm_height = int(wm_width * (wm.height / wm.width))
             wm = wm.resize((wm_width, wm_height), Image.Resampling.LANCZOS)
-            
             wm_with_alpha = wm.copy()
             alpha = wm_with_alpha.split()[3]
             alpha = alpha.point(lambda p: p * 0.3)
