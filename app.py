@@ -1,6 +1,6 @@
 # ==========================================
 # NULL LEGION - HOLOGRAPHIC RENDER ENGINE 
-# V33.0 - EXTREME COORDINATE CALIBRATION
+# V34.0 - FLAG CENTROIDS & BUG FIXES
 # ==========================================
 
 from flask import Flask, request, send_file
@@ -22,14 +22,13 @@ def parse_color(c):
     if isinstance(c, str):
         if c.startswith('rgba'):
             vals = re.findall(r'[\d.]+', c)
-            # Transparencia base del 65%
             return (float(vals[0])/255, float(vals[1])/255, float(vals[2])/255, float(vals[3]) * 0.65)
         elif c.startswith('hsla'):
             vals = re.findall(r'[\d.]+', c)
             h = float(vals[0])/360.0
             s = float(vals[1])/100.0
             l = float(vals[2])/100.0
-            a = float(vals[3]) * 0.65
+            a = float(vals[3]) * 0.65 
             rgb = colorsys.hls_to_rgb(h, l, s)
             return (rgb[0], rgb[1], rgb[2], a)
         elif c.startswith('#'):
@@ -47,8 +46,7 @@ def render_map():
         fig.patch.set_facecolor('#1e1e24')
         ax.set_facecolor('#1e1e24')
         
-        # Márgenes mínimos absolutos
-        plt.subplots_adjust(left=0.01, bottom=0.01, right=0.99, top=0.99)
+        plt.subplots_adjust(left=0.02, bottom=0.02, right=0.98, top=0.98)
 
         legend_handles = []
 
@@ -61,10 +59,32 @@ def render_map():
             edgecolor = parse_color(ds.get('borderColor', 'none'))
             linewidth = 0.3 if edgecolor != 'none' else 0
             point_style = ds.get('pointStyle', 'circle')
+            txt_color = ds.get('customLabelColor', '#FFFFFF')
+
+            # --- 🛡️ NUEVO: DIBUJO DE BANDERAS PARA CENTROIDES ---
+            if 'CENTROID' in label:
+                ally_name = label.replace(' CENTROID', '').replace('[', '').replace(']', '')
+                solid_color = parse_color(ds.get('borderColor', 'white'))
+                flag_txt_color = 'white' if txt_color == '#FFFFFF' else 'black'
+
+                for p in pts:
+                    px, py = p['x'], p['y']
+                    # 1. Poste de la Bandera (Gris claro)
+                    ax.plot([px, px], [py, py + 18], color='#DDDDDD', linewidth=2, zorder=6)
+                    # 2. Cruz Roja marcando la coordenada exacta en la base
+                    ax.plot(px, py, marker='x', color='#FF3333', markersize=8, markeredgewidth=2.5, zorder=7)
+                    # 3. La Bandera (Usando un Bounding Box con el nombre)
+                    ax.text(px + 1.5, py + 14, ally_name, color=flag_txt_color, fontsize=10, ha='left', va='center', fontweight='bold', zorder=8,
+                            bbox=dict(facecolor=solid_color, edgecolor='white', linewidth=1, boxstyle='square,pad=0.3'))
+
+                # Añadir Centroide a la leyenda con el color sólido
+                if show_legend and label not in ['World', '[TACTICAL_NET]']:
+                    patch = mpatches.Patch(color=solid_color, label=label)
+                    legend_handles.append(patch)
+                continue # Saltamos el renderizado normal de burbujas para los Centroides
 
             z_order = 3
             if label == 'World': z_order = 1
-            elif 'CENTROID' in label: z_order = 5
             elif 'OUTLIER' in label or 'FRONTIER' in label or 'Target' in label or 'Vanguard' in label: z_order = 4
 
             if ds.get('type') == 'line':
@@ -75,18 +95,15 @@ def render_map():
 
             marker = 'o'
             if point_style == 'crossRot': marker = 'X'
-            elif point_style == 'rectRot': marker = 'D'
             elif point_style == 'triangle': marker = '^'
 
             xs = [p['x'] for p in pts if 'x' in p]
             ys = [p['y'] for p in pts if 'y' in p]
             
-            # Ponderación suavizada de burbujas
             sizes = []
             for p in pts:
                 r = p.get('r', 2)
-                if marker == 'D': sizes.append((r * 3)**2) 
-                else: sizes.append((r * 1.6)**2) 
+                sizes.append((r * 1.6)**2) 
 
             ax.scatter(xs, ys, s=sizes, c=[color]*len(xs), edgecolors=[edgecolor]*len(xs), linewidths=linewidth, marker=marker, zorder=z_order)
 
@@ -94,51 +111,35 @@ def render_map():
                 patch = mpatches.Patch(color=color, label=label)
                 legend_handles.append(patch)
 
-            txt_color = ds.get('customLabelColor', '#FFFFFF')
-            if 'CENTROID' in label: txt_color = '#000000'
-
             for p in pts:
                 txt = None
-                if 'rank' in p: txt = f"★ {p['rank']}"
-                elif 'outlierId' in p: txt = str(p['outlierId'])
+                if 'outlierId' in p: txt = str(p['outlierId'])
                 elif 'clashId' in p: txt = str(p['clashId'])
                 elif 'radarId' in p: txt = str(p['radarId'])
 
                 if txt:
-                    pe = [patheffects.withStroke(linewidth=1.5, foreground='rgba(0,0,0,0.6)')] if txt_color == '#FFFFFF' else []
+                    # 🛡️ FIX CRÍTICO: Matplotlib exige tupla matemática (0,0,0,0.6) y no string para foreground
+                    pe = [patheffects.withStroke(linewidth=1.5, foreground=(0, 0, 0, 0.6))] if txt_color == '#FFFFFF' else []
                     ax.text(p['x'], p['y'], txt, color=txt_color, fontsize=9, ha='center', va='center', fontweight='bold', zorder=6, path_effects=pe)
 
         ax.set_xlim(-200, 200)
         ax.set_ylim(-200, 200)
-        
         ax.grid(color='white', alpha=0.08, linestyle='-', linewidth=0.5)
         ax.tick_params(labelbottom=False, labelleft=False, length=0) 
 
-        # Configuración de estilo para coordenadas
-        pe_coords = [patheffects.withStroke(linewidth=2.5, foreground='#000000')]
+        pe_coords = [patheffects.withStroke(linewidth=2.5, foreground=(0, 0, 0, 1))]
         coord_style = dict(size=11, color='#DDDDDD', fontweight='bold', path_effects=pe_coords, zorder=7)
 
-        # 1. Dibujar coordenadas normales internas (sin las esquinas)
         for val in [-150, -100, -50, 0, 50, 100, 150]:
-            ax.text(val, -195, str(val), ha='center', va='bottom', **coord_style) # X abajo
-            ax.text(-195, val, str(val), ha='left', va='center', **coord_style)  # Y izquierda
+            ax.text(val, -195, str(val), ha='center', va='bottom', **coord_style) 
+            ax.text(-195, val, str(val), ha='left', va='center', **coord_style)  
 
-        # 🛡️ FIX: DIBUJAR COORDENADAS EXTREMAS (200/-200) ROTADAS EN LAS ESQUINAS
         corner_style = dict(size=12, color='#FFFFFF', fontweight='bold', path_effects=pe_coords, zorder=8)
-        
-        # Esquina Superior Derecha (200, 200) - Rotado -45
         ax.text(197, 197, "200", rotation=-45, ha='right', va='top', **corner_style)
-        
-        # Esquina Superior Izquierda (-200, 200) - Rotado 45 (para el eje Y)
         ax.text(-197, 197, "200", rotation=45, ha='left', va='top', **corner_style)
-        
-        # Esquina Inferior Izquierda (-200, -200) - Rotado -45
         ax.text(-197, -197, "-200", rotation=-45, ha='left', va='bottom', **corner_style)
-        
-        # Esquina Inferior Derecha (200, -200) - Rotado 45 (para el eje X)
         ax.text(197, -197, "-200", rotation=45, ha='right', va='bottom', **corner_style)
 
-        # Leyenda Interna Flotante
         if show_legend and legend_handles:
             ax.legend(handles=legend_handles, loc='upper center', bbox_to_anchor=(0.5, 0.99), ncol=4, frameon=True, facecolor='#1e1e24', framealpha=0.7, edgecolor='none', labelcolor='white', fontsize=10)
         
@@ -149,7 +150,6 @@ def render_map():
         
         img = Image.open(buf).convert("RGBA")
         
-        # Sello de la Legión (Watermark) - 15% Absoluto
         if data.get('watermark'):
             req = urllib.request.urlopen("https://i.ibb.co/35dnG0Lc/5519632.png")
             wm = Image.open(req).convert("RGBA")
@@ -161,7 +161,6 @@ def render_map():
             alpha = wm_with_alpha.split()[3]
             alpha = alpha.point(lambda p: p * 0.3)
             wm_with_alpha.putalpha(alpha)
-            
             img.paste(wm_with_alpha, (img.width - wm.width - 15, 15), wm_with_alpha)
             
         final_buf = io.BytesIO()
