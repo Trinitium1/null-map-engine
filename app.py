@@ -1,6 +1,6 @@
 # ==========================================
 # NULL LEGION - HOLOGRAPHIC RENDER ENGINE 
-# V35.0 - FLAG CENTROIDS & DYNAMIC BUBBLE SCALING
+# V36.0 - MICRO-FLAGS & SCALING OPTIMIZATION
 # ==========================================
 
 from flask import Flask, request, send_file
@@ -22,7 +22,6 @@ def parse_color(c):
     if isinstance(c, str):
         if c.startswith('rgba'):
             vals = re.findall(r'[\d.]+', c)
-            # 🛡️ Aumentamos transparencia: Multiplicador baja a 0.50
             return (float(vals[0])/255, float(vals[1])/255, float(vals[2])/255, float(vals[3]) * 0.50)
         elif c.startswith('hsla'):
             vals = re.findall(r'[\d.]+', c)
@@ -61,7 +60,7 @@ def render_map():
             point_style = ds.get('pointStyle', 'circle')
             txt_color = ds.get('customLabelColor', '#FFFFFF')
 
-            # 🛡️ DIBUJO DE BANDERAS TÁCTICAS (CENTROIDES)
+            # 🛡️ BANDERAS MICRO-TÁCTICAS
             if 'CENTROID' in label:
                 ally_name = label.replace(' CENTROID', '').replace('[', '').replace(']', '')
                 solid_color = parse_color(ds.get('borderColor', 'white'))
@@ -69,13 +68,13 @@ def render_map():
 
                 for p in pts:
                     px, py = p['x'], p['y']
-                    # 1. Poste gris corto
-                    ax.plot([px, px], [py, py + 6], color='#AAAAAA', linewidth=1.5, zorder=6)
-                    # 2. Cruz roja pequeña en la base
-                    ax.plot(px, py, marker='x', color='#FF3333', markersize=5, markeredgewidth=1.5, zorder=7)
-                    # 3. Bandera ajustada con nombre de alianza
-                    ax.text(px + 0.8, py + 4.5, ally_name, color=flag_txt_color, fontsize=7, ha='left', va='center', fontweight='bold', zorder=8,
-                            bbox=dict(facecolor=solid_color, edgecolor='none', boxstyle='square,pad=0.2'))
+                    # 1. Poste gris ultra corto
+                    ax.plot([px, px], [py, py + 4], color='#AAAAAA', linewidth=1.2, zorder=6)
+                    # 2. Cruz roja milimétrica
+                    ax.plot(px, py, marker='x', color='#FF3333', markersize=4, markeredgewidth=1.2, zorder=7)
+                    # 3. Bandera ajustada (letra 6, pad 0.15)
+                    ax.text(px + 0.6, py + 3, ally_name, color=flag_txt_color, fontsize=6, ha='left', va='center', fontweight='bold', zorder=8,
+                            bbox=dict(facecolor=solid_color, edgecolor='none', boxstyle='square,pad=0.15'))
 
                 if show_legend and label not in ['World', '[TACTICAL_NET]']:
                     patch = mpatches.Patch(color=solid_color, label=label)
@@ -99,7 +98,6 @@ def render_map():
             xs = [p['x'] for p in pts if 'x' in p]
             ys = [p['y'] for p in pts if 'y' in p]
             
-            # 🛡️ PONDERACIÓN DE TAMAÑOS: Reducido drásticamente para evitar saturación
             sizes = []
             for p in pts:
                 r = p.get('r', 2)
@@ -118,7 +116,6 @@ def render_map():
                 elif 'radarId' in p: txt = str(p['radarId'])
 
                 if txt:
-                    # FIX: rgba debe ser una tupla para Matplotlib
                     pe = [patheffects.withStroke(linewidth=1.5, foreground=(0, 0, 0, 0.6))] if txt_color == '#FFFFFF' else []
                     ax.text(p['x'], p['y'], txt, color=txt_color, fontsize=8, ha='center', va='center', fontweight='bold', zorder=6, path_effects=pe)
 
