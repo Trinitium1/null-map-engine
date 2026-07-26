@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="kill-screen" class="hidden">
+        <h2 style="color: #ff4757;">⚠️ UPDATE REQUIRED</h2>
+        <p>Your NULL Map Engine is obsolete and has been disconnected by the server.</p>
+        <button id="btn-discord" class="btn primary">Download from Discord</button>
+    </div>
+
+    <div id="main-ui">
+        <div class="header">
+            <img src="assets/icon128.png" alt="NULL Legion" class="logo">
+            <h1>NULL MAP ENGINE</h1>
+            <div class="header-icons">
+                <div id="btn-pip-hud" class="icon-btn" title="Mini HUD (Pin to page)">⧉</div>
+                <div id="btn-toggle-panel" class="icon-btn" title="View Server Details">❯</div>
+            </div>
+        </div>
+        <div class="card current-server-card">
+            <label>Current Game</label>
+            <div id="active-game-status" style="font-weight: bold; color: #a4b0be; text-align: center; font-size: 14px; padding: 5px 0;">Detecting...</div>
+        </div>
+
+        <div class="card toggle-card">
+            <div class="toggle-text">
+                <strong id="status-text">Engine: Active</strong>
+                <span class="subtext">Map Sniffer is running.</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="toggle-engine" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <div class="card stats">
+            <div class="stat-box">
+                <span class="stat-label">Tiles Scanned (Session)</span>
+                <span class="stat-value" id="tiles-scanned">0</span>
+            </div>
+        </div>
+
+        <button id="btn-discord-join" class="btn discord">
+            <img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon">
+            Join Development Discord
+        </button>
+        
+        <div class="footer">
+            v<span id="version-display">1.0</span> | NULL Legion Tool
+        </div>
+    </div>
+
+    <!-- EXPANDABLE PANEL -->
+    <div id="side-panel" class="side-panel hidden">
+        <div class="side-header">
+            <h2>ACCOUNT & SERVERS</h2>
+            <div id="btn-refresh" class="btn-refresh" title="Refresh Server Status">↻ Refresh</div>
+        </div>
+        
+        <div class="card" style="margin-bottom: 15px;">
+            <label for="discordId">Discord ID (Required)</label>
+            <input type="text" id="discordId" placeholder="e.g. 1529702888278855688">
+            <button id="btn-save" class="btn secondary">Save Identity</button>
+            <div id="save-status"></div>
+        </div>
+        
+        <div id="server-list-container">
+            <!-- Dynamically populated server list -->
+        </div>
+
+        <div id="leaderboards-container" class="hidden">
+            <div class="lb-header">
+                <h3>🏆 TOP 10 MAP OWNERSHIP</h3>
+            </div>
+            <div id="table-ownership" class="table-container"></div>
+
+            <div class="lb-header">
+                <h3>👁️ TOP 10 SCANNERS</h3>
+            </div>
+            <div id="table-scanners" class="table-container"></div>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
