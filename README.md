@@ -1,7 +1,15 @@
 # NULL Map Engine - Version Logs
 
-## 🚀 V1.1 (Current Release)
+## 🚀 V1.2 (Current Release)
 *Deploy Date: July 2026*
+
+**⚙️ Chronos System Evolution**
+- **Dynamic Coordinate Mapping:** Completely refactored the historical diff engines (`World Events`, `Sector Radar`, `Tactical Events`). The engine now builds deterministic `(X,Y)` virtual maps to compare village data across 24-72 hours. This perfectly eliminates the row-shifting corruption bug caused by server-wide village creations or destructions.
+- **UI Refinement:** Enhanced the Side Panel interface with sleek neon-accented slider controls for scan radiuses and compacted the HUD margins for a cleaner, premium viewing experience.
+
+---
+
+### V1.1
 
 **👁️ Live HUD (Heads-Up Display)**
 - **Real-Time Telemetry:** Injected a live, floating HUD directly into the Travian Map page (`karte.php`). Operatives can monitor their scanning progress without leaving the game or keeping the extension popup open.

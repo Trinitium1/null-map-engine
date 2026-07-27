@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NULL Map Engine - Side Panel</title>
+    <link rel="stylesheet" href="sidepanel.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="kill-screen" class="hidden">
+        <h1>KILL SWITCH ENGAGED</h1>
+        <p>The Master Engine has forcefully terminated all map extension instances.</p>
+        <p>Please contact an administrator.</p>
+    </div>
+    
+    <div id="sidepanel-container">
+        
+        <!-- HEADER -->
+        <div class="header" id="main-header" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center;" id="header-title-container">
+                <img src="assets/icon128.png" alt="NULL Legion" class="logo">
+                <h1>NULL MAP ENGINE</h1>
+            </div>
+            <div class="header-icons" style="display: flex; align-items: center;">
+                <div id="btn-toggle-settings" class="icon-btn" title="Settings Menu">☰</div>
+            </div>
+        </div>
+
+        <!-- COLLAPSIBLE SETTINGS -->
+        <div id="settings-container" class="hidden">
+            <!-- SETTINGS & DISCORD -->
+            <div class="card" style="margin-bottom: 15px; padding: 10px;">
+                <label id="discord-card-label" style="margin-bottom: 8px;">Discord Identity</label>
+                
+                <div id="discord-identity-container">
+                    <button id="btn-login-discord" class="btn discord">
+                        <img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon">
+                        Connect with Discord
+                    </button>
+                    <div id="save-status"></div>
+                    <div id="discord-id-display" style="color:#2ed573; font-weight:bold; font-size:12px; margin-top:8px; display:none; text-align:center;"></div>
+                </div>
+                
+                <div id="discord-widget" class="hidden">
+                    <div class="discord-widget-inner">
+                        <div class="discord-avatar-wrapper">
+                            <img id="discord-avatar" src="" alt="Avatar">
+                            <div class="discord-status-dot"></div>
+                        </div>
+                        <div class="discord-user-info">
+                            <div class="discord-username" id="discord-username">Username</div>
+                            <div class="discord-role">Map Sniffer</div>
+                        </div>
+                        <div class="discord-actions">
+                            <div id="btn-logout-discord" class="icon-btn" title="Logout" style="color: #a4b0be;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                    <polyline points="16 17 21 12 16 7"></polyline>
+                                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE HUD TOGGLE -->
+            <div class="card toggle-card" style="margin-bottom: 15px;">
+                <div class="toggle-text">
+                    <strong id="hud-status-text">Live HUD: Enabled</strong>
+                    <span class="subtext">Auto-show on map.</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-hud" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <!-- JOIN DISCORD BUTTON -->
+            <button id="btn-discord-join" class="btn discord" style="width: 100%; margin-bottom: 15px;">
+                <img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon">
+                Join Development Discord
+            </button>
+
+            <!-- DIVIDER -->
+            <hr style="border: 0; border-top: 1px solid #2f3640; margin: 0 0 20px 0;">
+        </div>
+        
+        <!-- CURRENT GAME STATUS (Active Server Indicator) -->
+        <div id="active-server-indicator" class="card" style="margin-bottom: 15px; padding: 0; overflow: hidden; border-left: 3px solid #a4b0be;">
+            <div style="padding: 12px 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span id="active-server-name" style="font-weight: 800; font-size: 16px; color: #f1f2f6;">No Active Game</span>
+                    <div id="active-server-badge" style="width: 10px; height: 10px; border-radius: 50%; background: #a4b0be; box-shadow: 0 0 5px #a4b0be;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #a4b0be;">
+                    <span id="active-server-ign">Navigate to a supported Travian server</span>
+                    <span id="active-server-scans"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENGINE TOGGLE -->
+        <div class="card toggle-card" style="margin-bottom: 15px;">
+            <div class="toggle-text">
+                <strong id="status-text">Engine: Active</strong>
+                <span class="subtext">Map Sniffer is running.</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="toggle-engine" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+
+        <!-- TILES SCANNED -->
+        <div class="card stats">
+            <div class="stat-box">
+                <span class="stat-label">Tiles Scanned (Session)</span>
+                <span class="stat-value" id="tiles-scanned">0</span>
+            </div>
+        </div>
+        
+        <!-- SEPARATOR FOR GLOBAL EXTRACTION ANALYTICS -->
+        <hr style="border: 0; border-top: 2px dashed #2f3640; margin: 20px 0;">
+        <div style="text-align: center; margin-top: -30px; margin-bottom: 20px;">
+            <span style="background: #1e2025; padding: 0 10px; font-size: 10px; color: #a4b0be; font-weight: bold; letter-spacing: 1px;">EXTRACTION ANALYTICS</span>
+        </div>
+        
+        <div id="dynamic-content-wrapper" style="padding-bottom: 20px;">
+
+            <!-- HOME SCREEN: APP GRID -->
+            <div id="app-grid-container" class="app-grid">
+                <div class="app-icon disabled">
+                    <div class="app-icon-inner">⚔️</div>
+                    <span>TROOPS</span>
+                </div>
+                <div class="app-icon disabled">
+                    <div class="app-icon-inner">🛡️</div>
+                    <span>DEF</span>
+                </div>
+                <div class="app-icon disabled">
+                    <div class="app-icon-inner">🐎</div>
+                    <span>OFF</span>
+                </div>
+                <div class="app-icon disabled">
+                    <div class="app-icon-inner">👁️</div>
+                    <span>SCOUT</span>
+                </div>
+                <div class="app-icon disabled">
+                    <div class="app-icon-inner">🔮</div>
+                    <span>ORACLE</span>
+                </div>
+                <div class="app-icon disabled">
+                    <div class="app-icon-inner">📦</div>
+                    <span>LOGISTICS</span>
+                </div>
+                <div class="app-icon" id="app-btn-map">
+                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #2ed573, #1e90ff);">🗺️</div>
+                    <span>MAP</span>
+                </div>
+            </div>
+
+            <!-- APP PANELS WRAPPER -->
+            <div id="app-panels-wrapper">
+                
+                <!-- MAP MODULES VIEW -->
+                <div id="map-modules-container" class="app-panel hidden">
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
+                        <div id="btn-back-home" class="icon-btn hidden" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="flex-grow: 1;">MAP TERMINAL</h2>
+                        <div id="btn-refresh-map" class="icon-btn" title="Refresh Map Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- SUB NAVIGATION TABS -->
+                    <div class="map-tabs-container">
+                        <div class="map-tab-btn active" data-target="tab-intel">
+                            <span style="font-size: 16px;">🗺️</span>
+                            <span>INTEL</span>
+                        </div>
+                        <div class="map-tab-btn" data-target="tab-events">
+                            <span style="font-size: 16px;">🌍</span>
+                            <span>EVENTS</span>
+                        </div>
+                        <div class="map-tab-btn" data-target="tab-chronos">
+                            <span style="font-size: 16px;">⏳</span>
+                            <span>CHRONOS</span>
+                        </div>
+                    </div>
+
+                    <!-- TAB 1: INTELLIGENCE -->
+                    <div id="tab-intel" class="map-tab-content">
+
+                    <!-- Moved Leaderboards into Map App -->
+                    <div id="leaderboards-container">
+                        <div class="lb-header" style="margin-top:0;"><h3>🏆 TOP 10 MAP OWNERSHIP</h3></div>
+                        <div class="table-container" id="table-ownership"></div>
+                        
+                        <div class="lb-header"><h3>👁️ TOP 10 SCANNERS</h3></div>
+                        <div class="table-container" id="table-scanners"></div>
+                    </div>
+                    
+                    <div class="card" style="margin-bottom: 15px; margin-top: 15px;">
+                        <div class="lb-header" style="margin-top:0;"><h3>🌍 GLOBAL DISCOVERY STATISTICS</h3></div>
+                        <div id="map-global-stats" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                            Fetching intelligence...
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0;"><h3>🧭 GEOGRAPHIC EXPLORATION</h3></div>
+                        <div id="map-geo-stats" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                            Waiting for data...
+                        </div>
+                    </div>
+
+                    <div class="side-header" style="margin-top: 20px;">
+                        <h2>PVE ANALYZER TERMINAL</h2>
+                    </div>
+                    
+                    <div class="card" style="margin-bottom: 15px; padding: 10px;">
+                        <div id="pve-animal-grid" class="animal-grid">
+                            <div class="animal-card" data-animal="Elephant">
+                                <div class="animal-emoji">🐘</div>
+                                <div class="animal-name">Elephant</div>
+                            </div>
+                            <div class="animal-card" data-animal="Tiger">
+                                <div class="animal-emoji">🐅</div>
+                                <div class="animal-name">Tiger</div>
+                            </div>
+                            <div class="animal-card" data-animal="Bear">
+                                <div class="animal-emoji">🐻</div>
+                                <div class="animal-name">Bear</div>
+                            </div>
+                            <div class="animal-card" data-animal="Crocodile">
+                                <div class="animal-emoji">🐊</div>
+                                <div class="animal-name">Crocodile</div>
+                            </div>
+                        </div>
+                        
+                        <!-- PVE Drill Down Results -->
+                        <div id="pve-drilldown" class="hidden">
+                            <div class="drilldown-header" style="display: flex; align-items: center; border-bottom: 1px solid #2f3640; padding-bottom: 8px;">
+                                <div id="btn-pve-back" class="icon-btn" title="Back to Grid" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); margin-right: 10px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                                        <polyline points="12 19 5 12 12 5"></polyline>
+                                    </svg>
+                                </div>
+                                <h3 id="pve-drilldown-title" style="margin:0; font-size: 12px; color: #f1f2f6;"></h3>
+                            </div>
+                            <div id="pve-results" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                    </div> <!-- END TAB 1 -->
+
+                    <!-- TAB 2: WORLD EVENTS -->
+                    <div id="tab-events" class="map-tab-content hidden">
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+                                <h3 style="margin:0;">📈 TOP 11 SERVER GROWTH (24H)</h3>
+                                <div class="tooltip-container">
+                                    <span class="info-icon">ℹ️</span>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-title">Growth Tracking</div>
+                                        <div class="tooltip-row">Tracks the highest daily population gain across the entire server in the last 24 hours.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="world-events-growth" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                                Click Refresh to load data...
+                            </div>
+                        </div>
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+                                <h3 style="margin:0;">🏴‍☠️ TACTICAL CONQUESTS (>200 POP)</h3>
+                                <div class="tooltip-container">
+                                    <span class="info-icon">ℹ️</span>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-title">Conquest Tracking</div>
+                                        <div class="tooltip-row">Detects villages with >200 pop that changed ownership in the last 24 hours.</div>
+                                        <div class="tooltip-row"><span class="emoji">🏰</span> Conquest (Village changed owner)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="world-events-conquests" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                                Click Refresh to load data...
+                            </div>
+                        </div>
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+                                <h3 style="margin:0;">🔥 DESTROYED VILLAGES</h3>
+                                <div class="tooltip-container">
+                                    <span class="info-icon">ℹ️</span>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-title">Destruction Tracking</div>
+                                        <div class="tooltip-row">Detects villages with >200 pop that were completely zeroed in the last 24 hours.</div>
+                                        <div class="tooltip-row"><span class="emoji">🔥</span> Destroyed (Village was zeroed)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="world-events-destroyed" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                                Click Refresh to load data...
+                            </div>
+                        </div>
+                    </div> <!-- END TAB 2 -->
+
+                    <!-- TAB 3: CHRONOS -->
+                    <div id="tab-chronos" class="map-tab-content hidden">
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+                                <h3 style="margin:0;">📊 ALLIANCE MATRIX</h3>
+                                <div class="tooltip-container">
+                                    <span class="info-icon">ℹ️</span>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-title">Status Legend</div>
+                                        <div class="tooltip-row"><span class="emoji">💀</span> Bleeding (&lt; 0 Pop)</div>
+                                        <div class="tooltip-row"><span class="emoji">🔴</span> Inactive (0 Pop)</div>
+                                        <div class="tooltip-row"><span class="emoji">🟡</span> Stagnant (1 to 99 Pop)</div>
+                                        <div class="tooltip-row"><span class="emoji">🟢</span> Active (100+ Pop)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="font-size: 11px; color:#747d8c; margin-top:5px; margin-bottom:10px;">Track the day-by-day growth of an entire alliance.</p>
+                            <div class="chronos-form">
+                                <input type="text" id="chronos-alliance-tag" list="alliances-list" placeholder="Enter Alliance Tag (e.g. LIONS)">
+                                <datalist id="alliances-list"></datalist>
+                                <button id="btn-chronos-alliance" class="btn secondary">Scan Matrix</button>
+                            </div>
+                            <div id="chronos-alliance-results" style="margin-top:15px;"></div>
+                        </div>
+
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+                                <h3 style="margin:0;">🎯 SECTOR RADAR</h3>
+                                <div class="tooltip-container">
+                                    <span class="info-icon">ℹ️</span>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-title">Target Legend</div>
+                                        <div class="tooltip-row"><span class="emoji">🏰</span> Conquered (Changed owner)</div>
+                                        <div class="tooltip-row"><span class="emoji">🔥</span> Bleeding (&lt; 0 Pop)</div>
+                                        <div class="tooltip-row"><span class="emoji">🔴</span> Inactive (0 Pop)</div>
+                                        <div class="tooltip-row"><span class="emoji">🟡</span> Stagnant (1 to 99 Pop)</div>
+                                        <div class="tooltip-row"><span class="emoji">🌾</span> Crop Types (e.g. 9c, 15c)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="font-size: 11px; color:#747d8c; margin-top:5px; margin-bottom:10px;">Scan for vulnerable targets near a specific coordinate.</p>
+                            <div class="chronos-form">
+                                <div class="chronos-row">
+                                    <input type="text" id="chronos-radar-x" placeholder="X Coord" style="text-align: center;">
+                                    <input type="text" id="chronos-radar-y" placeholder="Y Coord" style="text-align: center;">
+                                </div>
+                                <div class="range-container" style="margin-top: 6px;">
+                                    <input type="range" id="chronos-radar-radius" class="range-slider" min="5" max="50" value="30">
+                                    <div class="range-label" style="text-align: right;"><span id="radar-radius-val" class="range-value">30</span> tiles</div>
+                                </div>
+                                <button id="btn-chronos-radar" class="btn secondary" style="background-color: #e58e26; margin-top:2px;">Scan Radar</button>
+                            </div>
+                            <div id="chronos-radar-results" style="margin-top:15px;"></div>
+                        </div>
+
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; align-items:center; justify-content:space-between;">
+                                <h3 style="margin:0;">⚔️ TACTICAL EVENTS</h3>
+                                <div class="tooltip-container">
+                                    <span class="info-icon">ℹ️</span>
+                                    <div class="tooltip-content">
+                                        <div class="tooltip-title">Event Legend</div>
+                                        <div class="tooltip-row"><span class="emoji">🏰</span> Conquest (Village changed owner)</div>
+                                        <div class="tooltip-row"><span class="emoji">🔥</span> Destroyed (Village was zeroed)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="font-size: 11px; color:#747d8c; margin-top:5px; margin-bottom:10px;">Scan sector for recent conquests & destroyed villages over the last 72 hours.</p>
+                            <div class="chronos-form">
+                                <div class="chronos-row">
+                                    <input type="text" id="chronos-events-x" placeholder="X Coord" style="text-align: center;">
+                                    <input type="text" id="chronos-events-y" placeholder="Y Coord" style="text-align: center;">
+                                </div>
+                                <div class="range-container" style="margin-top: 6px;">
+                                    <input type="range" id="chronos-events-radius" class="range-slider" min="5" max="50" value="30">
+                                    <div class="range-label" style="text-align: right;"><span id="events-radius-val" class="range-value">30</span> tiles</div>
+                                </div>
+                                <button id="btn-chronos-events" class="btn primary" style="margin-top:2px;">Scan Events</button>
+                            </div>
+                            <div id="chronos-events-results" style="margin-top:15px;"></div>
+                        </div>
+                    </div> <!-- END TAB 3 -->
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="footer" style="padding-bottom: 20px; padding-top: 20px;">
+                v<span id="version-display"></span> | NULL Legion Tool
+            </div>
+        </div>
+
+    </div>
+
+    <script src="sidepanel.js"></script>
+</body>
+</html>

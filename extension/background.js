@@ -3,13 +3,7 @@
 // Memory Cache: A Map to ensure we only store the latest state of a coordinate
 let cachedTiles = new Map();
 let sessionTilesCount = 0;
-let serversConfig = {};
-
-// Load servers.json
-fetch(chrome.runtime.getURL('servers.json'))
-    .then(response => response.json())
-    .then(data => { serversConfig = data; })
-    .catch(err => console.error("Error loading servers.json:", err));
+// We will fetch servers.json dynamically on each request to avoid service worker caching issues.
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'PROCESS_MAP_DATA') {
@@ -19,10 +13,82 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     } else if (message.type === 'VERIFY_IDENTITY') {
         runVerificationSweep(message.discordId).then(sendResponse);
         return true; // Keep message channel open for async
+    } else if (message.type === 'FETCH_GAS') {
+        fetch(chrome.runtime.getURL('servers.json'))
+            .then(response => response.json())
+            .then(serversConfig => {
+                const webhookUrl = serversConfig[message.hostname];
+                if (!webhookUrl) {
+                    console.error(`[FETCH_GAS] No webhook URL for hostname: ${message.hostname}`);
+                    sendResponse(null);
+                    return;
+                }
+                
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    credentials: 'omit',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(message.payload)
+                })
+                .then(r => r.text())
+                .then(sendResponse)
+                .catch(err => {
+                    console.error("FETCH_GAS error:", err);
+                    sendResponse(null);
+                });
+            })
+            .catch(err => {
+                console.error("Error loading servers.json:", err);
+                sendResponse(null);
+            });
+        return true; // async
     } else if (message.type === 'UPDATE_BADGE') {
         updateBadgeState();
+    } else if (message.type === 'UPDATE_ICON_COLOR') {
+        if (message.color === 'green') drawCustomBadge("#2ed573");
+        else if (message.color === 'red') drawCustomBadge("#ff4757");
+        else drawCustomBadge("#747d8c");
     }
 });
+
+// Update badge when tabs change (even if sidepanel is closed)
+chrome.tabs.onActivated.addListener(evaluateTabForBadge);
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.url) evaluateTabForBadge();
+});
+
+function evaluateTabForBadge() {
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        if (tabs && tabs[0] && tabs[0].url) {
+            try {
+                const url = new URL(tabs[0].url);
+                if (url.hostname.includes('travian.com')) {
+                    chrome.storage.local.get(['serverData', 'engineActive', 'killSwitch'], (result) => {
+                        if (result.killSwitch) {
+                            drawCustomBadge("#ff4757");
+                            return;
+                        }
+                        if (result.engineActive === false) {
+                            drawCustomBadge("#ff4757");
+                            return;
+                        }
+                        if (result.serverData && result.serverData[url.hostname]) {
+                            drawCustomBadge("#2ed573"); // Connected & Registered
+                        } else {
+                            drawCustomBadge("#ff4757"); // Connected but Unregistered
+                        }
+                    });
+                } else {
+                    drawCustomBadge("#747d8c"); // Not on Travian
+                }
+            } catch (e) {
+                drawCustomBadge("#747d8c");
+            }
+        } else {
+            drawCustomBadge("#747d8c");
+        }
+    });
+}
 
 async function drawCustomBadge(colorHex) {
     try {

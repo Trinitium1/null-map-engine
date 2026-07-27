@@ -6,6 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginBtn = document.getElementById('btn-login-discord');
     const discordIdDisplay = document.getElementById('discord-id-display');
     const saveStatus = document.getElementById('save-status');
+    const discordIdentityContainer = document.getElementById('discord-identity-container');
+    const discordWidget = document.getElementById('discord-widget');
+    const discordAvatar = document.getElementById('discord-avatar');
+    const discordUsername = document.getElementById('discord-username');
+    const btnLogoutDiscord = document.getElementById('btn-logout-discord');
+    const discordCardLabel = document.getElementById('discord-card-label');
     const toggleEngine = document.getElementById('toggle-engine');
     const statusText = document.getElementById('status-text');
     const tilesScanned = document.getElementById('tiles-scanned');
@@ -14,10 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainUi = document.getElementById('main-ui');
     const downloadBtn = document.getElementById('btn-discord');
     
+    const toggleHud = document.getElementById('toggle-hud');
+    const hudStatusText = document.getElementById('hud-status-text');
+
     // Panel Elements
     const body = document.body;
     const btnTogglePanel = document.getElementById('btn-toggle-panel');
     const sidePanel = document.getElementById('side-panel');
+    const btnToggleLeftPanel = document.getElementById('btn-toggle-left-panel');
+    const leftPanel = document.getElementById('left-panel');
+    const btnCloseLeftPanel = document.getElementById('btn-close-left-panel');
+    
     const btnRefresh = document.getElementById('btn-refresh');
     const serverListContainer = document.getElementById('server-list-container');
     const leaderboardsContainer = document.getElementById('leaderboards-container');
@@ -27,14 +40,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentServerData = {};
 
     // Load saved settings
-    chrome.storage.local.get(['discordId', 'engineActive', 'sessionTiles', 'killSwitch', 'verifiedServers', 'serverData'], (result) => {
+    chrome.storage.local.get(['discordId', 'discordUser', 'engineActive', 'hudActive', 'sessionTiles', 'killSwitch', 'verifiedServers', 'serverData'], (result) => {
         if (result.killSwitch) {
             killScreen.classList.remove('hidden');
             mainUi.classList.add('hidden');
             return;
         }
 
-        if (result.discordId) {
+        if (result.discordUser) {
+            updateDiscordWidget(result.discordUser);
+        } else if (result.discordId) {
+            // Fallback for old sessions without profile
             discordIdDisplay.textContent = `Connected ID: ${result.discordId}`;
             discordIdDisplay.style.display = "block";
             if (loginBtn) loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Reconnect Discord';
@@ -43,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (result.engineActive !== undefined) {
             toggleEngine.checked = result.engineActive;
             updateStatusText(result.engineActive);
+        }
+
+        if (result.hudActive !== undefined) {
+            toggleHud.checked = result.hudActive;
+            updateHudStatusText(result.hudActive);
         }
 
         if (result.sessionTiles !== undefined) {
@@ -55,31 +76,112 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Toggle Side Panel
+    function updateBodyWidth(rightVisible) {
+        let w = 320;
+        if (rightVisible) w += 320;
+        body.style.width = w + 'px';
+    }
+
+    let leftOpen = false;
+    let rightOpen = false;
+
+    // Toggle Right Panel
     btnTogglePanel.addEventListener('click', () => {
-        body.classList.toggle('expanded');
-        if (body.classList.contains('expanded')) {
+        if (!rightOpen) {
             sidePanel.classList.remove('hidden');
+            rightOpen = true;
             btnTogglePanel.textContent = "❮";
+            updateBodyWidth(rightOpen);
         } else {
-            setTimeout(() => sidePanel.classList.add('hidden'), 300);
+            rightOpen = false;
             btnTogglePanel.textContent = "❯";
+            updateBodyWidth(rightOpen);
+            setTimeout(() => sidePanel.classList.add('hidden'), 300);
         }
     });
 
-    const btnPipHud = document.getElementById('btn-pip-hud');
-    if (btnPipHud) {
-        btnPipHud.addEventListener('click', () => {
+    // Toggle Left Panel
+    btnToggleLeftPanel.addEventListener('click', () => {
+        if (!leftOpen) {
+            leftPanel.classList.add('open');
+            leftOpen = true;
+        } else {
+            leftPanel.classList.remove('open');
+            leftOpen = false;
+        }
+    });
+
+    const btnOpenSidepanel = document.getElementById('btn-open-sidepanel');
+    if (btnOpenSidepanel) {
+        btnOpenSidepanel.addEventListener('click', () => {
+            chrome.windows.getCurrent((currentWindow) => {
+                chrome.sidePanel.open({ windowId: currentWindow.id });
+                window.close(); // Close the popup after opening the side panel
+            });
+        });
+    }
+
+    btnCloseLeftPanel.addEventListener('click', () => {
+        if (leftOpen) {
+            leftPanel.classList.remove('open');
+            leftOpen = false;
+        }
+    });
+
+    // HUD Toggle
+    if (toggleHud) {
+        toggleHud.addEventListener('change', (e) => {
+            const isActive = e.target.checked;
+            chrome.storage.local.set({ hudActive: isActive });
+            updateHudStatusText(isActive);
+
+            // Send message to active tab to show/hide immediately if on map
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
                 if (tabs && tabs[0]) {
-                    chrome.tabs.sendMessage(tabs[0].id, { type: 'TOGGLE_HUD' })
-                        .then(() => {
-                            window.close();
-                        })
-                        .catch((err) => {
-                            alert("⚠️ The HUD can only be opened while you are inside the Map page (karte.php). Please open the map and try again.");
-                        });
+                    chrome.tabs.sendMessage(tabs[0].id, { type: isActive ? 'SHOW_HUD' : 'HIDE_HUD' }).catch(() => {});
                 }
+            });
+        });
+    }
+
+    function updateHudStatusText(isActive) {
+        if (isActive) {
+            hudStatusText.textContent = "Live HUD: Enabled";
+            hudStatusText.style.color = "#2ed573";
+        } else {
+            hudStatusText.textContent = "Live HUD: Disabled";
+            hudStatusText.style.color = "#ff4757";
+        }
+    }
+
+    function updateDiscordWidget(user) {
+        discordIdentityContainer.classList.add('hidden');
+        discordIdDisplay.style.display = 'none';
+        discordCardLabel.style.display = 'none';
+        discordWidget.classList.remove('hidden');
+        
+        discordUsername.textContent = user.username;
+        if (user.avatar) {
+            discordAvatar.src = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+        } else {
+            discordAvatar.src = `https://cdn.discordapp.com/embed/avatars/${parseInt(user.id) % 5}.png`;
+        }
+    }
+
+    if (btnLogoutDiscord) {
+        btnLogoutDiscord.addEventListener('click', () => {
+            chrome.storage.local.remove(['discordId', 'discordUser', 'serverData', 'verifiedServers'], () => {
+                discordWidget.classList.add('hidden');
+                discordCardLabel.style.display = 'block';
+                discordIdentityContainer.classList.remove('hidden');
+                saveStatus.textContent = "Disconnected.";
+                loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Connect with Discord';
+                
+                // Clear all game interface
+                currentServerData = {};
+                renderServerList();
+                tableOwnership.innerHTML = '';
+                tableScanners.innerHTML = '';
             });
         });
     }
@@ -121,10 +223,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     .then(user => {
                         if (user.id) {
                             saveStatus.textContent = "Verifying across servers...";
-                            discordIdDisplay.textContent = `Connected as: ${user.username} (${user.id})`;
-                            discordIdDisplay.style.display = "block";
-                            loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Reconnect Discord';
-                            chrome.storage.local.set({ discordId: user.id }, () => {
+                            
+                            const userObj = {
+                                id: user.id,
+                                username: user.username,
+                                avatar: user.avatar
+                            };
+
+                            chrome.storage.local.set({ discordId: user.id, discordUser: userObj }, () => {
+                                updateDiscordWidget(userObj);
                                 triggerVerificationSweep(user.id);
                             });
                         }

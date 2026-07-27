@@ -9,6 +9,19 @@ script.onload = function() {
 };
 (document.head || document.documentElement).appendChild(script);
 
+// Auto-inject HUD based on settings on load
+chrome.storage.local.get(['hudActive', 'killSwitch'], (result) => {
+    if (!result.killSwitch && result.hudActive !== false) {
+        // hudActive defaults to true or undefined, so if it's not explicitly false, show it.
+        // wait for DOM to be ready and add slight delay for game engine
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => setTimeout(createHUD, 500));
+        } else {
+            setTimeout(createHUD, 500);
+        }
+    }
+});
+
 // Listen for messages from the injected script (interceptor.js)
 window.addEventListener('message', function(event) {
     if (event.source !== window || !event.data.type) {
@@ -45,13 +58,14 @@ window.addEventListener('beforeunload', () => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === 'TOGGLE_HUD') {
+    if (message.type === 'SHOW_HUD') {
         let hud = document.getElementById('null-map-hud');
-        if (hud) {
-            hud.remove();
-        } else {
-            createHUD();
-        }
+        if (!hud) createHUD();
+        sendResponse({status: "ok"});
+    }
+    if (message.type === 'HIDE_HUD') {
+        let hud = document.getElementById('null-map-hud');
+        if (hud) hud.remove();
         sendResponse({status: "ok"});
     }
     if (message.action === 'updateTiles') {

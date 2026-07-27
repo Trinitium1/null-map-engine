@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "NULL Map Engine",
-  "version": "1.0",
+  "version": "1.2",
   "description": "Passive Map Sniffer for NULL System Gamification",
   "permissions": [
     "storage",
     "activeTab",
-    "identity"
+    "identity",
+    "sidePanel"
   ],
   "host_permissions": [
     "*://*.travian.com/*",
@@ -14,6 +15,9 @@
     "https://script.google.com/*",
     "https://script.googleusercontent.com/*"
   ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
   "background": {
     "service_worker": "background.js"
   },
