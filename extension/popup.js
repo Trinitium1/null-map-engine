@@ -3,8 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const manifest = chrome.runtime.getManifest();
     versionDisplay.textContent = manifest.version;
 
-    const discordInput = document.getElementById('discordId');
-    const saveBtn = document.getElementById('btn-save');
+    const loginBtn = document.getElementById('btn-login-discord');
+    const discordIdDisplay = document.getElementById('discord-id-display');
     const saveStatus = document.getElementById('save-status');
     const toggleEngine = document.getElementById('toggle-engine');
     const statusText = document.getElementById('status-text');
@@ -35,7 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (result.discordId) {
-            discordInput.value = result.discordId;
+            discordIdDisplay.textContent = `Connected ID: ${result.discordId}`;
+            discordIdDisplay.style.display = "block";
+            if (loginBtn) loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Reconnect Discord';
         }
         
         if (result.engineActive !== undefined) {
@@ -82,20 +84,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    saveBtn.addEventListener('click', () => {
-        const id = discordInput.value.trim();
-        saveStatus.textContent = "Verifying across servers...";
-        chrome.storage.local.set({ discordId: id }, () => {
-            triggerVerificationSweep(id);
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            saveStatus.textContent = "Waiting for Discord login...";
+            
+            // Cliente ID de Discord proporcionado
+            const clientId = '1472751920627323081'; 
+            const redirectUri = chrome.identity.getRedirectURL();
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=identify`;
+
+            chrome.identity.launchWebAuthFlow({
+                url: authUrl,
+                interactive: true
+            }, (redirectURL) => {
+                if (chrome.runtime.lastError || !redirectURL) {
+                    console.error(chrome.runtime.lastError);
+                    saveStatus.textContent = "Login cancelled or failed.";
+                    console.log("Make sure to add this Redirect URI to Discord Developer Portal:", redirectUri);
+                    return;
+                }
+
+                // Extract access token
+                const url = new URL(redirectURL);
+                const hash = url.hash.substring(1);
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+
+                if (accessToken) {
+                    saveStatus.textContent = "Fetching Discord profile...";
+                    fetch('https://discord.com/api/v10/users/@me', {
+                        headers: {
+                            'Authorization': `Bearer ${accessToken}`
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(user => {
+                        if (user.id) {
+                            saveStatus.textContent = "Verifying across servers...";
+                            discordIdDisplay.textContent = `Connected as: ${user.username} (${user.id})`;
+                            discordIdDisplay.style.display = "block";
+                            loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Reconnect Discord';
+                            chrome.storage.local.set({ discordId: user.id }, () => {
+                                triggerVerificationSweep(user.id);
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        saveStatus.textContent = "Failed to fetch user data.";
+                    });
+                } else {
+                    saveStatus.textContent = "Authentication failed (no token).";
+                }
+            });
         });
-    });
+    }
     
     btnRefresh.addEventListener('click', () => {
-        const id = discordInput.value.trim();
-        if (id) {
-            serverListContainer.innerHTML = "<p style='color:#a4b0be; font-size:11px;'>Refreshing status...</p>";
-            triggerVerificationSweep(id);
-        }
+        chrome.storage.local.get(['discordId'], (result) => {
+            const id = result.discordId;
+            if (id) {
+                serverListContainer.innerHTML = "<p style='color:#a4b0be; font-size:11px;'>Refreshing status...</p>";
+                triggerVerificationSweep(id);
+            }
+        });
     });
 
     function triggerVerificationSweep(discordId) {

@@ -23,3 +23,5 @@
 - **Background Service Worker:** Engineered an asynchronous queue that caches map packets locally to preserve browser memory and prevent server API rate limits.
 - **Server Verification System:** Automated Discord ID linking. Validates the operative's identity against the Master Engine `DB_Members` database.
 - **Live Leaderboard UI:** Integrated a dynamic extension popup that displays the Top 10 Scanners and Top 10 Map Ownership directly from the server in real-time.
+
+Privacy Policy for NULL Map Engine The NULL Map Engine extension collects Discord User IDs for authentication purposes and reads map data from travian.com to provide tactical analytics for the user's alliance. We do not collect passwords. We do not sell, rent, or share any personal information with third parties. All data is sent securely to a private Google Apps Script database solely for the stated purpose of the extension.

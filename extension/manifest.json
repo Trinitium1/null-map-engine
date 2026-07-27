@@ -5,7 +5,8 @@
   "description": "Passive Map Sniffer for NULL System Gamification",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "identity"
   ],
   "host_permissions": [
     "*://*.travian.com/*",

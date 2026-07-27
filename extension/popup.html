@@ -61,10 +61,16 @@
         </div>
         
         <div class="card" style="margin-bottom: 15px;">
-            <label for="discordId">Discord ID (Required)</label>
-            <input type="text" id="discordId" placeholder="e.g. 1529702888278855688">
-            <button id="btn-save" class="btn secondary">Save Identity</button>
+            <label>Discord Identity</label>
+            <div id="discord-identity-container">
+                <button id="btn-login-discord" class="btn discord">
+                    <img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon">
+                    Connect with Discord
+                </button>
+            </div>
             <div id="save-status"></div>
+            <!-- Hidden input just to store ID visually if needed, or we just display text -->
+            <div id="discord-id-display" style="color:#2ed573; font-weight:bold; font-size:12px; margin-top:8px; display:none; text-align:center;"></div>
         </div>
         
         <div id="server-list-container">
