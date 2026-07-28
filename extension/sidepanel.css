@@ -815,8 +815,8 @@ input:checked+.slider:before {
 .range-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: #eccc68;
     cursor: pointer;
@@ -837,5 +837,89 @@ input:checked+.slider:before {
     font-weight: bold;
     min-width: 30px;
     text-align: right;
-    font-size: 14px;
+}
+
+/* Premium PvP Grid Layout */
+.pvp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.pvp-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+.pvp-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(112, 161, 255, 0.1) 0%, rgba(55, 66, 250, 0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+}
+.pvp-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(112, 161, 255, 0.4);
+    box-shadow: 0 6px 12px rgba(112, 161, 255, 0.15);
+}
+.pvp-card:hover::before {
+    opacity: 1;
+}
+.pvp-card:active {
+    transform: translateY(1px);
+}
+.pvp-card-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+    z-index: 2;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.pvp-card:hover .pvp-card-icon {
+    transform: scale(1.15) translateY(-2px);
+}
+.pvp-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #dfe4ea;
+    z-index: 2;
+}
+.pvp-card.full-width {
+    grid-column: span 2;
+    padding: 14px 10px;
+    background: rgba(46, 213, 115, 0.05);
+    border-color: rgba(46, 213, 115, 0.1);
+}
+.pvp-card.full-width::before {
+    background: linear-gradient(135deg, rgba(46, 213, 115, 0.15) 0%, rgba(32, 191, 107, 0.05) 100%);
+}
+.pvp-card.full-width:hover {
+    border-color: rgba(46, 213, 115, 0.4);
+    box-shadow: 0 6px 12px rgba(46, 213, 115, 0.15);
+}
+.pvp-card.history-card {
+    background: rgba(55, 66, 250, 0.1);
+    border-color: rgba(55, 66, 250, 0.2);
+}
+.pvp-card.history-card::before {
+    background: linear-gradient(135deg, rgba(83, 82, 237, 0.2) 0%, rgba(55, 66, 250, 0.1) 100%);
+}
+.pvp-card.history-card:hover {
+    border-color: rgba(83, 82, 237, 0.5);
+    box-shadow: 0 6px 12px rgba(55, 66, 250, 0.25);
 }

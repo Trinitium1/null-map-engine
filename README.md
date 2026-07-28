@@ -1,6 +1,23 @@
 # NULL Map Engine - Version Logs
 
-## 🚀 V1.2 (Current Release)
+## 🚀 V1.3 (Current Release)
+*Deploy Date: July 2026*
+
+**🗺️ Tactical Map Overhaul**
+- **Unified Visuals**: The extension's map has been completely redesigned to look exactly like the tactical maps you see on Discord.
+- **Dynamic Identification**: Friendly alliances are now easily identifiable in cyan, while enemies and specific targets are assigned their unique colors automatically.
+
+**🎨 Aesthetic Upgrades**
+- **Premium Dark Mode**: The map now features a sleek dark background (`#16171a`) that matches the Discord theme, along with a fainter tactical grid for less visual clutter.
+- **Null Watermark**: All exported maps now include the official NULL watermark, giving your screenshots a professional tactical finish.
+
+**🛡️ Stability & Bug Fixes**
+- **Gallery Fix**: Fixed a bug that prevented the image gallery (Lightbox) from opening when clicking on a generated map. You can now expand and view your maps flawlessly.
+- **Loading Improvements**: Resolved an issue where maps would occasionally fail to render their final elements.
+
+---
+
+### V1.2
 *Deploy Date: July 2026*
 
 **⚙️ Chronos System Evolution**

@@ -1,5 +1,9 @@
 // background.js
 
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.local.set({ killSwitch: false });
+});
+
 // Memory Cache: A Map to ensure we only store the latest state of a coordinate
 let cachedTiles = new Map();
 let sessionTilesCount = 0;
@@ -146,6 +150,15 @@ async function runVerificationSweep(discordId) {
     let verifiedServers = {};
     let serverData = {};
     const version = chrome.runtime.getManifest().version;
+
+    let serversConfig;
+    try {
+        const res = await fetch(chrome.runtime.getURL('servers.json'));
+        serversConfig = await res.json();
+    } catch (e) {
+        console.error("Failed to fetch servers.json in runVerificationSweep", e);
+        return { verifiedServers: {}, serverData: {} };
+    }
 
     for (const [hostname, webhookUrl] of Object.entries(serversConfig)) {
         try {
@@ -316,52 +329,64 @@ function flushCache(hostname) {
     // Clear cache immediately so we don't double-send if flush is triggered multiple times
     cachedTiles.clear();
 
-    const webhookUrl = serversConfig[hostname];
-    if (!webhookUrl) {
-        console.warn(`[NULL Map Engine] Unsupported server: ${hostname}`);
-        return;
-    }
-
-    chrome.storage.local.get(['discordId', 'killSwitch'], (result) => {
-        if (result.killSwitch) return;
-        const discordId = result.discordId || "Unknown";
-
-        // Inject discordId and extension version into payload
-        const version = chrome.runtime.getManifest().version;
-        const enrichedPayload = payloadArray.map(tile => {
-            tile.discordId = discordId;
-            tile.extVersion = version;
-            return tile;
-        });
-
-        fetch(webhookUrl, {
-            method: 'POST',
-            credentials: 'omit',
-            // Allow CORS so we can read the version check from the server response
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Avoid preflight by using text/plain
-            body: JSON.stringify(enrichedPayload)
-        })
-        .then(response => response.text())
-        .then(rawText => {
-            try {
-                const data = JSON.parse(rawText);
-                if (data.status === "KILL") {
-                    chrome.storage.local.set({ killSwitch: true });
-                    chrome.runtime.sendMessage({ action: "killSwitchTriggered" }).catch(() => {});
-                } else if (data.status && data.status.toLowerCase() === "ok") {
-                    // Update leaderboards automatically after sending new map data!
-                    runVerificationSweep(discordId).then((result) => {
-                        if (result && result.serverData) {
-                            chrome.runtime.sendMessage({ action: "refreshLeaderboards", serverData: result.serverData }).catch(() => {});
-                        }
-                    });
-                }
-            } catch (jsonErr) {
-                console.error(`Flush failed for ${hostname}: Expected JSON but got:`, rawText.substring(0, 100));
+    fetch(chrome.runtime.getURL('servers.json'))
+        .then(response => response.json())
+        .then(serversConfig => {
+            const webhookUrl = serversConfig[hostname];
+            if (!webhookUrl) {
+                console.warn(`[NULL Map Engine] Unsupported server: ${hostname}`);
+                return;
             }
+
+            chrome.storage.local.get(['discordId', 'killSwitch'], (result) => {
+                if (result.killSwitch) return;
+                const discordId = result.discordId || "Unknown";
+
+                // Inject discordId and extension version into payload
+                const version = chrome.runtime.getManifest().version;
+                const enrichedPayload = payloadArray.map(tile => {
+                    tile.discordId = discordId;
+                    tile.extVersion = version;
+                    return tile;
+                });
+
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    credentials: 'omit',
+                    // Allow CORS so we can read the version check from the server response
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Avoid preflight by using text/plain
+                    body: JSON.stringify(enrichedPayload)
+                })
+                .then(response => response.text())
+                .then(rawText => {
+                    try {
+                        const data = JSON.parse(rawText);
+                        if (data.status === "KILL") {
+                            chrome.storage.local.set({ killSwitch: true });
+                            chrome.runtime.sendMessage({ action: "killSwitchTriggered" }).catch(() => {});
+                        } else if (data.status === "UNREGISTERED") {
+                            console.warn("Unregistered discord ID mapping for: ", discordId);
+                        } else if (data.status && data.status.toLowerCase() === "ok") {
+                            console.log(`[NULL Map Engine] Flushed successfully. Status: ${data.status}`);
+                            // Update leaderboards automatically after sending new map data!
+                            runVerificationSweep(discordId).then((result) => {
+                                if (result && result.serverData) {
+                                    chrome.runtime.sendMessage({ action: "refreshLeaderboards", serverData: result.serverData }).catch(() => {});
+                                }
+                            });
+                        } else {
+                            console.log(`[NULL Map Engine] Flushed with unknown status: ${data.status}`);
+                        }
+                    } catch (jsonErr) {
+                        console.error(`Flush failed for ${hostname}: Expected JSON but got:`, rawText.substring(0, 100));
+                    }
         })
         .catch(err => console.error("Error sending to GAS:", err));
     });
+})
+.catch(err => {
+    console.error("[NULL Map Engine] Failed to load servers.json", err);
+});
 }
 
 // --- Helper Extractors ---
