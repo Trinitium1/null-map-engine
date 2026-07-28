@@ -1,3 +1,57 @@
+// --- DEBUG CONSOLE HOOK ---
+(function() {
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+    
+    function logToUI(msg, type) {
+        const consoleLogs = document.getElementById('debug-console-logs');
+        if (consoleLogs) {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4757' : (type === 'warn' ? '#ffa502' : '#a4b0be');
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            div.style.paddingBottom = '4px';
+            div.style.marginBottom = '4px';
+            div.textContent = `[${time}] ${msg}`;
+            consoleLogs.appendChild(div);
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+    }
+
+    console.log = function(...args) {
+        originalLog.apply(console, args);
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'info');
+    };
+    
+    console.error = function(...args) {
+        originalError.apply(console, args);
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error');
+    };
+    
+    console.warn = function(...args) {
+        originalWarn.apply(console, args);
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn');
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const btnConsole = document.getElementById('btn-debug-console');
+        const consoleModal = document.getElementById('debug-console-modal');
+        const btnCloseConsole = document.getElementById('btn-close-console');
+        const btnClearConsole = document.getElementById('btn-clear-console');
+
+        if (btnConsole && consoleModal) {
+            btnConsole.addEventListener('click', () => consoleModal.classList.remove('hidden'));
+            btnCloseConsole.addEventListener('click', () => consoleModal.classList.add('hidden'));
+            btnClearConsole.addEventListener('click', () => {
+                const logs = document.getElementById('debug-console-logs');
+                if (logs) logs.innerHTML = '';
+            });
+        }
+    });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');
     const manifest = chrome.runtime.getManifest();
@@ -25,17 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Panel Elements
     const body = document.body;
-    const btnTogglePanel = document.getElementById('btn-toggle-panel');
-    const sidePanel = document.getElementById('side-panel');
     const btnToggleLeftPanel = document.getElementById('btn-toggle-left-panel');
     const leftPanel = document.getElementById('left-panel');
     const btnCloseLeftPanel = document.getElementById('btn-close-left-panel');
-    
-    const btnRefresh = document.getElementById('btn-refresh');
-    const serverListContainer = document.getElementById('server-list-container');
-    const leaderboardsContainer = document.getElementById('leaderboards-container');
-    const tableOwnership = document.getElementById('table-ownership');
-    const tableScanners = document.getElementById('table-scanners');
 
     let currentServerData = {};
 
@@ -72,33 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (result.serverData) {
             currentServerData = result.serverData;
-            renderServerList();
+            updateActiveGameStatus();
         }
     });
-
-    function updateBodyWidth(rightVisible) {
-        let w = 320;
-        if (rightVisible) w += 320;
-        body.style.width = w + 'px';
-    }
 
     let leftOpen = false;
-    let rightOpen = false;
-
-    // Toggle Right Panel
-    btnTogglePanel.addEventListener('click', () => {
-        if (!rightOpen) {
-            sidePanel.classList.remove('hidden');
-            rightOpen = true;
-            btnTogglePanel.textContent = "❮";
-            updateBodyWidth(rightOpen);
-        } else {
-            rightOpen = false;
-            btnTogglePanel.textContent = "❯";
-            updateBodyWidth(rightOpen);
-            setTimeout(() => sidePanel.classList.add('hidden'), 300);
-        }
-    });
 
     // Toggle Left Panel
     btnToggleLeftPanel.addEventListener('click', () => {
@@ -246,15 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    btnRefresh.addEventListener('click', () => {
-        chrome.storage.local.get(['discordId'], (result) => {
-            const id = result.discordId;
-            if (id) {
-                serverListContainer.innerHTML = "<p style='color:#a4b0be; font-size:11px;'>Refreshing status...</p>";
-                triggerVerificationSweep(id);
-            }
-        });
-    });
 
     function triggerVerificationSweep(discordId) {
         chrome.runtime.sendMessage({ type: 'VERIFY_IDENTITY', discordId: discordId }, (response) => {
@@ -265,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (response && response.serverData) {
                 currentServerData = response.serverData;
-                renderServerList();
+                updateActiveGameStatus();
                 
                 const verifiedCount = Object.keys(currentServerData).length;
                 if (verifiedCount > 0) {
@@ -279,94 +294,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderServerList() {
-        serverListContainer.innerHTML = "";
-        leaderboardsContainer.classList.add('hidden');
-        
-        const hostnames = Object.keys(currentServerData);
-        if (hostnames.length === 0) {
-            serverListContainer.innerHTML = "<p style='color:#ff4757; font-size:11px;'>Not verified on any server.</p>";
-            return;
-        }
-
-        hostnames.forEach((hostname, index) => {
-            const data = currentServerData[hostname];
-            const div = document.createElement('div');
-            div.className = "server-item" + (index === 0 ? " active" : "");
-            
-            // Format hostname like cw.x2 or ts1.x1
-            const shortName = hostname.split('.international.travian.com')[0].toUpperCase();
-            
-            let discordLinkHtml = "";
-            // We can map server hostnames to their Discord invite links
-            if (hostname.includes("cw.x2")) {
-                discordLinkHtml = `<a href="https://discord.gg/SZAYSmZdCs" target="_blank" title="Join Server Discord" class="server-discord-link"><img src="assets/DiscordIcon.png" alt="Discord" class="server-discord-icon"></a>`;
-            }
-
-            div.innerHTML = `
-                <div class="server-name-container">
-                    <div class="server-name">${shortName}</div>
-                    ${discordLinkHtml}
-                </div>
-                <div class="server-status">
-                    <span>${data.ign}</span>
-                    <span><strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans</span>
-                </div>
-            `;
-            
-            div.addEventListener('click', () => {
-                document.querySelectorAll('.server-item').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                renderLeaderboards(hostname, data);
-            });
-            
-            serverListContainer.appendChild(div);
-            
-            if (index === 0) {
-                renderLeaderboards(hostname, data);
-            }
-        });
-        
-        updateActiveGameStatus();
-    }
-    
-    function renderLeaderboards(hostname, data) {
-        leaderboardsContainer.classList.remove('hidden');
-        
-        // Ownership
-        tableOwnership.innerHTML = "";
-        if (data.topOwnership && data.topOwnership.length > 0) {
-            data.topOwnership.forEach((p, idx) => {
-                const url = p.uid ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
-                const row = document.createElement('div');
-                row.className = "table-row" + (p.ign === data.ign ? " highlight" : "");
-                row.innerHTML = `
-                    <span>${idx+1}. <a href="${url}" target="_blank">${p.ign}</a></span>
-                    <span class="table-count">${p.count.toLocaleString()}</span>
-                `;
-                tableOwnership.appendChild(row);
-            });
-        } else {
-            tableOwnership.innerHTML = "<div class='table-row'>No data yet.</div>";
-        }
-        
-        // Scanners
-        tableScanners.innerHTML = "";
-        if (data.topScanners && data.topScanners.length > 0) {
-            data.topScanners.forEach((p, idx) => {
-                const url = p.uid ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
-                const row = document.createElement('div');
-                row.className = "table-row" + (p.ign === data.ign ? " highlight" : "");
-                row.innerHTML = `
-                    <span>${idx+1}. <a href="${url}" target="_blank">${p.ign}</a></span>
-                    <span class="table-count">${p.count.toLocaleString()}</span>
-                `;
-                tableScanners.appendChild(row);
-            });
-        } else {
-            tableScanners.innerHTML = "<div class='table-row'>No data yet.</div>";
-        }
-    }
 
     toggleEngine.addEventListener('change', (e) => {
         const isActive = e.target.checked;
@@ -431,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (message.action === "refreshLeaderboards" && message.serverData) {
             currentServerData = message.serverData;
-            renderServerList(); // This re-renders everything including leaderboards!
+            updateActiveGameStatus();
         }
     });
 });

@@ -1,6 +1,24 @@
 # NULL Map Engine - Version Logs
 
-## 🚀 V1.3 (Current Release)
+## 🚀 WebStoreRelease V1.4 (Current Release)
+*Deploy Date: July 2026*
+
+**📊 Alliance Matrix Upgrades**
+- **Table Redesign**: The Matrix now looks and feels like a real table, with clean cell borders making reading rows and columns a breeze.
+- **Smart Filtering**: Added an interactive filter menu on the `Player` column. You can now search by name, check/uncheck specific players, and perfectly customize your view!
+- **Accurate Sorting**: The table now automatically sorts players from highest to lowest based on their **Total** growth across the whole timeframe, not just the last day.
+
+**🐘 PvE Animal Analytics**
+- **Exact Defense Values**: The math for calculating the Defense from cages is now hyper-accurate! The engine detects the exact mix of creatures you capture (e.g., catching bears and tigers before reaching your target elephants) and calculates the *real* total Defense gained.
+- **Clean UI Icons**: Added visual icons (🪖 for Infantry, 🐎 for Cavalry) to make it easier to read at a glance, along with better number formatting.
+
+**🎨 Dashboard Aesthetics & Bug Fixes**
+- **Neon Dashboard Button**: The extension popup now features a premium glowing Dashboard button, and the old sidebar has been removed for a cleaner experience.
+- **Crop Finder Fix**: Fixed a bug where certain 15-croppers (like Rubidia IV) were incorrectly labeled as 6c. The engine mapping logic is now 100% accurate regardless of the database row order.
+
+---
+
+## 🗺️ V1.3
 *Deploy Date: July 2026*
 
 **🗺️ Tactical Map Overhaul**

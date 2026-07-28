@@ -329,6 +329,40 @@ input:checked+.slider:before {
     background: rgba(255, 255, 255, 0.1);
 }
 
+.ser.version-badge {
+    background: #ff4757;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* Flashy Button for Side Panel */
+.flashy-btn {
+    background: linear-gradient(45deg, #ff4757, #ff6b81);
+    border: 1px solid #ff4757;
+    color: white !important;
+    border-radius: 8px;
+    animation: pulseGlow 2s infinite;
+    padding: 4px 10px;
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.flashy-btn:hover {
+    background: linear-gradient(45deg, #ff6b81, #ff4757);
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(255, 71, 87, 0.4); }
+    50% { box-shadow: 0 0 15px rgba(255, 71, 87, 0.8), 0 0 25px rgba(255, 107, 129, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(255, 71, 87, 0.4); }
+}
+
 .server-item {
     background: #2f3542;
     padding: 10px;

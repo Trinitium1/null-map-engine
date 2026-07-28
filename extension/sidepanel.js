@@ -1,3 +1,57 @@
+// --- DEBUG CONSOLE HOOK ---
+(function() {
+    const originalLog = console.log;
+    const originalError = console.error;
+    const originalWarn = console.warn;
+    
+    function logToUI(msg, type) {
+        const consoleLogs = document.getElementById('debug-console-logs');
+        if (consoleLogs) {
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4757' : (type === 'warn' ? '#ffa502' : '#a4b0be');
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            div.style.paddingBottom = '4px';
+            div.style.marginBottom = '4px';
+            div.textContent = `[${time}] ${msg}`;
+            consoleLogs.appendChild(div);
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+    }
+
+    console.log = function(...args) {
+        originalLog.apply(console, args);
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'info');
+    };
+    
+    console.error = function(...args) {
+        originalError.apply(console, args);
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error');
+    };
+    
+    console.warn = function(...args) {
+        originalWarn.apply(console, args);
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn');
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const btnConsole = document.getElementById('btn-debug-console');
+        const consoleModal = document.getElementById('debug-console-modal');
+        const btnCloseConsole = document.getElementById('btn-close-console');
+        const btnClearConsole = document.getElementById('btn-clear-console');
+
+        if (btnConsole && consoleModal) {
+            btnConsole.addEventListener('click', () => consoleModal.classList.remove('hidden'));
+            btnCloseConsole.addEventListener('click', () => consoleModal.classList.add('hidden'));
+            btnClearConsole.addEventListener('click', () => {
+                const logs = document.getElementById('debug-console-logs');
+                if (logs) logs.innerHTML = '';
+            });
+        }
+    });
+})();
+
 document.addEventListener('DOMContentLoaded', () => {
     const versionDisplay = document.getElementById('version-display');
     const manifest = chrome.runtime.getManifest();
@@ -623,17 +677,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         let html = '';
+        
+        const ANIMAL_STATS = {
+            "Rat": { inf: 25, cav: 20 },
+            "Spider": { inf: 35, cav: 40 },
+            "Snake": { inf: 40, cav: 60 },
+            "Bat": { inf: 66, cav: 50 },
+            "Wild Boar": { inf: 70, cav: 33 },
+            "Wolf": { inf: 80, cav: 70 },
+            "Bear": { inf: 140, cav: 200 },
+            "Crocodile": { inf: 380, cav: 240 },
+            "Tiger": { inf: 170, cav: 250 },
+            "Elephant": { inf: 440, cav: 520 }
+        };
+        
         filtered.forEach((r, idx) => {
             let emoji = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : "📍"));
             let emojiMap = { "Elephant": "🐘", "Tiger": "🐅", "Bear": "🐻", "Crocodile": "🐊" };
             let animalEmoji = emojiMap[animalName] || "";
-            let displayTargetCount = (r.targetCount !== undefined && r.targetCount !== null) ? r.targetCount : "?";
-            let displayCages = (r.cagesNeeded !== undefined && r.cagesNeeded !== null) ? r.cagesNeeded : "?";
+            let displayTargetCount = (r.targetCount !== undefined && r.targetCount !== null) ? r.targetCount : 0;
+            let displayCages = (r.cagesNeeded !== undefined && r.cagesNeeded !== null) ? r.cagesNeeded : 0;
+            
+            let totalInf = 0;
+            let totalCav = 0;
+            if (r.captured) {
+                for (let aName in r.captured) {
+                    let capCount = r.captured[aName];
+                    let st = ANIMAL_STATS[aName];
+                    if (st) {
+                        totalInf += st.inf * capCount;
+                        totalCav += st.cav * capCount;
+                    }
+                }
+            } else {
+                // Fallback for old cache or missing data
+                const stats = ANIMAL_STATS[animalName] || { inf: 0, cav: 0 };
+                totalInf = displayTargetCount * stats.inf;
+                totalCav = displayTargetCount * stats.cav;
+            }
+            
+            let totalCombined = totalInf + totalCav;
+            let avgDefPerCage = displayCages > 0 ? Math.round(totalCombined / displayCages) : 0;
             
             html += `<div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background: rgba(47, 54, 64, 0.4); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
                 <div style="line-height:1.4;">
                     <b style="color:#f1f2f6;">${emoji} Oasis (${r.x}|${r.y})</b><br>
-                    <span style="font-size:11px; color:#2ed573;">🎯 ${displayTargetCount} ${animalEmoji} | 📦 ${displayCages} Cages</span>
+                    <span style="font-size:11px; color:#2ed573;">🎯 ${displayTargetCount} ${animalEmoji} | 📦 ${displayCages} Cages</span><br>
+                    <span style="font-size:10px; color:#a4b0be;">🪖 +${totalInf.toLocaleString()} Inf / 🐎 +${totalCav.toLocaleString()} Cav (Avg: ${avgDefPerCage.toLocaleString()}/cage)</span>
                 </div>
                 <div>
                     <a href="https://${host}/karte.php?x=${r.x}&y=${r.y}" target="_blank" class="btn" style="padding:6px 12px; font-size:11px; text-decoration:none; background: #5865F2; color: #fff; border-radius: 4px;">View Map</a>
@@ -846,48 +936,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderChronosAlliance(data, hostname) {
         const elResults = document.getElementById('chronos-alliance-results');
-        let html = `<div style="font-size:12px; margin-bottom:10px; color:#2ed573;">Found <b>${data.players.length}</b> players for [${data.tag.toUpperCase()}]</div>`;
         
-        let colsHtml = "";
-        data.headers.forEach(h => colsHtml += `<th>${h}</th>`);
+        let headers = [
+            { id: 'ign', label: 'Player', filterable: true }
+        ];
+        data.headers.forEach((h, idx) => {
+            headers.push({ id: `day_${idx}`, label: h, filterable: false });
+        });
+        headers.push({ id: 'total', label: 'Total', filterable: false });
+        
+        let formattedData = data.players.map(p => {
+            let row = { ign: p.ign, uid: p.uid };
+            let totalDiff = 0;
+            p.history.forEach((d, idx) => {
+                row[`day_${idx}`] = d;
+                totalDiff += d;
+            });
+            row.total = totalDiff;
+            return row;
+        });
+        
+        // Sort by total descending
+        formattedData.sort((a, b) => b.total - a.total);
 
-        html += `<div class="matrix-grid-container">
-            <table class="matrix-table">
-                <thead>
-                    <tr>
-                        <th>Player</th>
-                        ${colsHtml}
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        data.players.forEach(p => {
+        // Add a container for TableFilter
+        elResults.innerHTML = `
+            <div style="font-size:12px; margin-bottom:10px; color:#2ed573; display:flex; justify-content:space-between; align-items:center;">
+                <span>Found <b>${data.players.length}</b> players for [${data.tag.toUpperCase()}]</span>
+                <span title="Total column sums up the history for the evaluated timeframe. Filter players using the column header." style="cursor:help;">ℹ️</span>
+            </div>
+            <div id="alliance-matrix-table-container"></div>
+        `;
+        
+        const renderRow = (row) => {
             let rowHtml = "";
-            p.history.forEach(d => {
+            data.headers.forEach((h, idx) => {
+                let d = row[`day_${idx}`] || 0;
                 let statusClass = "status-inactive";
                 if (d < 0) statusClass = "status-bleeding";
                 else if (d > 0 && d <= 99) statusClass = "status-stagnant";
                 else if (d >= 100) statusClass = "status-active";
-                rowHtml += `<td class="${statusClass}">${d > 0 ? '+'+d : d}</td>`;
+                rowHtml += `<td class="${statusClass}" style="border: 1px solid rgba(255,255,255,0.05);">${d > 0 ? '+'+d : d}</td>`;
             });
-
+            
             let totalClass = "status-inactive";
-            if (p.diff < 0) totalClass = "status-bleeding";
-            else if (p.diff > 0 && p.diff <= 99) totalClass = "status-stagnant";
-            else if (p.diff >= 100) totalClass = "status-active";
+            if (row.total < 0) totalClass = "status-bleeding";
+            else if (row.total > 0 && row.total <= 99) totalClass = "status-stagnant";
+            else if (row.total >= 100) totalClass = "status-active";
 
-            let pUrl = `https://${hostname}/profile/${p.uid}`;
-
-            html += `<tr>
-                <td><a href="${pUrl}" target="_blank" class="app-link" style="font-weight:bold; color:#f1f2f6;">${p.ign}</a></td>
+            let pUrl = `https://${hostname}/profile/${row.uid}`;
+            
+            return `<tr>
+                <td style="border: 1px solid rgba(255,255,255,0.05);"><a href="${pUrl}" target="_blank" class="app-link" style="font-weight:bold; color:#f1f2f6;">${row.ign}</a></td>
                 ${rowHtml}
-                <td class="${totalClass}" style="font-weight:bold; background:rgba(0,0,0,0.2);">${p.diff > 0 ? '+'+p.diff : p.diff}</td>
+                <td class="${totalClass}" style="font-weight:bold; background:rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">${row.total > 0 ? '+'+row.total : row.total}</td>
             </tr>`;
-        });
-
-        html += `</tbody></table></div>`;
-        elResults.innerHTML = html;
+        };
+        
+        if (window.TableFilter) {
+            new window.TableFilter('alliance-matrix-table-container', headers, formattedData, renderRow);
+        } else {
+            elResults.innerHTML += `<div style="color:#ff4757;">Error: TableFilter library not loaded.</div>`;
+        }
     }
 
     function fetchChronosRadar() {
