@@ -125,6 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // TROOPS App: open Troops Analyzer in a new tab
+    const appBtnTroops = document.getElementById('app-btn-troops');
+    if (appBtnTroops) {
+        appBtnTroops.addEventListener('click', () => {
+            let url = chrome.runtime.getURL('troopsAnalyzer.html');
+            if (currentServerData && Object.keys(currentServerData).length > 0) {
+                url += `?server=${Object.keys(currentServerData)[0]}`;
+            }
+            chrome.tabs.create({ url: url });
+        });
+    }
+
     if (btnBackHome) {
         btnBackHome.addEventListener('click', () => {
             // Hide All Panels
@@ -238,6 +250,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local') {
+            if (changes.discordUser) {
+                if (changes.discordUser.newValue) {
+                    updateDiscordWidget(changes.discordUser.newValue);
+                    if (saveStatus) saveStatus.textContent = "Successfully logged in!";
+                }
+            } else if (changes.discordId) {
+                if (changes.discordId.newValue && !discordWidget.classList.contains('hidden') === false) {
+                    discordIdDisplay.textContent = `Connected ID: ${changes.discordId.newValue}`;
+                    discordIdDisplay.style.display = "block";
+                    if (loginBtn) loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Reconnect Discord';
+                    if (saveStatus) saveStatus.textContent = "Successfully logged in (ID only)!";
+                }
+            }
+        }
+    });
+
 
     // HUD Toggle
     if (toggleHud) {
@@ -306,54 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const redirectUri = chrome.identity.getRedirectURL();
             const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=identify`;
 
-            chrome.identity.launchWebAuthFlow({
-                url: authUrl,
-                interactive: true
-            }, (redirectURL) => {
-                if (chrome.runtime.lastError || !redirectURL) {
-                    console.error(chrome.runtime.lastError);
-                    saveStatus.textContent = "Login cancelled or failed.";
-                    console.log("Make sure to add this Redirect URI to Discord Developer Portal:", redirectUri);
-                    return;
-                }
-
-                // Extract access token
-                const url = new URL(redirectURL);
-                const hash = url.hash.substring(1);
-                const params = new URLSearchParams(hash);
-                const accessToken = params.get('access_token');
-
-                if (accessToken) {
-                    saveStatus.textContent = "Fetching Discord profile...";
-                    fetch('https://discord.com/api/v10/users/@me', {
-                        headers: {
-                            'Authorization': `Bearer ${accessToken}`
-                        }
-                    })
-                    .then(res => res.json())
-                    .then(user => {
-                        if (user.id) {
-                            saveStatus.textContent = "Verifying across servers...";
-                            
-                            const userObj = {
-                                id: user.id,
-                                username: user.username,
-                                avatar: user.avatar
-                            };
-
-                            chrome.storage.local.set({ discordId: user.id, discordUser: userObj }, () => {
-                                updateDiscordWidget(userObj);
-                                triggerVerificationSweep(user.id);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        saveStatus.textContent = "Failed to fetch user data.";
-                    });
-                } else {
-                    saveStatus.textContent = "Authentication failed (no token).";
-                }
-            });
+            chrome.tabs.create({ url: authUrl });
+            saveStatus.textContent = "Please authorize Discord in the new tab...";
         });
     }
     

@@ -46,6 +46,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 sendResponse(null);
             });
         return true; // async
+    } else if (message.type === 'FETCH_GAS_GET') {
+        // GET request to the GAS doGet endpoint (used by Troops Analyzer)
+        fetch(chrome.runtime.getURL('servers.json'))
+            .then(response => response.json())
+            .then(serversConfig => {
+                const baseUrl = serversConfig[message.hostname];
+                if (!baseUrl) { sendResponse(null); return; }
+                const params = new URLSearchParams(message.params || {});
+                fetch(`${baseUrl}?${params.toString()}`, { method: 'GET', credentials: 'omit' })
+                    .then(r => r.text())
+                    .then(sendResponse)
+                    .catch(err => { console.error("FETCH_GAS_GET error:", err); sendResponse(null); });
+            })
+            .catch(err => { console.error("Error loading servers.json:", err); sendResponse(null); });
+        return true;
     } else if (message.type === 'UPDATE_BADGE') {
         updateBadgeState();
     } else if (message.type === 'UPDATE_ICON_COLOR') {
@@ -59,6 +74,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 chrome.tabs.onActivated.addListener(evaluateTabForBadge);
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.url) evaluateTabForBadge();
+    
+    // Intercept Discord OAuth redirect
+    if (changeInfo.url) {
+        const redirectUri = chrome.identity.getRedirectURL();
+        if (changeInfo.url.startsWith(redirectUri)) {
+            const url = new URL(changeInfo.url);
+            const hash = url.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            
+            if (accessToken) {
+                fetch('https://discord.com/api/v10/users/@me', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                })
+                .then(res => res.json())
+                .then(user => {
+                    if (user.id) {
+                        const userObj = { id: user.id, username: user.username, avatar: user.avatar };
+                        chrome.storage.local.set({ discordId: user.id, discordUser: userObj }, () => {
+                            runVerificationSweep(user.id).then((result) => {
+                                if (result && result.serverData) {
+                                    chrome.runtime.sendMessage({ action: "refreshLeaderboards", serverData: result.serverData }).catch(() => {});
+                                }
+                            });
+                            // Close the auth tab
+                            chrome.tabs.remove(tabId).catch(()=>{});
+                        });
+                    }
+                })
+                .catch(err => console.error("Discord auth fetch error:", err));
+            }
+        }
+    }
 });
 
 function evaluateTabForBadge() {

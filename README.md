@@ -1,6 +1,19 @@
 # NULL Map Engine - Version Logs
 
-## 🚀 WebStoreRelease V1.4 (Current Release)
+## 🚀 WebStoreRelease V1.5 (Current Release)
+*Deploy Date: July 2026*
+
+**⚔️ Troops Analyzer (Next-Gen UI)**
+- **Full-Screen Dashboard**: Added a new full-screen interface exclusively for troop analysis, accessible via the new `TROOPS` icon in the Map Terminal.
+- **ApexCharts Integration**: Implemented dynamic time-series charts (ApexCharts) to visualize offensive and defensive crop evolution over time for every player.
+- **Advanced Sorting & Filtering**: The alliance table now supports real-time searching and dynamic sorting across all columns (Offensive Power, Defensive Power, Operative Name).
+- **JSON Payload Shift**: Migrated the data fetch architecture from a rigid row-per-village Google Sheet format to a highly flexible, time-series JSON format per player, vastly improving render speeds and data consistency.
+- **Discord Auth Overhaul (Android Support)**: Refactored the Discord authentication flow to open a new tab instead of a popup, utilizing a background interception script. This ensures full compatibility with mobile browsers (like Kiwi Browser on Android) while bypassing standard MV3 constraints.
+- **Offline CSP Enforcement**: Migrated ApexCharts from a CDN to a local bundle (`apexcharts.min.js`), complying strictly with Chrome Extension Manifest V3 Content Security Policies.
+
+---
+
+## 🚀 WebStoreRelease V1.4
 *Deploy Date: July 2026*
 
 **📊 Alliance Matrix Upgrades**

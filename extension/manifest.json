@@ -1,19 +1,23 @@
 {
   "manifest_version": 3,
   "name": "NULL Map Engine",
-  "version": "1.2",
+  "version": "1.5",
   "description": "Passive Map Sniffer for NULL System Gamification",
   "permissions": [
     "storage",
     "activeTab",
     "identity",
-    "sidePanel"
+    "sidePanel",
+    "tabs"
   ],
   "host_permissions": [
     "*://*.travian.com/*",
     "*://*.international.travian.com/*",
     "https://script.google.com/*",
-    "https://script.googleusercontent.com/*"
+    "https://script.googleusercontent.com/*",
+    "https://cdn.jsdelivr.net/*",
+    "https://fonts.googleapis.com/*",
+    "https://fonts.gstatic.com/*"
   ],
   "side_panel": {
     "default_path": "sidepanel.html"
@@ -46,6 +50,16 @@
     {
       "resources": [
         "interceptor.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    },
+    {
+      "resources": [
+        "troopsAnalyzer.html",
+        "troopsAnalyzer.js",
+        "assets/*.png"
       ],
       "matches": [
         "<all_urls>"
