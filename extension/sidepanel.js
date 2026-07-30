@@ -201,6 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnRefreshMap) btnRefreshMap.addEventListener('click', () => {
         fetchMapStats();
         fetchWorldEvents();
+        chrome.storage.local.get(['discordId'], (result) => {
+            if (result.discordId) {
+                triggerVerificationSweep(result.discordId);
+            }
+        });
     });
 
     const btnChronosAlliance = document.getElementById('btn-chronos-alliance');
@@ -385,6 +390,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderLeaderboards(hostname, data) {
         leaderboardsContainer.classList.remove('hidden');
         
+        // Helper to get tribe medium icon
+        const getTribeImg = (tribe) => {
+            if (!tribe) return "";
+            let t = tribe.toLowerCase();
+            if (t.includes('roman')) return 'assets/roman_medium.png';
+            if (t.includes('gaul')) return 'assets/gaul_medium.png';
+            if (t.includes('teuton')) return 'assets/teuton_medium.png';
+            if (t.includes('egyptian')) return 'assets/egyptian_medium.png';
+            if (t.includes('hun')) return 'assets/hun_medium.png';
+            if (t.includes('spartan')) return 'assets/spartan_medium.png';
+            return "";
+        };
+
         // Ownership
         tableOwnership.innerHTML = "";
         if (data.topOwnership && data.topOwnership.length > 0) {
@@ -392,8 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = p.uid ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
                 const row = document.createElement('div');
                 row.className = "table-row" + (p.ign === data.ign ? " highlight" : "");
+                let tribeImg = getTribeImg(p.tribe);
+                let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:text-bottom;margin-right:4px;">` : "";
                 row.innerHTML = `
-                    <span>${idx+1}. <a href="${url}" target="_blank">${p.ign}</a></span>
+                    <span>${idx+1}. ${tribeHtml}<a href="${url}" target="_blank">${p.ign}</a></span>
                     <span class="table-count">${p.count.toLocaleString()}</span>
                 `;
                 tableOwnership.appendChild(row);
@@ -409,8 +429,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = p.uid ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
                 const row = document.createElement('div');
                 row.className = "table-row" + (p.ign === data.ign ? " highlight" : "");
+                let tribeImg = getTribeImg(p.tribe);
+                let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:text-bottom;margin-right:4px;">` : "";
                 row.innerHTML = `
-                    <span>${idx+1}. <a href="${url}" target="_blank">${p.ign}</a></span>
+                    <span>${idx+1}. ${tribeHtml}<a href="${url}" target="_blank">${p.ign}</a></span>
                     <span class="table-count">${p.count.toLocaleString()}</span>
                 `;
                 tableScanners.appendChild(row);
@@ -565,6 +587,55 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMapStats(data) {
         if (!mapGlobalStats || !mapGeoStats || !data) return;
         
+        const mapLastUpdated = document.getElementById('map-last-updated');
+        if (mapLastUpdated && data.maxLastUpdated) {
+            let ts = new Date(data.maxLastUpdated);
+            // Parse UTC offset
+            let offsetHours = 0, offsetMinutes = 0, sign = 1;
+            if (data.utcOffset) {
+                let match = data.utcOffset.match(/([+-])(\d{2}):(\d{2})/);
+                if (match) {
+                    sign = match[1] === '-' ? -1 : 1;
+                    offsetHours = parseInt(match[2], 10);
+                    offsetMinutes = parseInt(match[3], 10);
+                }
+            }
+            
+            // Apply offset to display time
+            let localTime = ts.getTime();
+            let localOffset = ts.getTimezoneOffset() * 60000;
+            let targetOffset = (offsetHours * 3600000 + offsetMinutes * 60000) * sign;
+            let serverTime = new Date(localTime + localOffset + targetOffset);
+            
+            let h = serverTime.getHours().toString().padStart(2, '0');
+            let m = serverTime.getMinutes().toString().padStart(2, '0');
+            mapLastUpdated.innerHTML = `Updated<br>${h}:${m} (UTC${data.utcOffset})`;
+            
+            // Button color logic
+            let diffMs = Date.now() - ts.getTime();
+            if (btnRefreshMap) {
+                if (diffMs < 30 * 60000) {
+                    // Green (< 30 min)
+                    btnRefreshMap.style.background = 'rgba(46, 204, 113, 0.2)';
+                    btnRefreshMap.style.color = '#2ecc71';
+                } else if (diffMs < 120 * 60000) {
+                    // Orange (30 min - 2h)
+                    btnRefreshMap.style.background = 'rgba(230, 126, 34, 0.2)';
+                    btnRefreshMap.style.color = '#e67e22';
+                } else {
+                    // Red (> 2h)
+                    btnRefreshMap.style.background = 'rgba(231, 76, 60, 0.2)';
+                    btnRefreshMap.style.color = '#e74c3c';
+                }
+            }
+        } else if (mapLastUpdated) {
+            mapLastUpdated.innerHTML = `Never`;
+            if (btnRefreshMap) {
+                btnRefreshMap.style.background = 'rgba(231, 76, 60, 0.2)';
+                btnRefreshMap.style.color = '#e74c3c';
+            }
+        }
+
         let gHtml = `<div style="margin-bottom:15px; font-size:13px; color:#f1f2f6;">Total Map Size: <b>${data.totalTiles.toLocaleString()}</b> tiles</div>`;
         
         const buildStatRow = (label, pctStr, count) => {
@@ -677,8 +748,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         filtered.forEach((r, idx) => {
             let emoji = idx === 0 ? "🥇" : (idx === 1 ? "🥈" : (idx === 2 ? "🥉" : "📍"));
-            let emojiMap = { "Elephant": "🐘", "Tiger": "🐅", "Bear": "🐻", "Crocodile": "🐊" };
-            let animalEmoji = emojiMap[animalName] || "";
+            let spriteIndices = { "Elephant": 9, "Tiger": 8, "Bear": 6, "Crocodile": 7 };
+            let sIdx = spriteIndices[animalName];
+            let animalSpriteHtml = sIdx !== undefined ? `<span style="display:inline-block; width: 16px; height: 16px; background-image: url('assets/nature_small.png'); background-position: 0px -${sIdx*16}px; image-rendering: pixelated; vertical-align: text-bottom; margin-left: 2px;"></span>` : animalName;
             let displayTargetCount = (r.targetCount !== undefined && r.targetCount !== null) ? r.targetCount : 0;
             let displayCages = (r.cagesNeeded !== undefined && r.cagesNeeded !== null) ? r.cagesNeeded : 0;
             
@@ -706,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `<div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; background: rgba(47, 54, 64, 0.4); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
                 <div style="line-height:1.4;">
                     <b style="color:#f1f2f6;">${emoji} Oasis (${r.x}|${r.y})</b><br>
-                    <span style="font-size:11px; color:#2ed573;">🎯 ${displayTargetCount} ${animalEmoji} | 📦 ${displayCages} Cages</span><br>
+                    <span style="font-size:11px; color:#2ed573;">🎯 ${displayTargetCount} ${animalSpriteHtml} | 📦 ${displayCages} Cages</span><br>
                     <span style="font-size:10px; color:#a4b0be;">🪖 +${totalInf.toLocaleString()} Inf / 🐎 +${totalCav.toLocaleString()} Cav (Avg: ${avgDefPerCage.toLocaleString()}/cage)</span>
                 </div>
                 <div>
@@ -930,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers.push({ id: 'total', label: 'Total', filterable: false });
         
         let formattedData = data.players.map(p => {
-            let row = { ign: p.ign, uid: p.uid };
+            let row = { ign: p.ign, uid: p.uid, tribe: p.tribe };
             let totalDiff = 0;
             p.history.forEach((d, idx) => {
                 row[`day_${idx}`] = d;
@@ -970,8 +1042,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let pUrl = `https://${hostname}/profile/${row.uid}`;
             
+            // Re-using the getTribeImg function defined in renderLeaderboards, or duplicating a compact version here:
+            const getTribeImg = (tribe) => {
+                if (!tribe) return "";
+                let t = tribe.toLowerCase();
+                if (t.includes('roman')) return 'assets/roman_medium.png';
+                if (t.includes('gaul')) return 'assets/gaul_medium.png';
+                if (t.includes('teuton')) return 'assets/teuton_medium.png';
+                if (t.includes('egyptian')) return 'assets/egyptian_medium.png';
+                if (t.includes('hun')) return 'assets/hun_medium.png';
+                if (t.includes('spartan')) return 'assets/spartan_medium.png';
+                return "";
+            };
+            
+            let tribeImg = getTribeImg(row.tribe);
+            let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:14px;height:14px;image-rendering:pixelated;vertical-align:middle;margin-right:4px;">` : "";
+            
             return `<tr>
-                <td style="border: 1px solid rgba(255,255,255,0.05);"><a href="${pUrl}" target="_blank" class="app-link" style="font-weight:bold; color:#f1f2f6;">${row.ign}</a></td>
+                <td style="border: 1px solid rgba(255,255,255,0.05);"><div style="display:flex; align-items:center;">${tribeHtml}<a href="${pUrl}" target="_blank" class="app-link" style="font-weight:bold; color:#f1f2f6; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85px;" title="${row.ign}">${row.ign}</a></div></td>
                 ${rowHtml}
                 <td class="${totalClass}" style="font-weight:bold; background:rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">${row.total > 0 ? '+'+row.total : row.total}</td>
             </tr>`;
