@@ -3,24 +3,55 @@
  * Fetches data from GAS backend and renders the Alliance Table + Player Drilldown + ApexCharts.
  */
 
-// ── Tribe → icon path ─────────────────────────────────────────────────────
-const TRIBE_ICONS = {
-    roman: 'assets/roman_small.png',
-    gaul: 'assets/gaul_small.png',
-    teuton: 'assets/teuton_small.png',
-    egyptian: 'assets/egyptian_small.png',
-    hun: 'assets/hun_small.png',
-    spartan: 'assets/spartan_small.png',
-    nature: 'assets/nature_small.png',
+// ── Tribe → medium icon (for player name column header) ───────────────────
+const TRIBE_MEDIUM_ICONS = {
+    roman:    'assets/roman_medium.png',
+    gaul:     'assets/gaul_medium.png',
+    teuton:   'assets/teuton_medium.png',
+    egyptian: 'assets/egyptian_medium.png',
+    hun:      'assets/hun_medium.png',
+    spartan:  'assets/spartan_medium.png',
 };
 
-function getTribeIcon(tribe) {
+// ── Tribe → sprite sheet path (16x16 slots, vertical strip) ───────────────
+const TRIBE_SPRITE_SHEETS = {
+    roman:    'assets/roman_small.png',
+    gaul:     'assets/gaul_small.png',
+    teuton:   'assets/teuton_small.png',
+    egyptian: 'assets/egyptian_small.png',
+    hun:      'assets/hun_small.png',
+    spartan:  'assets/spartan_small.png',
+    nature:   'assets/nature_small.png',
+};
+
+function getTribeMediumIcon(tribe) {
     if (!tribe) return '';
     let t = tribe.toLowerCase();
-    for (let key in TRIBE_ICONS) {
-        if (t.includes(key)) return TRIBE_ICONS[key];
+    for (let key in TRIBE_MEDIUM_ICONS) {
+        if (t.includes(key)) return TRIBE_MEDIUM_ICONS[key];
     }
     return '';
+}
+
+function getTribeSpriteSheet(tribe) {
+    if (!tribe) return null;
+    let t = tribe.toLowerCase();
+    for (let key in TRIBE_SPRITE_SHEETS) {
+        if (t.includes(key)) return TRIBE_SPRITE_SHEETS[key];
+    }
+    return null;
+}
+
+// Generates an <img> tag using the sprite sheet at the correct slot (0-indexed)
+// Slot 10 (Hero) always uses the dedicated hero.png
+function getTroopSpriteHTML(tribe, slotIndex, troopName) {
+    if (slotIndex === 10) {
+        return `<img src="assets/hero.png" class="troop-sprite" title="${troopName}" alt="${troopName}">`;
+    }
+    let sheet = getTribeSpriteSheet(tribe);
+    if (!sheet) return `<span title="${troopName}">${troopName.substring(0,3)}</span>`;
+    let yOffset = slotIndex * 14;
+    return `<span class="troop-sprite-wrap" title="${troopName}" style="background-image:url('${sheet}');background-position:0px -${yOffset}px;"></span>`;
 }
 
 // ── Tribe → troop names (11 slots) ───────────────────────────────────────
@@ -181,7 +212,7 @@ function renderAlliance() {
     allianceTbody.innerHTML = '';
     filtered.forEach(p => {
         let { cls, label } = getStatusInfo(p.lastUpdate);
-        let icon = getTribeIcon(p.tribe);
+        let icon = getTribeMediumIcon(p.tribe);
         let nameCell = p.profileUrl
             ? `<a href="${p.profileUrl}" target="_blank" rel="noopener">${p.ign}</a>`
             : p.ign;
@@ -190,7 +221,7 @@ function renderAlliance() {
         if (p.ign === selectedIGN) tr.classList.add('selected');
         tr.innerHTML = `
             <td class="player-name">
-                ${icon ? `<img src="${icon}" class="tribe-icon" alt="${p.tribe}">` : ''}
+                ${icon ? `<img src="${icon}" class="tribe-icon" style="image-rendering:pixelated;" alt="${p.tribe}">` : ''}
                 ${nameCell}
             </td>
             <td class="power-val off-val">${fmt(p.totalOff)}</td>
@@ -236,9 +267,9 @@ function openDrilldown(player) {
     selectedIGN = player.ign;
     renderAlliance(); // Re-render to update selected row
 
-    // Header
-    let icon = getTribeIcon(player.tribe);
-    ddPlayerName.innerHTML = `${icon ? `<img src="${icon}" style="width:20px;height:20px;border-radius:3px;vertical-align:middle;">` : ''} ${player.ign}`;
+    // Header — use medium tribe icon
+    let medIcon = getTribeMediumIcon(player.tribe);
+    ddPlayerName.innerHTML = `${medIcon ? `<img src="${medIcon}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:middle;margin-right:6px;border-radius:3px;">` : ''} ${player.ign}`;
     let syncInfo = getStatusInfo(player.lastUpdate);
     let syncDate = player.lastUpdate ? new Date(player.lastUpdate).toLocaleDateString() : 'Never';
     ddPlayerMeta.textContent = `[${player.tribe || '—'}]  ·  ${player.ally || '—'}  ·  Last Sync: ${syncDate}`;
@@ -264,26 +295,25 @@ function renderVillageTable(player) {
     let villages = player.villages || [];
     let names    = getTroopNames(player.tribe);
 
-    // Build header
+    // Build header using game sprites
+    let headerCells = names.slice(0, 10).map((name, i) =>
+        `<th class="troop-th" title="${name}">${getTroopSpriteHTML(player.tribe, i, name)}</th>`
+    ).join('');
+    // Slot 10 = Hero
+    let heroHeader = `<th class="troop-th" title="${names[10]}">${getTroopSpriteHTML(player.tribe, 10, names[10])}</th>`;
+
     villageThead.innerHTML = `<tr>
         <th class="vname-cell">Village</th>
         <th>Role</th>
-        <th title="${names[0]}">${names[0].substring(0,4)}</th>
-        <th title="${names[1]}">${names[1].substring(0,4)}</th>
-        <th title="${names[2]}">${names[2].substring(0,4)}</th>
-        <th title="${names[3]}">${names[3].substring(0,4)}</th>
-        <th title="${names[4]}">${names[4].substring(0,4)}</th>
-        <th title="${names[5]}">${names[5].substring(0,4)}</th>
-        <th title="${names[6]}">Ram</th>
-        <th title="${names[7]}">Cat</th>
-        <th title="${names[8]}">Chief</th>
-        <th>⚔️🌾</th>
-        <th>🛡️🌾</th>
+        ${headerCells}
+        ${heroHeader}
+        <th><span title="Offensive Crop" style="color:var(--off-color);font-size:9px;">OFF🌾</span></th>
+        <th><span title="Defensive Crop" style="color:var(--def-color);font-size:9px;">DEF🌾</span></th>
     </tr>`;
 
     villageTbody.innerHTML = '';
     if (villages.length === 0) {
-        villageTbody.innerHTML = `<tr><td colspan="13" style="text-align:center;color:var(--text-muted);padding:20px;">No data available</td></tr>`;
+        villageTbody.innerHTML = `<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:20px;">No data available</td></tr>`;
         return;
     }
 
@@ -291,9 +321,8 @@ function renderVillageTable(player) {
         let t = v.t || []; while (t.length < 11) t.push(0);
         let role = v.role || 'UNKNOWN';
         let roleClass = `role-${role}`;
-        // Estimate OFF/DEF crop (indices 0-2 = inf, 3-5 = cav, 6-7 = siege, 8 = chief)
-        // We just show raw troop counts; crop was already computed server-side
-        let tCells = t.slice(0, 9).map(val => {
+        // Show all 11 slots (0-10)
+        let tCells = t.slice(0, 11).map(val => {
             let n = Number(val) || 0;
             return `<td class="${n > 0 ? 'troop-has' : 'troop-zero'}">${n > 0 ? fmt(n) : '·'}</td>`;
         }).join('');
@@ -303,8 +332,8 @@ function renderVillageTable(player) {
             <td class="vname-cell" title="${v.vName}">${v.vName || '—'}</td>
             <td><span class="role-badge ${roleClass}">${role}</span></td>
             ${tCells}
-            <td class="off-val power-val">—</td>
-            <td class="def-val power-val">—</td>`;
+            <td class="off-val power-val">${fmt(v.off)}</td>
+            <td class="def-val power-val">${fmt(v.def)}</td>`;
         villageTbody.appendChild(tr);
     });
 }

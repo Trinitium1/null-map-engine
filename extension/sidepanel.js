@@ -474,11 +474,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateActiveGameStatus() {
         if (!activeServerName) return;
         
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url) {
-                try {
-                    const url = new URL(tabs[0].url);
-                    if (url.hostname.includes('travian.com')) {
+        chrome.tabs.query({}, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                let travianTab = null;
+                for (let tab of tabs) {
+                    if (tab.url && tab.url.includes('travian.com')) {
+                        travianTab = tab;
+                        break;
+                    }
+                }
+                
+                if (travianTab) {
+                    try {
+                        const url = new URL(travianTab.url);
                         const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                         activeServerName.textContent = shortName;
                         
@@ -507,10 +515,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Send message to background to turn icon red
                             chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
                         }
-                    } else {
+                    } catch (e) {
                         setNoActiveGame();
                     }
-                } catch (e) {
+                } else {
                     setNoActiveGame();
                 }
             } else {
