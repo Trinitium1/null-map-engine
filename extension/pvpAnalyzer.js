@@ -186,8 +186,8 @@ function loadPvPOverview() {
     const targetTag = document.getElementById('pvp-alliance-input').value.trim();
     elStats.innerHTML = 'Fetching intelligence...';
 
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+    chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+        if (tabs && tabs.length > 0) {
             const url = new URL(tabs[0].url);
             chrome.storage.local.get(['discordId'], (res) => {
                 let payload = [{ 
@@ -233,8 +233,8 @@ function loadPvPOverview() {
 function executeMapRequest(action, extraPayload, resultElementId, title, datasetBuilderFn) {
     const elResults = document.getElementById(resultElementId);
     
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-        if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+    chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+        if (tabs && tabs.length > 0) {
             const url = new URL(tabs[0].url);
             chrome.storage.local.get(['discordId'], (res) => {
                 let payload = Object.assign({ 

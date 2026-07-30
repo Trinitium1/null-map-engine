@@ -324,27 +324,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusEl = document.getElementById('active-game-status');
         if (!statusEl) return;
         
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 try {
                     const url = new URL(tabs[0].url);
-                    if (url.hostname.includes('travian.com')) {
                         const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                         if (currentServerData && currentServerData[url.hostname]) {
                             statusEl.innerHTML = `<span style="color: #2ed573;">🟢 ${shortName} (Connected)</span>`;
                         } else {
                             statusEl.innerHTML = `<span style="color: #ff4757;">🔴 ${shortName} (Unregistered)</span>`;
                         }
-                    } else {
+                    } catch (e) {
                         statusEl.textContent = "No active game detected";
                     }
-                } catch (e) {
+                } else {
                     statusEl.textContent = "No active game detected";
                 }
-            } else {
-                statusEl.textContent = "No active game detected";
-            }
-        });
+            });
     }
 
     // Listen for live updates from background.js

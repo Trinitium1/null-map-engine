@@ -474,51 +474,39 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateActiveGameStatus() {
         if (!activeServerName) return;
         
-        chrome.tabs.query({}, (tabs) => {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
             if (tabs && tabs.length > 0) {
-                let travianTab = null;
-                for (let tab of tabs) {
-                    if (tab.url && tab.url.includes('travian.com')) {
-                        travianTab = tab;
-                        break;
-                    }
-                }
-                
-                if (travianTab) {
-                    try {
-                        const url = new URL(travianTab.url);
-                        const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
-                        activeServerName.textContent = shortName;
+                try {
+                    const url = new URL(tabs[0].url);
+                    const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
+                    activeServerName.textContent = shortName;
+                    
+                    if (currentServerData && currentServerData[url.hostname]) {
+                        const data = currentServerData[url.hostname];
+                        activeServerBadge.style.background = "#2ed573";
+                        activeServerBadge.style.boxShadow = "0 0 8px #2ed573";
+                        if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#2ed573";
+                        activeServerIgn.textContent = data.ign;
+                        activeServerScans.innerHTML = `<strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans`;
                         
-                        if (currentServerData && currentServerData[url.hostname]) {
-                            const data = currentServerData[url.hostname];
-                            activeServerBadge.style.background = "#2ed573";
-                            activeServerBadge.style.boxShadow = "0 0 8px #2ed573";
-                            if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#2ed573";
-                            activeServerIgn.textContent = data.ign;
-                            activeServerScans.innerHTML = `<strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans`;
-                            
-                            // Send message to background to turn icon green
-                            chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'green' }).catch(() => {});
-                            
-                            // Render leaderboards for this connected server
-                            leaderboardsContainer.classList.remove('hidden');
-                            renderLeaderboards(url.hostname, data);
-                        } else {
-                            activeServerBadge.style.background = "#ff4757";
-                            activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
-                            if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#ff4757";
-                            activeServerIgn.textContent = "Unregistered / No Access";
-                            activeServerScans.textContent = "";
-                            leaderboardsContainer.classList.add('hidden');
-                            
-                            // Send message to background to turn icon red
-                            chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
-                        }
-                    } catch (e) {
-                        setNoActiveGame();
+                        // Send message to background to turn icon green
+                        chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'green' }).catch(() => {});
+                        
+                        // Render leaderboards for this connected server
+                        leaderboardsContainer.classList.remove('hidden');
+                        renderLeaderboards(url.hostname, data);
+                    } else {
+                        activeServerBadge.style.background = "#ff4757";
+                        activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
+                        if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#ff4757";
+                        activeServerIgn.textContent = "Unregistered / No Access";
+                        activeServerScans.textContent = "";
+                        leaderboardsContainer.classList.add('hidden');
+                        
+                        // Send message to background to turn icon red
+                        chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
                     }
-                } else {
+                } catch (e) {
                     setNoActiveGame();
                 }
             } else {
@@ -554,8 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
         mapGlobalStats.innerHTML = 'Fetching intelligence...';
         mapGeoStats.innerHTML = 'Waiting for data...';
         
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
@@ -692,8 +680,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!pveResults) return;
         pveResults.innerHTML = `Scanning map for ${animalName}s...`;
         
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
@@ -825,8 +813,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elConquests.innerHTML = "Fetching global intelligence...";
         elDestroyed.innerHTML = "Fetching global intelligence...";
 
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
@@ -937,8 +925,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const datalist = document.getElementById('alliances-list');
         if (!datalist) return;
         
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
@@ -978,8 +966,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elResults.innerHTML = `Scanning historical matrix for [${tag}]...`;
 
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
@@ -1090,8 +1078,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elResults.innerHTML = `Sweeping sector around (${x}|${y}) within ${radius} tiles...`;
 
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
@@ -1164,8 +1152,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elResults.innerHTML = `Analyzing history for sector (${x}|${y}) within ${radius} tiles...`;
 
-        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs && tabs[0] && tabs[0].url && tabs[0].url.includes('travian.com')) {
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
                 if (currentServerData && currentServerData[url.hostname]) {
                     chrome.storage.local.get(['discordId'], (res) => {
