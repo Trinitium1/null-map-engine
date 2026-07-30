@@ -100,8 +100,8 @@ const ddOff            = document.getElementById('dd-off');
 const ddDef            = document.getElementById('dd-def');
 const ddScout          = document.getElementById('dd-scout');
 const ddVillages       = document.getElementById('dd-villages');
-const villageThead     = document.getElementById('village-thead');
-const villageTbody     = document.getElementById('village-tbody');
+const villageThead     = document.getElementById('village-thead'); // Deprecated, kept to avoid null reference error temporarily
+const villageTbody     = document.getElementById('village-tbody'); // Deprecated
 const tabVillages      = document.getElementById('tab-villages');
 const tabEvolution     = document.getElementById('tab-evolution');
 const chartContainer   = document.getElementById('chart-container');
@@ -293,49 +293,103 @@ function openDrilldown(player) {
 
 function renderVillageTable(player) {
     let villages = player.villages || [];
-    let names    = getTroopNames(player.tribe);
+    const container = document.getElementById('villages-container');
+    container.innerHTML = '';
 
-    // Build header using game sprites
-    let headerCells = names.slice(0, 10).map((name, i) =>
-        `<th class="troop-th" title="${name}">${getTroopSpriteHTML(player.tribe, i, name)}</th>`
-    ).join('');
-    // Slot 10 = Hero
-    let heroHeader = `<th class="troop-th" title="${names[10]}">${getTroopSpriteHTML(player.tribe, 10, names[10])}</th>`;
-
-    villageThead.innerHTML = `<tr>
-        <th class="vname-cell">Village</th>
-        <th>Role</th>
-        ${headerCells}
-        ${heroHeader}
-        <th><span title="Offensive Crop" style="color:var(--off-color);font-size:9px;">OFF🌾</span></th>
-        <th><span title="Defensive Crop" style="color:var(--def-color);font-size:9px;">DEF🌾</span></th>
-    </tr>`;
-
-    villageTbody.innerHTML = '';
     if (villages.length === 0) {
-        villageTbody.innerHTML = `<tr><td colspan="15" style="text-align:center;color:var(--text-muted);padding:20px;">No data available</td></tr>`;
+        container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:20px;">No data available</div>`;
         return;
     }
 
+    // Group villages by tribe
+    let villagesByTribe = {};
     villages.forEach(v => {
-        let t = v.t || []; while (t.length < 11) t.push(0);
-        let role = v.role || 'UNKNOWN';
-        let roleClass = `role-${role}`;
-        // Show all 11 slots (0-10)
-        let tCells = t.slice(0, 11).map(val => {
-            let n = Number(val) || 0;
-            return `<td class="${n > 0 ? 'troop-has' : 'troop-zero'}">${n > 0 ? fmt(n) : '·'}</td>`;
-        }).join('');
-
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="vname-cell" title="${v.vName}">${v.vName || '—'}</td>
-            <td><span class="role-badge ${roleClass}">${role}</span></td>
-            ${tCells}
-            <td class="off-val power-val">${fmt(v.off)}</td>
-            <td class="def-val power-val">${fmt(v.def)}</td>`;
-        villageTbody.appendChild(tr);
+        let tName = v.tribe || player.tribe || 'Unknown';
+        if (!villagesByTribe[tName]) villagesByTribe[tName] = [];
+        villagesByTribe[tName].push(v);
     });
+
+    for (let tribe in villagesByTribe) {
+        let tribeVillages = villagesByTribe[tribe];
+        let names = getTroopNames(tribe);
+        
+        // Sums for this tribe group
+        let sumOff = 0;
+        let sumDef = 0;
+        let sumTroops = Array(11).fill(0);
+
+        tribeVillages.forEach(v => {
+            let t = v.t || []; while (t.length < 11) t.push(0);
+            sumOff += (v.off || 0);
+            sumDef += (v.def || 0);
+            for(let i=0; i<11; i++) {
+                sumTroops[i] += (Number(t[i]) || 0);
+            }
+        });
+
+        // Build headers
+        let headerCells = names.slice(0, 10).map((name, i) =>
+            `<th class="troop-th" title="${name}">${getTroopSpriteHTML(tribe, i, name)}</th>`
+        ).join('');
+        let heroHeader = `<th class="troop-th" title="${names[10]}">${getTroopSpriteHTML(tribe, 10, names[10])}</th>`;
+
+        let tableHtml = `
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom: 6px; padding-left: 4px;">
+                ${getTribeMediumIcon(tribe) ? `<img src="${getTribeMediumIcon(tribe)}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:middle;border-radius:3px;">` : ''}
+                <span style="font-size:11px; font-weight:700; color:var(--text-primary); text-transform:uppercase; letter-spacing:1px;">${tribe} VILLAGES</span>
+            </div>
+            <table class="village-table">
+                <thead>
+                    <tr>
+                        <th class="vname-cell">Village</th>
+                        <th>Role</th>
+                        ${headerCells}
+                        ${heroHeader}
+                        <th><span title="Offensive Crop" style="color:var(--off-color);font-size:9px;">OFF🌾</span></th>
+                        <th><span title="Defensive Crop" style="color:var(--def-color);font-size:9px;">DEF🌾</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        tribeVillages.forEach(v => {
+            let t = v.t || []; while (t.length < 11) t.push(0);
+            let role = v.role || 'UNKNOWN';
+            let roleClass = `role-${role}`;
+            let tCells = t.slice(0, 11).map(val => {
+                let n = Number(val) || 0;
+                return `<td class="${n > 0 ? 'troop-has' : 'troop-zero'}">${n > 0 ? fmt(n) : '·'}</td>`;
+            }).join('');
+
+            tableHtml += `
+                <tr>
+                    <td class="vname-cell" title="${v.vName}">${v.vName || '—'}</td>
+                    <td><span class="role-badge ${roleClass}">${role}</span></td>
+                    ${tCells}
+                    <td class="off-val power-val">${fmt(v.off)}</td>
+                    <td class="def-val power-val">${fmt(v.def)}</td>
+                </tr>
+            `;
+        });
+
+        // Sum row
+        let sumCells = sumTroops.map(n => `<td class="${n > 0 ? 'troop-has' : 'troop-zero'}">${n > 0 ? fmt(n) : '·'}</td>`).join('');
+        tableHtml += `
+                <tr style="background: rgba(0,0,0,0.15); border-top: 1px solid var(--border);">
+                    <td class="vname-cell" style="color:var(--gold);">Total</td>
+                    <td></td>
+                    ${sumCells}
+                    <td class="off-val power-val" style="color:var(--gold);">${fmt(sumOff)}</td>
+                    <td class="def-val power-val" style="color:var(--gold);">${fmt(sumDef)}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        `;
+
+        container.innerHTML += tableHtml;
+    }
 }
 
 // ── Evolution Chart ───────────────────────────────────────────────────────
