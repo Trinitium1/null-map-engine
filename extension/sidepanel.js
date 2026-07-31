@@ -42,7 +42,12 @@
         const btnClearConsole = document.getElementById('btn-clear-console');
 
         if (btnConsole && consoleModal) {
-            btnConsole.addEventListener('click', () => consoleModal.classList.remove('hidden'));
+            btnConsole.addEventListener('click', () => {
+                consoleModal.classList.remove('hidden');
+                btnConsole.style.borderColor = 'rgba(255,255,255,0.1)';
+                btnConsole.style.color = '#a4b0be';
+                btnConsole.style.boxShadow = 'none';
+            });
             btnCloseConsole.addEventListener('click', () => consoleModal.classList.add('hidden'));
             btnClearConsole.addEventListener('click', () => {
                 const logs = document.getElementById('debug-console-logs');
@@ -336,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Clear all game interface
                 currentServerData = {};
-                renderServerList();
+                updateActiveGameStatus();
                 tableOwnership.innerHTML = '';
                 tableScanners.innerHTML = '';
             });
@@ -492,34 +497,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                     activeServerName.textContent = shortName;
                     
-                    if (currentServerData && currentServerData[url.hostname]) {
-                        const data = currentServerData[url.hostname];
-                        activeServerBadge.style.background = "#2ed573";
-                        activeServerBadge.style.boxShadow = "0 0 8px #2ed573";
-                        if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#2ed573";
-                        activeServerIgn.textContent = data.ign;
-                        activeServerScans.innerHTML = `<strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans`;
-                        
-                        // Send message to background to turn icon green
-                        chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'green' }).catch(() => {});
-                        
-                        // Render leaderboards for this connected server
-                        leaderboardsContainer.classList.remove('hidden');
-                        renderLeaderboards(url.hostname, data);
-                        
-                        // Refresh Aegis bubbles and Top 10
-                        fetchAegisTop10();
-                    } else {
-                        activeServerBadge.style.background = "#ff4757";
-                        activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
-                        if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#ff4757";
-                        activeServerIgn.textContent = "Unregistered / No Access";
-                        activeServerScans.textContent = "";
-                        leaderboardsContainer.classList.add('hidden');
-                        
-                        // Send message to background to turn icon red
-                        chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
-                    }
+                    chrome.storage.local.get(['authError'], (storageRes) => {
+                        if (currentServerData && currentServerData[url.hostname]) {
+                            const data = currentServerData[url.hostname];
+                            activeServerBadge.style.background = "#2ed573";
+                            activeServerBadge.style.boxShadow = "0 0 8px #2ed573";
+                            if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#2ed573";
+                            activeServerIgn.textContent = data.ign;
+                            activeServerScans.innerHTML = `<strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans`;
+                            
+                            chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'green' }).catch(() => {});
+                            
+                            leaderboardsContainer.classList.remove('hidden');
+                            renderLeaderboards(url.hostname, data);
+                            fetchAegisTop10();
+                        } else {
+                            activeServerBadge.style.background = "#ff4757";
+                            activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
+                            if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#ff4757";
+                            
+                            if (storageRes.authError && storageRes.authError.hostname === url.hostname) {
+                                activeServerIgn.innerHTML = `<span style="color:#ff4757; font-weight:bold;">${storageRes.authError.status}</span>`;
+                            } else {
+                                activeServerIgn.textContent = "Unregistered / No Access";
+                            }
+                            activeServerScans.textContent = "";
+                            leaderboardsContainer.classList.add('hidden');
+                            
+                            chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
+                        }
+                    });
                 } catch (e) {
                     setNoActiveGame();
                 }
@@ -811,6 +818,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (message.action === "refreshLeaderboards" && message.serverData) {
             currentServerData = message.serverData;
             updateActiveGameStatus(); 
+        }
+        if (message.action === "authError") {
+            console.error(`[Security Firewall - ${message.hostname}] ${message.status}: ${message.msg}`);
+            const btnConsole = document.getElementById('btn-debug-console');
+            if (btnConsole) {
+                btnConsole.style.borderColor = '#f39c12';
+                btnConsole.style.color = '#f39c12';
+                btnConsole.style.boxShadow = '0 0 8px rgba(243, 156, 18, 0.5)';
+            }
         }
     });
     // ==========================================

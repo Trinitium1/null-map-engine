@@ -8,7 +8,8 @@
     "activeTab",
     "identity",
     "sidePanel",
-    "tabs"
+    "tabs",
+    "webNavigation"
   ],
   "host_permissions": [
     "*://*.travian.com/*",

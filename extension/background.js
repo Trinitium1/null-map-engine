@@ -73,38 +73,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Update badge when tabs change (even if sidepanel is closed)
 chrome.tabs.onActivated.addListener(evaluateTabForBadge);
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.url) evaluateTabForBadge();
-    
-    // Intercept Discord OAuth redirect
-    if (changeInfo.url) {
-        const redirectUri = chrome.identity.getRedirectURL();
-        if (changeInfo.url.startsWith(redirectUri)) {
-            const url = new URL(changeInfo.url);
-            const hash = url.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            const accessToken = params.get('access_token');
-            
-            if (accessToken) {
-                fetch('https://discord.com/api/v10/users/@me', {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                })
-                .then(res => res.json())
-                .then(user => {
-                    if (user.id) {
-                        const userObj = { id: user.id, username: user.username, avatar: user.avatar };
-                        chrome.storage.local.set({ discordId: user.id, discordUser: userObj }, () => {
-                            runVerificationSweep(user.id).then((result) => {
-                                if (result && result.serverData) {
-                                    chrome.runtime.sendMessage({ action: "refreshLeaderboards", serverData: result.serverData }).catch(() => {});
-                                }
-                            });
-                            // Close the auth tab
-                            chrome.tabs.remove(tabId).catch(()=>{});
+    const currentUrl = changeInfo.url || tab.url;
+    if (currentUrl) evaluateTabForBadge();
+});
+
+// Intercept Discord OAuth redirect IMMEDIATELY before Chrome tries to resolve the DNS
+chrome.webNavigation.onBeforeNavigate.addListener((details) => {
+    const redirectUri = chrome.identity.getRedirectURL();
+    if (details.url.startsWith(redirectUri)) {
+        // Close the auth tab instantly to prevent the 20-second DNS timeout hang
+        chrome.tabs.remove(details.tabId).catch(()=>{});
+
+        const url = new URL(details.url);
+        const hash = url.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        
+        if (accessToken) {
+            fetch('https://discord.com/api/v10/users/@me', {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            })
+            .then(res => res.json())
+            .then(user => {
+                if (user.id) {
+                    const userObj = { id: user.id, username: user.username, avatar: user.avatar };
+                    chrome.storage.local.set({ discordId: user.id, discordUser: userObj }, () => {
+                        runVerificationSweep(user.id).then((result) => {
+                            if (result && result.serverData) {
+                                chrome.runtime.sendMessage({ action: "refreshLeaderboards", serverData: result.serverData }).catch(() => {});
+                            }
+                            if (result && result.status && result.status !== "OK" && result.status !== "KILL") {
+                                chrome.runtime.sendMessage({ action: "authError", status: result.status, msg: result.msg, hostname: result.hostname }).catch(() => {});
+                            }
                         });
-                    }
-                })
-                .catch(err => console.error("Discord auth fetch error:", err));
-            }
+                    });
+                }
+            })
+            .catch(err => console.error("Discord auth fetch error:", err));
         }
     }
 });
@@ -235,6 +240,10 @@ async function runVerificationSweep(discordId) {
             if (data.status === "VERIFIED") {
                 verifiedServers[hostname] = true;
                 serverData[hostname] = data; // Store full payload (scannedTiles, leaderboards, ign)
+                chrome.storage.local.remove('authError'); // Clear any previous errors
+            } else if (data.status === "NOT_CONFEDERATION" || data.status === "NOT_VERIFIED" || data.status === "NOT_REGISTERED") {
+                chrome.storage.local.set({ authError: { status: data.status, msg: data.msg, hostname: hostname } });
+                return { status: data.status, msg: data.msg, hostname: hostname };
             }
         } catch (e) {
             console.error(`Verification failed for ${hostname}:`, e);
@@ -243,7 +252,7 @@ async function runVerificationSweep(discordId) {
 
     chrome.storage.local.set({ verifiedServers: verifiedServers, serverData: serverData });
     updateBadgeState();
-    return { verifiedServers, serverData };
+    return { verifiedServers, serverData, status: "OK" };
 }
 
 // Initial badge set
