@@ -147,29 +147,37 @@ function loadData() {
 }
 
 function fetchDataForServer(hostname) {
-    chrome.runtime.sendMessage({
-        type: 'FETCH_GAS_GET',
-        hostname: hostname,
-        params: { action: 'get_troops_data' }
-    }, (rawText) => {
-        if (!rawText) {
-            loadingText.textContent = '❌ No response from server.';
-            return;
-        }
-        try {
-            let data = JSON.parse(rawText);
-            if (data.status !== 'ok') {
-                loadingText.textContent = '❌ Error: ' + (data.message || 'Unknown');
+    chrome.storage.local.get(['discordId'], (res) => {
+        const discordId = res.discordId || "unknown";
+        chrome.runtime.sendMessage({
+            type: 'FETCH_GAS_GET',
+            hostname: hostname,
+            params: { action: 'get_troops_data', discordId: discordId }
+        }, (rawText) => {
+            if (!rawText) {
+                loadingText.textContent = '❌ No response from server.';
                 return;
             }
-            allPlayers  = data.players  || [];
-            dateHeaders = data.dateHeaders || [];
-            lastUpdatedLabel.textContent = 'Updated: ' + new Date().toLocaleTimeString();
-            renderAlliance();
-            loadingOverlay.classList.add('hidden');
-        } catch(e) {
-            loadingText.textContent = '❌ Parse error: ' + e.message;
-        }
+            try {
+                let data = JSON.parse(rawText);
+                if (data.status !== 'ok') {
+                    loadingText.innerHTML = `<span style="color:#ff4757;">Access Denied</span><br><span style="font-size:12px; color:#a4b0be; margin-top:10px; display:block;">${data.msg || data.message || 'Unknown Error'}</span>`;
+                    return;
+                }
+                allPlayers  = Array.isArray(data.players) ? data.players : [];
+                dateHeaders = Array.isArray(data.dateHeaders) ? data.dateHeaders : [];
+                if (allPlayers.length === 0 && data.players && typeof data.players === 'object') {
+                    // Defensive: reject unexpected object-shaped payloads
+                    loadingText.innerHTML = `<span style="color:#ff4757;">Invalid troops payload</span><br><span style="font-size:12px; color:#a4b0be; margin-top:10px; display:block;">Server returned a non-array player list. Reload the extension and try again.</span>`;
+                    return;
+                }
+                lastUpdatedLabel.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+                renderAlliance();
+                loadingOverlay.classList.add('hidden');
+            } catch(e) {
+                loadingText.textContent = '❌ Parse error: ' + e.message;
+            }
+        });
     });
 }
 

@@ -310,6 +310,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.open('https://discord.gg/pdpVR69Vf6', '_blank');
     });
 
+    const webstoreBtn = document.getElementById('btn-webstore');
+    if (webstoreBtn) {
+        webstoreBtn.addEventListener('click', () => {
+            window.open('https://chromewebstore.google.com/search/NULL%20Map%20Engine', '_blank');
+        });
+    }
+
     function updateStatusText(isActive) {
         if (isActive) {
             statusText.textContent = "Engine: Active";

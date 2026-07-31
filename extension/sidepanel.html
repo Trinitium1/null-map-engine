@@ -10,10 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div id="kill-screen" class="hidden">
-        <h1>KILL SWITCH ENGAGED</h1>
-        <p>The Master Engine has forcefully terminated all map extension instances.</p>
-        <p>Please contact an administrator.</p>
+    <div id="kill-screen" class="hidden" style="text-align: center; padding: 30px 20px; box-sizing: border-box;">
+        <h1 style="color: #ff4757; margin-bottom: 10px;">KILL SWITCH ENGAGED</h1>
+        <p style="color: #f1f2f6; margin-bottom: 8px;">The Master Engine has forcefully terminated all map extension instances.</p>
+        <p style="font-size: 12px; color: #a4b0be; margin-bottom: 24px;">You may have an outdated version, or access was revoked.</p>
+        <button id="btn-kill-support" class="btn discord" style="width: 100%; margin-bottom: 10px; justify-content: center;">
+            <img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon" style="margin-right: 8px;">
+            Contact Support
+        </button>
+        <button id="btn-kill-webstore" class="btn primary" style="width: 100%; background: #2980b9; border: 1px solid #3498db;">
+            Update from Chrome Web Store
+        </button>
     </div>
     
     <div id="sidepanel-container">
@@ -510,7 +517,7 @@
                                 <polyline points="12 19 5 12 12 5"></polyline>
                             </svg>
                         </div>
-                        <h2 style="flex-grow: 1; color:#2980b9;">AEGIS TERMINAL</h2>
+                        <h2 style="flex-grow: 1;">AEGIS TERMINAL</h2>
                         <div id="aegis-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
                         <div id="btn-refresh-aegis" class="icon-btn" title="Refresh Aegis Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

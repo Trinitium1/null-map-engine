@@ -5,10 +5,18 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <div id="kill-screen" class="hidden">
-        <h2 style="color: #ff4757;">⚠️ UPDATE REQUIRED</h2>
-        <p>Your NULL Map Engine is obsolete and has been disconnected by the server.</p>
-        <button id="btn-discord" class="btn primary">Download from Discord</button>
+    <div id="kill-screen" class="hidden" style="text-align: center; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; height: 100vh;">
+        <h2 style="color: #ff4757; margin-bottom: 10px;">⚠️ KILL SWITCH ENGAGED</h2>
+        <p style="margin-bottom: 5px; color: #f1f2f6;">The Master Engine has forcefully terminated all map extension instances.</p>
+        <p style="font-size: 11px; color: #a4b0be; margin-bottom: 20px;">You may have an outdated version, or access was revoked.</p>
+        
+        <button id="btn-discord" class="btn discord" style="margin-bottom: 10px; width: 100%; justify-content: center;">
+            <img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon" style="margin-right: 8px;">
+            Contact Support
+        </button>
+        <button id="btn-webstore" class="btn primary" style="background: #2980b9; width: 100%; border: 1px solid #3498db;">
+            Update from Chrome Web Store
+        </button>
     </div>
 
     <div id="left-panel" class="side-panel left">

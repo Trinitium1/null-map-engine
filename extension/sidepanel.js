@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appBtnDef.addEventListener('click', () => {
             appGridContainer.classList.add('hidden');
             defModules.classList.remove('hidden');
+            loadAegisPanel();
         });
     }
 
@@ -215,13 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnRefreshMap) btnRefreshMap.addEventListener('click', () => {
-        fetchMapStats();
-        fetchWorldEvents();
-        chrome.storage.local.get(['discordId'], (result) => {
-            if (result.discordId) {
-                triggerVerificationSweep(result.discordId);
-            }
-        });
+        refreshPanel('map');
     });
 
     const btnChronosAlliance = document.getElementById('btn-chronos-alliance');
@@ -267,9 +262,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (result.serverData) {
             currentServerData = result.serverData;
-            updateActiveGameStatus();
+        }
+        // Always paint current status from open Travian tabs, then re-verify with backend
+        updateActiveGameStatus();
+        if (result.discordId) {
+            triggerVerificationSweep(result.discordId);
         }
     });
+
+    // Kill Switch action buttons
+    const btnKillSupport = document.getElementById('btn-kill-support');
+    const btnKillWebstore = document.getElementById('btn-kill-webstore');
+    if (btnKillSupport) {
+        btnKillSupport.addEventListener('click', () => window.open('https://discord.gg/pdpVR69Vf6', '_blank'));
+    }
+    if (btnKillWebstore) {
+        btnKillWebstore.addEventListener('click', () => window.open('https://chromewebstore.google.com/search/NULL%20Map%20Engine', '_blank'));
+    }
 
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local') {
@@ -284,7 +293,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     discordIdDisplay.style.display = "block";
                     if (loginBtn) loginBtn.innerHTML = '<img src="assets/DiscordIcon.png" alt="Discord" class="discord-icon"> Reconnect Discord';
                     if (saveStatus) saveStatus.textContent = "Successfully logged in (ID only)!";
+                    triggerVerificationSweep(changes.discordId.newValue);
                 }
+            }
+            if (changes.serverData) {
+                currentServerData = changes.serverData.newValue || {};
+                updateActiveGameStatus();
+            }
+            if (changes.authError) {
+                updateActiveGameStatus();
             }
         }
     });
@@ -374,8 +391,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    let _verifyInFlight = false;
     function triggerVerificationSweep(discordId) {
+        if (!discordId || _verifyInFlight) return;
+        _verifyInFlight = true;
         chrome.runtime.sendMessage({ type: 'VERIFY_IDENTITY', discordId: discordId }, (response) => {
+            _verifyInFlight = false;
+            if (chrome.runtime.lastError) {
+                console.error("VERIFY_IDENTITY failed:", chrome.runtime.lastError.message);
+                return;
+            }
             if (response && response.status === "KILL") {
                 killScreen.classList.remove('hidden');
                 if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
@@ -383,29 +408,43 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (response && response.serverData) {
                 currentServerData = response.serverData;
-                updateActiveGameStatus();
-                
-                const verifiedCount = Object.keys(currentServerData).length;
-                if (verifiedCount > 0) {
-                    saveStatus.textContent = "Verified, welcome!";
-                } else {
-                    saveStatus.textContent = "Invalid Discord ID.";
+            }
+            updateActiveGameStatus();
+
+            if (response && response.serverData && Object.keys(response.serverData).length > 0) {
+                if (saveStatus) saveStatus.textContent = "Verified, welcome!";
+            } else if (response && response.status && response.status !== "OK") {
+                if (saveStatus) {
+                    saveStatus.textContent = response.msg || response.status;
                     saveStatus.style.color = "#ff4757";
-                    setTimeout(() => { saveStatus.style.color = "#2ed573"; saveStatus.textContent = ""; }, 3000);
+                    setTimeout(() => { saveStatus.style.color = "#2ed573"; saveStatus.textContent = ""; }, 5000);
                 }
-            } else if (response && response.status !== "OK") {
-                // Handle auth error response directly from verification
-                saveStatus.textContent = "Access Denied.";
-                saveStatus.style.color = "#ff4757";
-                setTimeout(() => { saveStatus.style.color = "#2ed573"; saveStatus.textContent = ""; }, 3000);
             }
         });
     }
 
-    // Tab change listener to update active server indicator
-    chrome.tabs.onActivated.addListener(updateActiveGameStatus);
+    // Tab change listener: refresh status + re-verify if a Travian tab exists but we have no access data
+    chrome.tabs.onActivated.addListener(() => {
+        updateActiveGameStatus();
+        chrome.storage.local.get(['discordId'], (res) => {
+            if (res.discordId) {
+                chrome.tabs.query({ url: "*://*.travian.com/*" }, (tabs) => {
+                    if (!tabs || tabs.length === 0) return;
+                    const hostname = new URL(tabs[0].url).hostname;
+                    if (!currentServerData || !currentServerData[hostname]) {
+                        triggerVerificationSweep(res.discordId);
+                    }
+                });
+            }
+        });
+    });
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-        if (changeInfo.url) updateActiveGameStatus();
+        if (changeInfo.url && tab.url && tab.url.includes('travian.com')) {
+            updateActiveGameStatus();
+            chrome.storage.local.get(['discordId'], (res) => {
+                if (res.discordId) triggerVerificationSweep(res.discordId);
+            });
+        }
     });
     
     function renderLeaderboards(hostname, data) {
@@ -492,6 +531,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatAuthDenial(authError) {
+        if (!authError) return "Unregistered / No Access";
+        const status = authError.status || "";
+        const msg = authError.msg || "";
+        if (status === "NOT_CONFEDERATION") return msg || "Not in confederacy";
+        if (status === "NOT_VERIFIED") return msg || "Missing Verified role";
+        if (status === "NOT_REGISTERED" || status === "UNREGISTERED") return msg || "Not registered in DB";
+        return msg || status || "Unregistered / No Access";
+    }
+
     function updateActiveGameStatus() {
         if (!activeServerName) return;
         
@@ -502,13 +551,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                     activeServerName.textContent = shortName;
                     
-                    chrome.storage.local.get(['authError', 'discordId'], (storageRes) => {
+                    chrome.storage.local.get(['authError', 'discordId', 'serverData'], (storageRes) => {
                         if (!storageRes.discordId) {
-                            setNoActiveGame();
+                            activeServerBadge.style.background = "#ff4757";
+                            activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
+                            if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#ff4757";
+                            activeServerIgn.textContent = "Discord not connected";
+                            activeServerScans.textContent = "";
+                            leaderboardsContainer.classList.add('hidden');
+                            chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
                             return;
                         }
 
-                        if (currentServerData && currentServerData[url.hostname] && (!storageRes.authError || storageRes.authError.hostname !== url.hostname)) {
+                        // Prefer live storage if available (keeps status in sync across panels)
+                        if (storageRes.serverData) currentServerData = storageRes.serverData;
+
+                        if (currentServerData && currentServerData[url.hostname]) {
                             const data = currentServerData[url.hostname];
                             activeServerBadge.style.background = "#2ed573";
                             activeServerBadge.style.boxShadow = "0 0 8px #2ed573";
@@ -522,17 +580,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             leaderboardsContainer.classList.remove('hidden');
                             renderLeaderboards(url.hostname, data);
-                            fetchAegisTop10();
                         } else {
                             activeServerBadge.style.background = "#ff4757";
                             activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
                             if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#ff4757";
                             
+                            let denial = "Checking access...";
                             if (storageRes.authError && storageRes.authError.hostname === url.hostname) {
-                                activeServerIgn.innerHTML = `<span style="color:#ff4757; font-weight:bold;">${storageRes.authError.status}</span>`;
-                            } else {
-                                activeServerIgn.textContent = "Unregistered / No Access";
+                                denial = formatAuthDenial(storageRes.authError);
+                            } else if (storageRes.authError && !storageRes.authError.hostname) {
+                                denial = formatAuthDenial(storageRes.authError);
                             }
+                            activeServerIgn.innerHTML = `<span style="color:#ff4757; font-weight:600; font-size:11px;" title="${denial}">${denial}</span>`;
                             activeServerScans.textContent = "";
                             leaderboardsContainer.classList.add('hidden');
                             
@@ -560,103 +619,164 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'default' }).catch(() => {});
     }
 
+    function setRefreshBusy(btn, busy) {
+        if (!btn) return;
+        btn.style.opacity = busy ? '0.5' : '1';
+        btn.style.pointerEvents = busy ? 'none' : 'auto';
+    }
+
+    function markRefreshError(btn, el) {
+        if (el) el.innerHTML = `Error`;
+        if (btn) {
+            btn.style.background = 'rgba(231, 76, 60, 0.2)';
+            btn.style.color = '#e74c3c';
+            setRefreshBusy(btn, false);
+        }
+    }
+
+    function applyRefreshTimestamp(el, btn, fetchedAtMs, utcOffsetStr) {
+        if (!el) return;
+        const offsetStr = utcOffsetStr || "+00:00";
+        let offsetHours = 0, offsetMinutes = 0, sign = 1;
+        let match = offsetStr.match(/([+-])(\d{2}):(\d{2})/);
+        if (match) {
+            sign = match[1] === '-' ? -1 : 1;
+            offsetHours = parseInt(match[2], 10);
+            offsetMinutes = parseInt(match[3], 10);
+        }
+        let ts = new Date(fetchedAtMs || Date.now());
+        let localTime = ts.getTime();
+        let localOffset = ts.getTimezoneOffset() * 60000;
+        let targetOffset = (offsetHours * 3600000 + offsetMinutes * 60000) * sign;
+        let serverTime = new Date(localTime + localOffset + targetOffset);
+        let h = serverTime.getHours().toString().padStart(2, '0');
+        let m = serverTime.getMinutes().toString().padStart(2, '0');
+        el.innerHTML = `Updated<br>${h}:${m} (UTC${offsetStr})`;
+
+        // Color by how fresh THIS successful refresh was (not map tile age)
+        let diffMs = Date.now() - (fetchedAtMs || 0);
+        if (btn) {
+            setRefreshBusy(btn, false);
+            if (!fetchedAtMs) {
+                btn.style.background = 'rgba(231, 76, 60, 0.2)';
+                btn.style.color = '#e74c3c';
+            } else if (diffMs < 30 * 60000) {
+                btn.style.background = 'rgba(46, 204, 113, 0.2)';
+                btn.style.color = '#2ecc71';
+            } else if (diffMs < 120 * 60000) {
+                btn.style.background = 'rgba(230, 126, 34, 0.2)';
+                btn.style.color = '#e67e22';
+            } else {
+                btn.style.background = 'rgba(231, 76, 60, 0.2)';
+                btn.style.color = '#e74c3c';
+            }
+        }
+    }
+
+    // Unified refresh entry-point used by MAP and DEF headers
+    function refreshPanel(panel) {
+        const btn = document.getElementById(panel === 'aegis' ? 'btn-refresh-aegis' : 'btn-refresh-map');
+        const el = document.getElementById(panel === 'aegis' ? 'aegis-last-updated' : 'map-last-updated');
+        setRefreshBusy(btn, true);
+        if (el) el.innerHTML = `Fetching...`;
+
+        chrome.storage.local.get(['discordId'], (result) => {
+            if (result.discordId) triggerVerificationSweep(result.discordId);
+        });
+
+        if (panel === 'aegis') {
+            fetchAegisTop10(true);
+        } else {
+            fetchMapStats(true);
+            fetchWorldEvents();
+        }
+    }
+
     function loadMapStats() {
-        chrome.storage.local.get(['mapStatsCache'], (result) => {
+        chrome.storage.local.get(['mapStatsCache', 'mapStatsLastRefresh', 'mapStatsUtcOffset'], (result) => {
             if (result.mapStatsCache) {
-                renderMapStats(result.mapStatsCache);
+                renderMapStats(result.mapStatsCache, result.mapStatsLastRefresh, result.mapStatsUtcOffset);
             } else {
                 fetchMapStats();
             }
         });
     }
 
-    function fetchMapStats() {
+    function fetchMapStats(fromRefresh) {
         if (!mapGlobalStats || !mapGeoStats) return;
+        const lastUpdatedEl = document.getElementById('map-last-updated');
+        if (fromRefresh) {
+            setRefreshBusy(btnRefreshMap, true);
+            if (lastUpdatedEl) lastUpdatedEl.innerHTML = `Fetching...`;
+        }
         mapGlobalStats.innerHTML = 'Fetching intelligence...';
         mapGeoStats.innerHTML = 'Waiting for data...';
         
         chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
             if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
-                if (currentServerData && currentServerData[url.hostname]) {
-                    chrome.storage.local.get(['discordId'], (res) => {
-                        let payload = [{ 
-                            action: "get_map_stats", 
-                            discordId: res.discordId || "unknown",
-                            extVersion: chrome.runtime.getManifest().version 
-                        }];
-                        
-                        chrome.runtime.sendMessage({
-                            type: 'FETCH_GAS',
-                            hostname: url.hostname,
-                            payload: payload
-                        }, (rawText) => {
-                            if (!rawText) {
-                                mapGlobalStats.innerHTML = 'Network error.';
-                                return;
+                chrome.storage.local.get(['discordId', 'serverData'], (res) => {
+                    if (res.serverData) currentServerData = res.serverData;
+                    if (!(currentServerData && currentServerData[url.hostname])) {
+                        mapGlobalStats.innerHTML = 'No active server.';
+                        if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
+                        return;
+                    }
+                    let payload = [{ 
+                        action: "get_map_stats", 
+                        discordId: res.discordId || "unknown",
+                        extVersion: chrome.runtime.getManifest().version 
+                    }];
+                    
+                    chrome.runtime.sendMessage({
+                        type: 'FETCH_GAS',
+                        hostname: url.hostname,
+                        payload: payload
+                    }, (rawText) => {
+                        if (!rawText) {
+                            mapGlobalStats.innerHTML = 'Network error.';
+                            if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
+                            return;
+                        }
+                        try {
+                            let data = JSON.parse(rawText);
+                            if (data.status === "ok") {
+                                const fetchedAt = Date.now();
+                                const utcOffset = (data.stats && data.stats.utcOffset) || "+00:00";
+                                chrome.storage.local.set({
+                                    mapStatsCache: data.stats,
+                                    mapStatsLastRefresh: fetchedAt,
+                                    mapStatsUtcOffset: utcOffset
+                                });
+                                renderMapStats(data.stats, fetchedAt, utcOffset);
+                            } else if (data.status === "KILL") {
+                                chrome.storage.local.set({ killSwitch: true });
+                                killScreen.classList.remove('hidden');
+                                if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
+                            } else {
+                                mapGlobalStats.innerHTML = 'Error: ' + (data.msg || data.status);
+                                console.error(`[Map Stats] ${data.status}: ${data.msg || ''}`);
+                                if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
                             }
-                            try {
-                                let data = JSON.parse(rawText);
-                                if (data.status === "ok") {
-                                    chrome.storage.local.set({ mapStatsCache: data.stats });
-                                    renderMapStats(data.stats);
-                                } else {
-                                    mapGlobalStats.innerHTML = 'Error: ' + data.status;
-                                }
-                            } catch (e) {
-                                mapGlobalStats.innerHTML = 'Server error.';
-                            }
-                        });
+                        } catch (e) {
+                            mapGlobalStats.innerHTML = 'Server error.';
+                            if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
+                        }
                     });
-                } else { mapGlobalStats.innerHTML = 'No active server.'; }
-            } else { mapGlobalStats.innerHTML = 'Navigate to game.'; }
+                });
+            } else {
+                mapGlobalStats.innerHTML = 'Navigate to game.';
+                if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
+            }
         });
     }
 
-    function renderMapStats(data) {
+    function renderMapStats(data, fetchedAtMs, utcOffsetStr) {
         if (!mapGlobalStats || !mapGeoStats || !data) return;
         
         const mapLastUpdated = document.getElementById('map-last-updated');
-        if (mapLastUpdated && data.maxLastUpdated) {
-            let ts = new Date(data.maxLastUpdated);
-            // Parse UTC offset
-            let offsetHours = 0, offsetMinutes = 0, sign = 1;
-            if (data.utcOffset) {
-                let match = data.utcOffset.match(/([+-])(\d{2}):(\d{2})/);
-                if (match) {
-                    sign = match[1] === '-' ? -1 : 1;
-                    offsetHours = parseInt(match[2], 10);
-                    offsetMinutes = parseInt(match[3], 10);
-                }
-            }
-            
-            // Apply offset to display time
-            let localTime = ts.getTime();
-            let localOffset = ts.getTimezoneOffset() * 60000;
-            let targetOffset = (offsetHours * 3600000 + offsetMinutes * 60000) * sign;
-            let serverTime = new Date(localTime + localOffset + targetOffset);
-            
-            let h = serverTime.getHours().toString().padStart(2, '0');
-            let m = serverTime.getMinutes().toString().padStart(2, '0');
-            mapLastUpdated.innerHTML = `Updated<br>${h}:${m} (UTC${data.utcOffset})`;
-            
-            // Button color logic
-            let diffMs = Date.now() - ts.getTime();
-            if (btnRefreshMap) {
-                if (diffMs < 30 * 60000) {
-                    // Green (< 30 min)
-                    btnRefreshMap.style.background = 'rgba(46, 204, 113, 0.2)';
-                    btnRefreshMap.style.color = '#2ecc71';
-                } else if (diffMs < 120 * 60000) {
-                    // Orange (30 min - 2h)
-                    btnRefreshMap.style.background = 'rgba(230, 126, 34, 0.2)';
-                    btnRefreshMap.style.color = '#e67e22';
-                } else {
-                    // Red (> 2h)
-                    btnRefreshMap.style.background = 'rgba(231, 76, 60, 0.2)';
-                    btnRefreshMap.style.color = '#e74c3c';
-                }
-            }
+        if (fetchedAtMs) {
+            applyRefreshTimestamp(mapLastUpdated, btnRefreshMap, fetchedAtMs, utcOffsetStr || data.utcOffset);
         } else if (mapLastUpdated) {
             mapLastUpdated.innerHTML = `Never`;
             if (btnRefreshMap) {
@@ -833,6 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (message.action === "authError") {
             console.error(`[Security Firewall - ${message.hostname}] ${message.status}: ${message.msg}`);
+            updateActiveGameStatus();
             const btnConsole = document.getElementById('btn-debug-console');
             if (btnConsole) {
                 btnConsole.style.borderColor = '#f39c12';
@@ -848,96 +969,108 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRefreshAegis = document.getElementById('btn-refresh-aegis');
     if (btnRefreshAegis) {
         btnRefreshAegis.addEventListener('click', () => {
-            fetchAegisTop10();
+            refreshPanel('aegis');
         });
     }
 
-    function fetchAegisTop10() {
+    // Mirror of loadMapStats(): restore cached Aegis UI + refresh timestamp on panel open
+    function loadAegisPanel() {
+        const lastUpdatedEl = document.getElementById('aegis-last-updated');
+        chrome.storage.local.get(['aegisDataCache', 'aegisLastRefresh', 'aegisUtcOffset', 'serverData'], (result) => {
+            if (result.serverData) currentServerData = result.serverData;
+            if (result.aegisLastRefresh) {
+                applyRefreshTimestamp(lastUpdatedEl, btnRefreshAegis, result.aegisLastRefresh, result.aegisUtcOffset || "+00:00");
+            } else if (lastUpdatedEl) {
+                lastUpdatedEl.innerHTML = ``;
+                if (btnRefreshAegis) {
+                    btnRefreshAegis.style.background = 'rgba(231, 76, 60, 0.2)';
+                    btnRefreshAegis.style.color = '#e74c3c';
+                }
+            }
+
+            if (result.aegisDataCache && result.aegisDataCache.hostname) {
+                const cache = result.aegisDataCache;
+                renderAegisTop10(cache.stats, cache.hostname);
+                renderAegisSidebarCards(cache, cache.hostname);
+                updateDefBubbles(cache.incomings, cache.standing);
+            }
+            // Do not auto-fetch on open (same philosophy as MAP: keep cache until manual refresh)
+        });
+    }
+
+    function fetchAegisTop10(fromRefresh) {
         const elContainer = document.getElementById('aegis-hof-container');
         const lastUpdatedEl = document.getElementById('aegis-last-updated');
+        const incContainer = document.getElementById('aegis-sidebar-incomings');
+        const stdContainer = document.getElementById('aegis-sidebar-standing');
         
-        if (btnRefreshAegis) btnRefreshAegis.style.opacity = '0.5';
-        if (lastUpdatedEl) lastUpdatedEl.innerText = "Fetching...";
+        if (fromRefresh) {
+            setRefreshBusy(btnRefreshAegis, true);
+            if (lastUpdatedEl) lastUpdatedEl.innerHTML = `Fetching...`;
+        }
         if (!elContainer) return;
         elContainer.innerHTML = "<div class='table-row'>Fetching Aegis intelligence...</div>";
+        if (incContainer) incContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Fetching...</div>';
+        if (stdContainer) stdContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Fetching...</div>';
 
         chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
             if (tabs && tabs.length > 0) {
                 const url = new URL(tabs[0].url);
-                if (currentServerData && currentServerData[url.hostname]) {
-                    chrome.storage.local.get(['discordId'], (res) => {
-                        let payload = [{ action: "aegis_get_data", discordId: res.discordId || "unknown", extVersion: chrome.runtime.getManifest().version }];
-                        chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {
-                            if (btnRefreshAegis) btnRefreshAegis.style.opacity = '1';
-                            if (!rawText) { 
-                                elContainer.innerHTML = "<div class='table-row'>Network error.</div>"; 
-                                if (lastUpdatedEl) lastUpdatedEl.innerText = "Error";
-                                if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
-                                return; 
+                chrome.storage.local.get(['discordId', 'serverData'], (res) => {
+                    if (res.serverData) currentServerData = res.serverData;
+                    if (!(currentServerData && currentServerData[url.hostname])) {
+                        elContainer.innerHTML = "<div class='table-row'>No active server.</div>";
+                        if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
+                        return;
+                    }
+                    let payload = [{ action: "aegis_get_data", discordId: res.discordId || "unknown", extVersion: chrome.runtime.getManifest().version }];
+                    chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {
+                        if (!rawText) { 
+                            elContainer.innerHTML = "<div class='table-row'>Network error.</div>"; 
+                            if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
+                            return; 
+                        }
+                        try {
+                            let data = JSON.parse(rawText);
+                            if (data.status === "KILL") {
+                                chrome.storage.local.set({ killSwitch: true });
+                                killScreen.classList.remove('hidden');
+                                if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
+                                return;
                             }
-                            try {
-                                let data = JSON.parse(rawText);
-                                if (data.status !== "ok") {
-                                    elContainer.innerHTML = "<div class='table-row'>Error: " + data.status + "</div>";
-                                    if (lastUpdatedEl) lastUpdatedEl.innerText = "Error";
-                                    if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
-                                } else {
-                                    renderAegisTop10(data.stats, url.hostname);
-                                    renderAegisSidebarCards(data, url.hostname);
-                                    
-                                    // Update last updated
-                                    let serverTime = data.serverTime || Date.now();
-                                    let utcOffsetStr = data.utcOffset || "+00:00";
-                                    
-                                    let match = utcOffsetStr.match(/([+-])(\d{2}):(\d{2})/);
-                                    let offsetMs = 0;
-                                    if (match) {
-                                        let sign = match[1] === '+' ? 1 : -1;
-                                        let hours = parseInt(match[2], 10);
-                                        let mins = parseInt(match[3], 10);
-                                        offsetMs = sign * ((hours * 60 * 60 * 1000) + (mins * 60 * 1000));
+                            if (data.status !== "ok") {
+                                elContainer.innerHTML = "<div class='table-row'>Error: " + (data.msg || data.status) + "</div>";
+                                if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
+                            } else {
+                                renderAegisTop10(data.stats, url.hostname);
+                                renderAegisSidebarCards(data, url.hostname);
+                                updateDefBubbles(data.incomings, data.standing);
+
+                                const fetchedAt = Date.now();
+                                const utcOffsetStr = data.utcOffset || "+00:00";
+                                chrome.storage.local.set({
+                                    aegisLastRefresh: fetchedAt,
+                                    aegisUtcOffset: utcOffsetStr,
+                                    aegisDataCache: {
+                                        hostname: url.hostname,
+                                        stats: data.stats,
+                                        incomings: data.incomings,
+                                        standing: data.standing,
+                                        utcOffset: utcOffsetStr,
+                                        serverTime: data.serverTime
                                     }
-                                    let d = new Date(serverTime);
-                                    let utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
-                                    let travianDate = new Date(utcMs + offsetMs);
-                                    
-                                    let hh = travianDate.getHours();
-                                    let mm = travianDate.getMinutes();
-                                    let pad = n => n < 10 ? '0'+n : n;
-                                    
-                                    if (lastUpdatedEl) {
-                                        lastUpdatedEl.innerHTML = `Updated<br>${pad(hh)}:${pad(mm)} (UTC${utcOffsetStr})`;
-                                    }
-                                    if (btnRefreshAegis) {
-                                        let diffMinutes = (Date.now() - serverTime) / (1000 * 60);
-                                        if (diffMinutes < 30) {
-                                            btnRefreshAegis.style.color = '#2ecc71';
-                                        } else if (diffMinutes < 120) {
-                                            btnRefreshAegis.style.color = '#f39c12';
-                                        } else {
-                                            btnRefreshAegis.style.color = '#e74c3c';
-                                        }
-                                    }
-                                    
-                                    // Update notification bubbles
-                                    updateDefBubbles(data.incomings, data.standing);
-                                }
-                            } catch (e) { 
-                                elContainer.innerHTML = "<div class='table-row'>Server error.</div>"; 
-                                if (lastUpdatedEl) lastUpdatedEl.innerText = "Error";
-                                if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+                                });
+                                applyRefreshTimestamp(lastUpdatedEl, btnRefreshAegis, fetchedAt, utcOffsetStr);
                             }
-                        });
+                        } catch (e) { 
+                            elContainer.innerHTML = "<div class='table-row'>Server error.</div>"; 
+                            if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
+                        }
                     });
-                } else { 
-                    elContainer.innerHTML = "<div class='table-row'>No active server.</div>"; 
-                    if (lastUpdatedEl) lastUpdatedEl.innerText = "";
-                    if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
-                }
+                });
             } else { 
                 elContainer.innerHTML = "<div class='table-row'>Navigate to game.</div>"; 
-                if (lastUpdatedEl) lastUpdatedEl.innerText = "";
-                if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+                if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
             }
         });
     }

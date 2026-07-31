@@ -237,13 +237,27 @@ async function runVerificationSweep(discordId) {
                 updateBadgeState();
                 return { status: "KILL" };
             }
-            if (data.status === "VERIFIED" || data.status === "OK") { // Also accept OK from old/modified setups just in case
+            if (data.status === "VERIFIED" || data.status === "OK") {
                 verifiedServers[hostname] = true;
-                serverData[hostname] = data; // Store full payload (scannedTiles, leaderboards, ign)
-                chrome.storage.local.remove('authError'); // Clear any previous errors
+                serverData[hostname] = data;
+                chrome.storage.local.remove('authError');
             } else if (data.status === "NOT_CONFEDERATION" || data.status === "NOT_VERIFIED" || data.status === "NOT_REGISTERED" || data.status === "UNREGISTERED") {
-                chrome.storage.local.set({ authError: { status: data.status, msg: data.msg, hostname: hostname } });
-                return { status: data.status, msg: data.msg || data.status, hostname: hostname };
+                // Persist denial + clear any stale "connected" cache for this host
+                delete verifiedServers[hostname];
+                delete serverData[hostname];
+                chrome.storage.local.set({
+                    authError: { status: data.status, msg: data.msg, hostname: hostname },
+                    verifiedServers: verifiedServers,
+                    serverData: serverData
+                });
+                updateBadgeState();
+                chrome.runtime.sendMessage({
+                    action: "authError",
+                    status: data.status,
+                    msg: data.msg,
+                    hostname: hostname
+                }).catch(() => {});
+                return { status: data.status, msg: data.msg || data.status, hostname: hostname, serverData, verifiedServers };
             }
         } catch (e) {
             console.error(`Verification failed for ${hostname}:`, e);
@@ -252,6 +266,7 @@ async function runVerificationSweep(discordId) {
 
     chrome.storage.local.set({ verifiedServers: verifiedServers, serverData: serverData });
     updateBadgeState();
+    chrome.runtime.sendMessage({ action: "refreshLeaderboards", serverData: serverData }).catch(() => {});
     return { verifiedServers, serverData, status: "OK" };
 }
 

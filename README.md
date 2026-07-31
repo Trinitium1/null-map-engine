@@ -9,6 +9,13 @@
 - **Tribe & Alliance Integration**: Injected dynamic Tribe icons and Alliance tags into the sidebar widgets alongside clickable profile hyperlinks.
 - **Smart Refresh & Notification Bubbles**: Def App button now correctly displays notification bubbles for active incoming attacks and standing defense requests, overlapping the shield icon smoothly.
 
+**🔐 Access Control & Connection Stability**
+- **Tri-Factor Auth UI**: Server status card now surfaces specific denial reasons (`NOT_REGISTERED`, `NOT_CONFEDERATION`, `NOT_VERIFIED`) instead of a generic unregistered label.
+- **Auto Re-Verification**: Opening the sidepanel or switching Travian tabs now re-validates access automatically; status no longer stays stale until a manual MAP refresh.
+- **Unified Panel Refresh**: MAP and DEF headers share the same refresh logic — `Updated HH:MM (UTC±…)` is tied to the last successful fetch, with green/orange/red freshness coloring.
+- **Discord Auth Fix**: OAuth redirect is intercepted via `webNavigation` to close the auth tab instantly (no more ~20s DNS hang after Authorize).
+- **Kill Switch UX**: Obsolete/blocked installs now offer **Contact Support** (Discord) and **Update from Chrome Web Store** instead of a Discord download CTA.
+
 ---
 
 ## 🚀 WebStoreRelease V1.5
