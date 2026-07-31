@@ -393,6 +393,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     saveStatus.style.color = "#ff4757";
                     setTimeout(() => { saveStatus.style.color = "#2ed573"; saveStatus.textContent = ""; }, 3000);
                 }
+            } else if (response && response.status !== "OK") {
+                // Handle auth error response directly from verification
+                saveStatus.textContent = "Access Denied.";
+                saveStatus.style.color = "#ff4757";
+                setTimeout(() => { saveStatus.style.color = "#2ed573"; saveStatus.textContent = ""; }, 3000);
             }
         });
     }
@@ -497,14 +502,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                     activeServerName.textContent = shortName;
                     
-                    chrome.storage.local.get(['authError'], (storageRes) => {
-                        if (currentServerData && currentServerData[url.hostname]) {
+                    chrome.storage.local.get(['authError', 'discordId'], (storageRes) => {
+                        if (!storageRes.discordId) {
+                            setNoActiveGame();
+                            return;
+                        }
+
+                        if (currentServerData && currentServerData[url.hostname] && (!storageRes.authError || storageRes.authError.hostname !== url.hostname)) {
                             const data = currentServerData[url.hostname];
                             activeServerBadge.style.background = "#2ed573";
                             activeServerBadge.style.boxShadow = "0 0 8px #2ed573";
                             if (activeServerIndicator) activeServerIndicator.style.borderLeftColor = "#2ed573";
-                            activeServerIgn.textContent = data.ign;
-                            activeServerScans.innerHTML = `<strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans`;
+                            activeServerIgn.textContent = data.ign || "Connected";
+                            if (data.scannedTiles !== undefined) {
+                                activeServerScans.innerHTML = `<strong style="color:#eccc68">${data.scannedTiles.toLocaleString()}</strong> Scans`;
+                            }
                             
                             chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'green' }).catch(() => {});
                             

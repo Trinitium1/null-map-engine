@@ -237,13 +237,13 @@ async function runVerificationSweep(discordId) {
                 updateBadgeState();
                 return { status: "KILL" };
             }
-            if (data.status === "VERIFIED") {
+            if (data.status === "VERIFIED" || data.status === "OK") { // Also accept OK from old/modified setups just in case
                 verifiedServers[hostname] = true;
                 serverData[hostname] = data; // Store full payload (scannedTiles, leaderboards, ign)
                 chrome.storage.local.remove('authError'); // Clear any previous errors
-            } else if (data.status === "NOT_CONFEDERATION" || data.status === "NOT_VERIFIED" || data.status === "NOT_REGISTERED") {
+            } else if (data.status === "NOT_CONFEDERATION" || data.status === "NOT_VERIFIED" || data.status === "NOT_REGISTERED" || data.status === "UNREGISTERED") {
                 chrome.storage.local.set({ authError: { status: data.status, msg: data.msg, hostname: hostname } });
-                return { status: data.status, msg: data.msg, hostname: hostname };
+                return { status: data.status, msg: data.msg || data.status, hostname: hostname };
             }
         } catch (e) {
             console.error(`Verification failed for ${hostname}:`, e);

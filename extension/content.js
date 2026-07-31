@@ -35,24 +35,28 @@ window.addEventListener('message', function(event) {
             }
 
             // Forward to the Service Worker (background.js)
-            chrome.runtime.sendMessage({
-                type: 'PROCESS_MAP_DATA',
-                payload: event.data.payload,
-                ign: event.data.ign,
-                hostname: window.location.hostname
-            });
+            try {
+                chrome.runtime.sendMessage({
+                    type: 'PROCESS_MAP_DATA',
+                    payload: event.data.payload,
+                    ign: event.data.ign,
+                    hostname: window.location.hostname
+                }).catch(() => {});
+            } catch(e) {}
         });
     }
 });
 
-// Hook for when the user navigates away or closes the tab to trigger the flush
+        // Hook for when the user navigates away or closes the tab to trigger the flush
 window.addEventListener('beforeunload', () => {
     chrome.storage.local.get(['engineActive', 'killSwitch'], (result) => {
         if (!result.killSwitch && result.engineActive !== false) {
-            chrome.runtime.sendMessage({ 
-                type: 'FLUSH_CACHE',
-                hostname: window.location.hostname
-            });
+            try {
+                chrome.runtime.sendMessage({ 
+                    type: 'FLUSH_CACHE',
+                    hostname: window.location.hostname
+                }).catch(() => {});
+            } catch(e) {}
         }
     });
 });
