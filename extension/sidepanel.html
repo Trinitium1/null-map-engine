@@ -144,8 +144,12 @@
                     <div class="app-icon-inner" style="background: linear-gradient(135deg, #ff4757, #ffd700);">⚔️</div>
                     <span>TROOPS</span>
                 </div>
-                <div class="app-icon disabled">
-                    <div class="app-icon-inner">🛡️</div>
+                <div class="app-icon" id="app-btn-def">
+                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #2980b9, #2c3e50); position: relative;">
+                        🛡️
+                        <div id="def-bubble-inc" title="Active Hostile Incomings (Tactical Radar)" style="position: absolute; top: -6px; left: -6px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(231, 76, 60, 0.8); z-index: 10;"></div>
+                        <div id="def-bubble-std" title="Active Standing Defense Walls" style="position: absolute; top: -6px; right: -6px; background: #f39c12; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(243, 156, 18, 0.8); z-index: 10;"></div>
+                    </div>
                     <span>DEF</span>
                 </div>
                 <div class="app-icon disabled">
@@ -493,18 +497,76 @@
                         <div id="pvp-sub-content">
                             <!-- Injected content goes here -->
                         </div>
+                    </div> <!-- END PVP SUB PANEL CONTAINER -->
+
+                </div> <!-- END MAP MODULES CONTAINER -->
+
+                <!-- DEF APP MODULE -->
+                <div id="def-modules-container" class="app-panel hidden">
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
+                        <div id="btn-def-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="flex-grow: 1; color:#2980b9;">AEGIS TERMINAL</h2>
+                        <div id="aegis-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                        <div id="btn-refresh-aegis" class="icon-btn" title="Refresh Aegis Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </div>
                     </div>
 
-                </div>
-            </div>
+                    <!-- BUTTON TO OPEN FULL TAB -->
+                    <button id="btn-open-aegis" class="btn" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #2980b9, #2c3e50); border: 1px solid #3498db; color: white; padding: 12px; font-size: 13px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3);">
+                        🛡️ OPEN AEGIS COMMAND TERMINAL
+                    </button>
+
+                    <!-- TACTICAL RADAR (INCOMINGS) WIDGET -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0;">
+                            <h3>📡 TACTICAL RADAR (INCOMINGS)</h3>
+                        </div>
+                        <div id="aegis-sidebar-incomings" style="padding-top:5px;">
+                            <div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Waiting for data...</div>
+                        </div>
+                    </div>
+
+                    <!-- STANDING DEFENSE WIDGET -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0;">
+                            <h3>🧱 STANDING DEFENSE</h3>
+                        </div>
+                        <div id="aegis-sidebar-standing" style="padding-top:5px;">
+                            <div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Waiting for data...</div>
+                        </div>
+                    </div>
+
+                        <!-- HOF TOP 10 WIDGET -->
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                                <h3>🏆 AEGIS PARAGON (TOP 10)</h3>
+                                <div class="info-icon" title="Vanguard (VAN) = Points for active emergency snipes.&#10;Sentinel (SEN) = Points for static garrisoning.&#10;Sorted by Total Score." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">?</div>
+                            </div>
+                            <div class="table-container" id="aegis-hof-container" style="padding-top:5px;">
+                                <div class="table-row">Waiting for data...</div>
+                            </div>
+                        </div>
+                </div> <!-- END DEF APP MODULE -->
+
+            </div> <!-- END APP PANELS WRAPPER -->
 
             <!-- FOOTER -->
             <div class="footer" style="padding-bottom: 20px; padding-top: 20px;">
                 v<span id="version-display"></span> | NULL Legion Tool
             </div>
-        </div>
+        </div> <!-- END DYNAMIC CONTENT WRAPPER -->
 
-    </div>
+    </div> <!-- END MAIN WRAPPER -->
 
     <!-- LIGHTBOX GALLERY -->
     <div id="lightbox-overlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">

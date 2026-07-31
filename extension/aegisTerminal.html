@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AEGIS TERMINAL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary:   #0d0f14;
+            --bg-card:      #13161e;
+            --bg-card2:     #1a1e2a;
+            --bg-hover:     #20253a;
+            --border:       rgba(255,255,255,0.07);
+            --text-primary: #e8eaf0;
+            --text-muted:   #8b949e;
+            --gold:         #f1c40f;
+            --green:        #2ecc71;
+            --red:          #ff4757;
+            --blue:         #3498db;
+            --accent:       #0fb9b1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 13px; overflow: hidden; }
+
+        #app { display: flex; flex-direction: column; height: 100vh; position: relative; }
+
+        /* TOPBAR */
+        #topbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 20px; background: rgba(19, 22, 30, 0.8);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10;
+        }
+        #topbar .logo { width: 26px; height: 26px; border-radius: 6px; box-shadow: 0 0 10px rgba(52, 152, 219, 0.3); }
+        #topbar h1 { font-size: 14px; font-weight: 800; letter-spacing: 2px; color: var(--blue); flex: 1; text-shadow: 0 0 10px rgba(52, 152, 219, 0.2); }
+        
+        #last-updated { font-size: 11px; color: var(--text-muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+        #btn-refresh {
+            background: rgba(52, 152, 219, 0.15); border: 1px solid rgba(52, 152, 219, 0.3);
+            color: var(--blue); border-radius: 6px; padding: 6px 12px;
+            cursor: pointer; font-size: 11px; font-weight: 700; transition: all .2s;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        #btn-refresh:hover { background: rgba(52, 152, 219, 0.35); box-shadow: 0 0 15px rgba(52, 152, 219, 0.2); }
+
+        /* TABS */
+        #tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--bg-card); flex-shrink: 0; }
+        .tab-btn { padding: 14px 24px; font-size: 11px; font-weight: 800; cursor: pointer; letter-spacing: 1.5px; border-bottom: 2px solid transparent; color: var(--text-muted); transition: all .2s; text-transform: uppercase; }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); text-shadow: 0 0 10px rgba(15, 185, 177, 0.3); }
+        .tab-btn:hover:not(.active) { color: var(--text-primary); }
+
+        /* MAIN */
+        #main-layout { display: flex; flex: 1; overflow: hidden; background: radial-gradient(circle at top right, rgba(15, 185, 177, 0.03), transparent 50%), radial-gradient(circle at bottom left, rgba(52, 152, 219, 0.03), transparent 50%); }
+        .tab-content { flex: 1; overflow-y: auto; padding: 25px; display: none; }
+        .tab-content.active { display: block; }
+
+        /* GENERAL STYLES */
+        .btn { padding: 8px 14px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: 1px solid transparent; transition: .2s; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.5px; }
+        .btn-primary { background: linear-gradient(135deg, #3498db, #2980b9); color: white; border-color: #3498db; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.2); }
+        .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 15px rgba(52, 152, 219, 0.4); }
+        .btn-danger { background: linear-gradient(135deg, #ff4757, #c0392b); color: white; border-color: #ff4757; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.2); }
+        .btn-danger:hover { filter: brightness(1.1); box-shadow: 0 6px 15px rgba(255, 71, 87, 0.4); }
+        .btn-success { background: linear-gradient(135deg, #2ed573, #27ae60); color: white; border-color: #2ed573; box-shadow: 0 4px 10px rgba(46, 213, 115, 0.2); }
+        .btn-success:hover { filter: brightness(1.1); box-shadow: 0 6px 15px rgba(46, 213, 115, 0.4); }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: white; border-color: rgba(255,255,255,0.1); }
+        .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); box-shadow: none; }
+        
+        .tribe-icon { width: 14px; height: 14px; image-rendering: pixelated; vertical-align: middle; margin-right: 4px; }
+        .app-link { color: var(--accent); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+        .app-link:hover { color: #fff; text-shadow: 0 0 5px var(--accent); text-decoration: underline; }
+
+        /* RADAR & STANDING CARDS - PREMIUM UI */
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 20px; }
+        
+        .ticket-card {
+            background: linear-gradient(145deg, rgba(19, 22, 30, 0.8) 0%, rgba(26, 30, 42, 0.9) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .ticket-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+        .ticket-card.status-open { border-top: 3px solid #e67e22; }
+        .ticket-card.status-escalated { border-top: 3px solid #ff4757; }
+        
+        .ticket-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 100%;
+            background: radial-gradient(circle at top right, rgba(52, 152, 219, 0.05), transparent 60%);
+            pointer-events: none;
+        }
+
+        .ticket-header { display: flex; justify-content: space-between; align-items: flex-start; z-index: 1; }
+        .ticket-title { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
+        
+        .ticket-badge { font-size: 9px; padding: 4px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .badge-open { background: linear-gradient(135deg, rgba(230, 126, 34, 0.2), rgba(230, 126, 34, 0.1)); border: 1px solid rgba(230, 126, 34, 0.3); color: #f39c12; }
+        .badge-escalated { background: linear-gradient(135deg, rgba(255, 71, 87, 0.2), rgba(255, 71, 87, 0.1)); border: 1px solid rgba(255, 71, 87, 0.3); color: #ff4757; }
+        
+        .ticket-details { font-size: 12px; color: var(--text-muted); line-height: 1.6; z-index: 1; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); }
+        .ticket-details strong { color: #dcdde1; font-weight: 600; }
+        
+        .ticket-actions { display: flex; gap: 10px; margin-top: auto; flex-wrap: wrap; z-index: 1; padding-top: 10px; }
+
+        /* PROGRESS BAR - SUPER PREMIUM CSS */
+        .progress-container { margin-top: 8px; z-index: 1; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #dcdde1; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .progress-bg { 
+            background: rgba(0,0,0,0.4); border-radius: 6px; height: 10px; width: 100%; 
+            overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);
+        }
+        .progress-fill { 
+            background: linear-gradient(90deg, #0fb9b1, #2ed573); height: 100%; width: 0%; 
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 10px rgba(46, 213, 115, 0.5); position: relative;
+        }
+        .progress-fill::after {
+            content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 20px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8));
+            opacity: 0.5;
+        }
+
+        .defender-list { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; max-height: 120px; overflow-y: auto; z-index: 1; }
+        .defender-item { background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.02); }
+
+        /* MODAL */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        #modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-box { background: var(--bg-card); border: 1px solid rgba(52, 152, 219, 0.3); border-radius: 12px; width: 450px; max-width: 90%; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05); overflow: hidden; }
+        .modal-header { padding: 18px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; letter-spacing: 1px; color: #fff; }
+        .modal-close { cursor: pointer; color: var(--text-muted); font-size: 20px; transition: color 0.2s; }
+        .modal-close:hover { color: #ff4757; }
+        .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+        .modal-body label { font-size: 11px; font-weight: 700; color: #a4b0be; margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .modal-body input, .modal-body select, .modal-body textarea { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); padding: 10px 14px; border-radius: 6px; color: white; font-family: inherit; font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; }
+        .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2); }
+        .modal-footer { padding: 18px 24px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+        /* LOADER */
+        #loading-overlay { position: fixed; inset: 0; background: rgba(13,15,20,0.95); backdrop-filter: blur(10px); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; transition: opacity 0.3s; }
+        #loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .spinner { width: 50px; height: 50px; border: 3px solid rgba(255,255,255,0.05); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite; margin-bottom: 15px; box-shadow: 0 0 20px rgba(15, 185, 177, 0.2); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <span id="loading-text" style="color:var(--text-primary);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Connecting to Aegis Mainframe...</span>
+    </div>
+
+    <div id="topbar">
+        <img src="assets/icon128.png" alt="NULL" class="logo">
+        <h1>🛡️ AEGIS TERMINAL</h1>
+        <div id="last-updated">Updated: --</div>
+        <button id="btn-refresh">↺ Refresh Data</button>
+    </div>
+
+    <div id="tabs">
+        <div class="tab-btn active" data-target="tab-radar">📡 INCOMING RADAR</div>
+        <div class="tab-btn" data-target="tab-standing">🧱 STANDING DEFENSE</div>
+    </div>
+
+    <div id="main-layout">
+        <!-- RADAR TAB -->
+        <div id="tab-radar" class="tab-content active">
+            <div class="header-actions">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #fff;">📡 TACTICAL RADAR</h2>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Live telemetry of hostile actions. High Command authorizes deployments.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-report-inc" style="font-size: 12px; padding: 10px 18px;">🚨 Report Incoming</button>
+            </div>
+            <div class="grid-cards" id="radar-grid">
+                <!-- Dynamic -->
+            </div>
+        </div>
+
+        <!-- STANDING TAB -->
+        <div id="tab-standing" class="tab-content">
+            <div class="header-actions">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #fff;">🧱 STANDING DEFENSE</h2>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Static garrison requests for strategic assets.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-req-std" style="font-size: 12px; padding: 10px 18px;">🧱 Request Standing Def</button>
+            </div>
+            <div class="grid-cards" id="standing-grid">
+                <!-- Dynamic -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DYNAMIC MODAL -->
+<div id="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span id="modal-title">Modal Title</span>
+            <span class="modal-close" id="modal-close">×</span>
+        </div>
+        <div class="modal-body" id="modal-body">
+            <!-- Dynamic fields -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+            <button class="btn btn-primary" id="modal-confirm">Submit</button>
+        </div>
+    </div>
+</div>
+
+<script src="aegisTerminal.js"></script>
+</body>
+</html>

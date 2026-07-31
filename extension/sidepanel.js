@@ -105,28 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const appPanelsWrapper = document.getElementById('app-panels-wrapper');
     const btnBackHome = document.getElementById('btn-back-home');
     const appBtnMap = document.getElementById('app-btn-map');
+    const appBtnTroops = document.getElementById('app-btn-troops');
+    const appBtnDef = document.getElementById('app-btn-def');
     const mapModules = document.getElementById('map-modules-container');
     const btnRefreshMap = document.getElementById('btn-refresh-map');
     const mapGlobalStats = document.getElementById('map-global-stats');
     const mapGeoStats = document.getElementById('map-geo-stats');
 
-    // Navigation Logic
-    if (appBtnMap) {
-        appBtnMap.addEventListener('click', () => {
-            // Hide Home Screen
-            appGridContainer.classList.add('hidden');
-            
-            // Show Map Panel
-            mapModules.classList.remove('hidden');
-            btnBackHome.classList.remove('hidden');
-            
-            loadMapStats(); // Load data when opening map app
-            fetchChronosAlliancesList(); // Fetch alliances for autocomplete
-        });
-    }
+    const defModules = document.getElementById('def-modules-container');
 
     // TROOPS App: open Troops Analyzer in a new tab
-    const appBtnTroops = document.getElementById('app-btn-troops');
     if (appBtnTroops) {
         appBtnTroops.addEventListener('click', () => {
             let url = chrome.runtime.getURL('troopsAnalyzer.html');
@@ -137,16 +125,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Navigation Logic
+    if (appBtnMap) {
+        appBtnMap.addEventListener('click', () => {
+            appGridContainer.classList.add('hidden');
+            mapModules.classList.remove('hidden');
+            btnBackHome.classList.remove('hidden');
+            loadMapStats();
+            fetchChronosAlliancesList();
+        });
+    }
+
+    if (appBtnDef) {
+        appBtnDef.addEventListener('click', () => {
+            appGridContainer.classList.add('hidden');
+            defModules.classList.remove('hidden');
+        });
+    }
+
+    const btnDefBack = document.getElementById('btn-def-back');
+    if (btnDefBack) {
+        btnDefBack.addEventListener('click', () => {
+            defModules.classList.add('hidden');
+            appGridContainer.classList.remove('hidden');
+        });
+    }
+
     if (btnBackHome) {
         btnBackHome.addEventListener('click', () => {
-            // Hide All Panels
             mapModules.classList.add('hidden');
+            defModules.classList.add('hidden');
             btnBackHome.classList.add('hidden');
-            
-            // Show Home Screen
             appGridContainer.classList.remove('hidden');
             
-            // Reset PVE Drilldown if open
             if (pveDrilldown && !pveDrilldown.classList.contains('hidden')) {
                 pveDrilldown.classList.add('hidden');
                 pveAnimalGrid.classList.remove('hidden');
@@ -495,6 +506,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Render leaderboards for this connected server
                         leaderboardsContainer.classList.remove('hidden');
                         renderLeaderboards(url.hostname, data);
+                        
+                        // Refresh Aegis bubbles and Top 10
+                        fetchAegisTop10();
                     } else {
                         activeServerBadge.style.background = "#ff4757";
                         activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
@@ -802,6 +816,359 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // CHRONOS TERMINAL FETCH & RENDER LOGIC
     // ==========================================
+
+    const btnRefreshAegis = document.getElementById('btn-refresh-aegis');
+    if (btnRefreshAegis) {
+        btnRefreshAegis.addEventListener('click', () => {
+            fetchAegisTop10();
+        });
+    }
+
+    function fetchAegisTop10() {
+        const elContainer = document.getElementById('aegis-hof-container');
+        const lastUpdatedEl = document.getElementById('aegis-last-updated');
+        
+        if (btnRefreshAegis) btnRefreshAegis.style.opacity = '0.5';
+        if (lastUpdatedEl) lastUpdatedEl.innerText = "Fetching...";
+        if (!elContainer) return;
+        elContainer.innerHTML = "<div class='table-row'>Fetching Aegis intelligence...</div>";
+
+        chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                const url = new URL(tabs[0].url);
+                if (currentServerData && currentServerData[url.hostname]) {
+                    chrome.storage.local.get(['discordId'], (res) => {
+                        let payload = [{ action: "aegis_get_data", discordId: res.discordId || "unknown", extVersion: chrome.runtime.getManifest().version }];
+                        chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {
+                            if (btnRefreshAegis) btnRefreshAegis.style.opacity = '1';
+                            if (!rawText) { 
+                                elContainer.innerHTML = "<div class='table-row'>Network error.</div>"; 
+                                if (lastUpdatedEl) lastUpdatedEl.innerText = "Error";
+                                if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+                                return; 
+                            }
+                            try {
+                                let data = JSON.parse(rawText);
+                                if (data.status !== "ok") {
+                                    elContainer.innerHTML = "<div class='table-row'>Error: " + data.status + "</div>";
+                                    if (lastUpdatedEl) lastUpdatedEl.innerText = "Error";
+                                    if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+                                } else {
+                                    renderAegisTop10(data.stats, url.hostname);
+                                    renderAegisSidebarCards(data, url.hostname);
+                                    
+                                    // Update last updated
+                                    let serverTime = data.serverTime || Date.now();
+                                    let utcOffsetStr = data.utcOffset || "+00:00";
+                                    
+                                    let match = utcOffsetStr.match(/([+-])(\d{2}):(\d{2})/);
+                                    let offsetMs = 0;
+                                    if (match) {
+                                        let sign = match[1] === '+' ? 1 : -1;
+                                        let hours = parseInt(match[2], 10);
+                                        let mins = parseInt(match[3], 10);
+                                        offsetMs = sign * ((hours * 60 * 60 * 1000) + (mins * 60 * 1000));
+                                    }
+                                    let d = new Date(serverTime);
+                                    let utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
+                                    let travianDate = new Date(utcMs + offsetMs);
+                                    
+                                    let hh = travianDate.getHours();
+                                    let mm = travianDate.getMinutes();
+                                    let pad = n => n < 10 ? '0'+n : n;
+                                    
+                                    if (lastUpdatedEl) {
+                                        lastUpdatedEl.innerHTML = `Updated<br>${pad(hh)}:${pad(mm)} (UTC${utcOffsetStr})`;
+                                    }
+                                    if (btnRefreshAegis) {
+                                        let diffMinutes = (Date.now() - serverTime) / (1000 * 60);
+                                        if (diffMinutes < 30) {
+                                            btnRefreshAegis.style.color = '#2ecc71';
+                                        } else if (diffMinutes < 120) {
+                                            btnRefreshAegis.style.color = '#f39c12';
+                                        } else {
+                                            btnRefreshAegis.style.color = '#e74c3c';
+                                        }
+                                    }
+                                    
+                                    // Update notification bubbles
+                                    updateDefBubbles(data.incomings, data.standing);
+                                }
+                            } catch (e) { 
+                                elContainer.innerHTML = "<div class='table-row'>Server error.</div>"; 
+                                if (lastUpdatedEl) lastUpdatedEl.innerText = "Error";
+                                if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+                            }
+                        });
+                    });
+                } else { 
+                    elContainer.innerHTML = "<div class='table-row'>No active server.</div>"; 
+                    if (lastUpdatedEl) lastUpdatedEl.innerText = "";
+                    if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+                }
+            } else { 
+                elContainer.innerHTML = "<div class='table-row'>Navigate to game.</div>"; 
+                if (lastUpdatedEl) lastUpdatedEl.innerText = "";
+                if (btnRefreshAegis) btnRefreshAegis.style.color = '#e74c3c';
+            }
+        });
+    }
+
+    function updateDefBubbles(incomings, standing) {
+        let activeInc = incomings ? incomings.length : 0;
+        let activeStd = standing ? standing.length : 0;
+
+        let bInc = document.getElementById('def-bubble-inc');
+        let bStd = document.getElementById('def-bubble-std');
+
+        if (bInc) {
+            if (activeInc > 0) {
+                bInc.style.display = "flex";
+                bInc.innerText = activeInc > 9 ? "9+" : activeInc;
+            } else {
+                bInc.style.display = "none";
+            }
+        }
+        if (bStd) {
+            if (activeStd > 0) {
+                bStd.style.display = "flex";
+                bStd.innerText = activeStd > 9 ? "9+" : activeStd;
+            } else {
+                bStd.style.display = "none";
+            }
+        }
+    }
+
+    function renderAegisTop10(stats, hostname) {
+        const elContainer = document.getElementById('aegis-hof-container');
+        if (!elContainer) return;
+
+        if (!stats || stats.length === 0) {
+            elContainer.innerHTML = "<div class='table-row'>No data yet.</div>";
+            return;
+        }
+
+        let sorted = [...stats].sort((a, b) => b.total - a.total);
+        
+        const getTribeImg = (tribe) => {
+            if (!tribe) return "";
+            let t = tribe.toLowerCase();
+            if (t.includes('roman')) return 'assets/roman_medium.png';
+            if (t.includes('gaul')) return 'assets/gaul_medium.png';
+            if (t.includes('teuton')) return 'assets/teuton_medium.png';
+            if (t.includes('egyptian')) return 'assets/egyptian_medium.png';
+            if (t.includes('hun')) return 'assets/hun_medium.png';
+            if (t.includes('spartan')) return 'assets/spartan_medium.png';
+            return "";
+        };
+
+        let html = `
+            <div style="display:flex; justify-content: space-between; padding: 4px 12px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size:9px; color:#a4b0be; text-transform:uppercase; font-weight:bold; letter-spacing:0.5px;">
+                <div style="padding-left:22px;">Operative</div>
+                <div style="display:flex; gap: 10px; text-align:right;">
+                    <span style="width:35px; color:#ff4757;" title="Vanguard (Active)">VAN</span>
+                    <span style="width:35px; color:#3498db;" title="Sentinel (Static)">SEN</span>
+                    <span style="width:40px; color:#f1c40f;" title="Total Score">TOT</span>
+                </div>
+            </div>
+        `;
+        
+        sorted.slice(0, 10).forEach((p, idx) => {
+            const url = p.uid && p.uid !== "0" ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
+            let tribeImg = getTribeImg(p.tribe);
+            let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:14px;height:14px;image-rendering:pixelated;vertical-align:middle;margin-right:4px;" title="${p.tribe}">` : "";
+            
+            let emoji = "";
+            if (idx === 0) emoji = "🥇";
+            else if (idx === 1) emoji = "🥈";
+            else if (idx === 2) emoji = "🥉";
+            else emoji = `${idx + 1}.`;
+
+            html += `
+                <div class="table-row" style="padding: 6px 12px; display:flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); align-items:center;">
+                    <div style="display:flex; align-items:center; gap:2px; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">
+                        <span style="width:20px; font-weight:bold; color:#a4b0be; font-size:11px; text-align:center;">${emoji}</span>
+                        ${tribeHtml}
+                        <a href="${url}" target="_blank" class="app-link" style="color:#dcdde1; font-weight:600; text-decoration:none;">${p.ign}</a>
+                    </div>
+                    <div style="display:flex; align-items:center; gap: 10px; font-family:monospace; font-size:11px; text-align:right;">
+                        <span style="color:#ff4757; width:35px;" title="Vanguard (Active)"><span style="font-size:10px;color:#a4b0be;margin-right:2px;">⚔️</span>${p.vanguard.toLocaleString()}</span>
+                        <span style="color:#3498db; width:35px;" title="Sentinel (Static)"><span style="font-size:10px;color:#a4b0be;margin-right:2px;">🧱</span>${p.sentinel.toLocaleString()}</span>
+                        <span style="color:#f1c40f; font-weight:bold; font-size:12px; width:40px;" title="Total Score">${p.total.toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        elContainer.innerHTML = html;
+    }
+
+    function renderAegisSidebarCards(data, hostname) {
+        const incContainer = document.getElementById('aegis-sidebar-incomings');
+        const stdContainer = document.getElementById('aegis-sidebar-standing');
+        
+        const getTribeImg = (tribe) => {
+            if (!tribe) return "";
+            let t = tribe.toLowerCase();
+            if (t.includes('roman')) return 'assets/roman_medium.png';
+            if (t.includes('gaul')) return 'assets/gaul_medium.png';
+            if (t.includes('teuton')) return 'assets/teuton_medium.png';
+            if (t.includes('egyptian')) return 'assets/egyptian_medium.png';
+            if (t.includes('hun')) return 'assets/hun_medium.png';
+            if (t.includes('spartan')) return 'assets/spartan_medium.png';
+            return "";
+        };
+
+        // Date parser to add UTC offset
+        const parseImpactTime = (impactTimeStr, serverTime, utcOffsetStr) => {
+            if (!impactTimeStr) return "--";
+            try {
+                // If it looks like a valid date string
+                let impactTimestamp = new Date(impactTimeStr.replace(" ", "T") + (utcOffsetStr || "+00:00")).getTime();
+                if (isNaN(impactTimestamp)) impactTimestamp = new Date(impactTimeStr).getTime();
+                
+                if (!isNaN(impactTimestamp)) {
+                    let match = (utcOffsetStr || "+00:00").match(/([+-])(\d{2}):(\d{2})/);
+                    let offsetMs = 0;
+                    if (match) {
+                        let sign = match[1] === '+' ? 1 : -1;
+                        let hours = parseInt(match[2], 10);
+                        let mins = parseInt(match[3], 10);
+                        offsetMs = sign * ((hours * 60 * 60 * 1000) + (mins * 60 * 1000));
+                    }
+                    let d = new Date(impactTimestamp);
+                    let utcMs = d.getTime() + (d.getTimezoneOffset() * 60000);
+                    let travianDate = new Date(utcMs + offsetMs);
+                    
+                    let hh = travianDate.getHours();
+                    let mm = travianDate.getMinutes();
+                    let ss = travianDate.getSeconds();
+                    let ampm = hh >= 12 ? 'PM' : 'AM';
+                    hh = hh % 12;
+                    hh = hh ? hh : 12;
+                    
+                    let pad = n => n < 10 ? '0'+n : n;
+                    return `${pad(hh)}:${pad(mm)}:${pad(ss)} ${ampm} (UTC${utcOffsetStr || "+00:00"})`;
+                }
+            } catch(e) {}
+            return `${impactTimeStr} (UTC${utcOffsetStr || "+00:00"})`;
+        };
+
+        // Render Incomings
+        if (incContainer) {
+            if (!data.incomings || data.incomings.length === 0) {
+                incContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">No active alerts</div>';
+            } else {
+                let html = '';
+                data.incomings.forEach(inc => {
+                    let dImg = getTribeImg(inc.defenderTribe);
+                    let aImg = getTribeImg(inc.attackerTribe);
+                    
+                    let dHtml = dImg ? `<img src="${dImg}" style="width:12px;height:12px;image-rendering:pixelated;vertical-align:middle;margin-right:2px;" title="${inc.defenderTribe}">` : "";
+                    let aHtml = aImg ? `<img src="${aImg}" style="width:12px;height:12px;image-rendering:pixelated;vertical-align:middle;margin-right:2px;" title="${inc.attackerTribe}">` : "";
+                    
+                    let dUrl = inc.defenderUid && inc.defenderUid !== "0" ? `https://${hostname}/profile/${inc.defenderUid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(inc.defenderIGN)}`;
+                    let aUrl = inc.attackerUid && inc.attackerUid !== "0" ? `https://${hostname}/profile/${inc.attackerUid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(inc.attackerIGN)}`;
+                    
+                    let dx=0, dy=0;
+                    let cMatch = (inc.targetCoords || "").match(/\((-?\d+)\|(-?\d+)\)/);
+                    if (cMatch) { dx = cMatch[1]; dy = cMatch[2]; }
+                    let vUrl = dx ? `https://${hostname}/position_details.php?x=${dx}&y=${dy}` : "#";
+
+                    let dAlly = inc.defenderAlly && inc.defenderAlly !== "None" ? `<span style="color:#a4b0be;">[${inc.defenderAlly}]</span>` : '';
+                    let aAlly = inc.attackerAlly && inc.attackerAlly !== "None" ? `<span style="color:#a4b0be;">[${inc.attackerAlly}]</span>` : '';
+                    
+                    let timeDisplay = parseImpactTime(inc.impactTime, data.serverTime, data.utcOffset);
+
+                    html += `
+                    <div style="margin-bottom:8px; background: rgba(231, 76, 60, 0.1); border-left: 3px solid #e74c3c; padding: 6px; border-radius: 4px; font-size:11px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+                            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:5px;">
+                                <div style="color:#2ed573; font-weight:bold; font-size:9px; letter-spacing:0.5px; margin-bottom:2px;">🛡️ DEFENDER</div>
+                                <div>${dHtml} ${dAlly} <a href="${dUrl}" target="_blank" class="app-link" style="color:#f1f2f6; font-weight:600;">${inc.defenderIGN}</a></div>
+                                <div style="overflow:hidden; text-overflow:ellipsis;"><a href="${vUrl}" target="_blank" class="app-link" style="color:#eccc68;">${inc.targetVillage}</a> <span style="color:#a4b0be;font-size:10px;">${inc.targetCoords}</span></div>
+                            </div>
+                            <div style="flex:1; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                <div style="color:#e74c3c; font-weight:bold; font-size:9px; letter-spacing:0.5px; margin-bottom:2px;">⚔️ ATTACKER</div>
+                                <div>${aAlly} <a href="${aUrl}" target="_blank" class="app-link" style="color:#ff4757; font-weight:600;">${inc.attackerIGN}</a> ${aHtml}</div>
+                                <div style="color:#f1c40f; font-family:monospace; margin-top:2px;">${inc.waves} waves</div>
+                            </div>
+                        </div>
+                        <div style="text-align:right; font-size:10px; color:#a4b0be; border-top:1px solid rgba(255,255,255,0.05); padding-top:4px; margin-top:2px;">
+                            ⏱️ Impact: <strong>${timeDisplay}</strong>
+                        </div>
+                    </div>`;
+                });
+                incContainer.innerHTML = `<div style="max-height: 250px; overflow-y: auto;">${html}</div>`;
+            }
+        }
+
+        // Render Standing Def
+        if (stdContainer) {
+            if (!data.standing || data.standing.length === 0) {
+                stdContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">No active alerts</div>';
+            } else {
+                let html = '';
+                data.standing.forEach(std => {
+                    let cImg = getTribeImg(std.commanderTribe);
+                    let cHtml = cImg ? `<img src="${cImg}" style="width:12px;height:12px;image-rendering:pixelated;vertical-align:middle;margin-right:2px;" title="${std.commanderTribe}">` : "";
+                    let cUrl = std.commanderUid && std.commanderUid !== "0" ? `https://${hostname}/profile/${std.commanderUid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(std.commander)}`;
+                    let cAlly = std.commanderAlly && std.commanderAlly !== "None" ? `<span style="color:#a4b0be;">[${std.commanderAlly}]</span>` : '';
+                    
+                    let vUrl = '#';
+                    if (std.coords && std.coords.includes(',')) {
+                        let pts = std.coords.split(',');
+                        vUrl = `https://${hostname}/karte.php?x=${pts[0].trim()}&y=${pts[1].trim()}`;
+                    }
+
+                    let pct = 0;
+                    if (std.goal > 0) {
+                        pct = Math.min(100, Math.round((std.current / std.goal) * 100));
+                    }
+                    
+                    let pColor = "#ff4757";
+                    if (pct >= 100) pColor = "#2ed573";
+                    else if (pct >= 50) pColor = "#f1c40f";
+
+                    html += `
+                    <div style="margin-bottom:8px; background: rgba(241, 196, 15, 0.1); border-left: 3px solid #f1c40f; padding: 6px; border-radius: 4px; font-size:11px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 4px;">
+                            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:5px;">
+                                <div style="color:#f1c40f; font-weight:bold; font-size:9px; letter-spacing:0.5px; margin-bottom:2px;">🧱 COMMANDER</div>
+                                <div>${cHtml} ${cAlly} <a href="${cUrl}" target="_blank" class="app-link" style="color:#f1f2f6; font-weight:600;">${std.commander}</a></div>
+                            </div>
+                            <div style="flex:1; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                <div style="color:#eccc68; font-weight:bold; font-size:9px; letter-spacing:0.5px; margin-bottom:2px;">📍 TARGET</div>
+                                <div style="overflow:hidden; text-overflow:ellipsis;"><a href="${vUrl}" target="_blank" class="app-link" style="color:#eccc68;">${std.village}</a> <span style="color:#a4b0be;font-size:10px;">${std.coords}</span></div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 6px;">
+                            <div style="display:flex; justify-content:space-between; font-size:9px; color:#a4b0be; margin-bottom:2px;">
+                                <span>GARRISON</span>
+                                <span>${std.current.toLocaleString()} / ${std.goal.toLocaleString()}</span>
+                            </div>
+                            <div style="width:100%; background:rgba(0,0,0,0.3); height:6px; border-radius:3px; overflow:hidden;">
+                                <div style="width:${pct}%; background:${pColor}; height:100%; transition:width 0.3s;"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                stdContainer.innerHTML = `<div style="max-height: 250px; overflow-y: auto;">${html}</div>`;
+            }
+        }
+    }
+
+    // Bind open terminal
+    const btnOpenAegis = document.getElementById('btn-open-aegis');
+    if (btnOpenAegis) {
+        btnOpenAegis.addEventListener('click', () => {
+            let url = chrome.runtime.getURL('aegisTerminal.html');
+            if (currentServerData && Object.keys(currentServerData).length > 0) {
+                url += `?server=${Object.keys(currentServerData)[0]}`;
+            }
+            chrome.tabs.create({ url: url });
+        });
+    }
 
     function fetchWorldEvents() {
         const elGrowth = document.getElementById('world-events-growth');

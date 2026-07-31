@@ -1,6 +1,17 @@
 # NULL Map Engine - Version Logs
 
-## 🚀 WebStoreRelease V1.5 (Current Release)
+## 🚀 WebStoreRelease V1.6 (Current Release)
+*Deploy Date: July 2026*
+
+**🛡️ Aegis Command Terminal & Sidebar Updates**
+- **Aegis Top 10 Redesign**: Reorganized the Top 10 Aegis Paragon leaderboard to properly align Vanguard, Sentinel, and Total scores in three sortable columns.
+- **Super Thin Tactical Radar**: Implemented super thin, high-density summary cards in the sidebar for Incomings and Standing Defense alerts.
+- **Tribe & Alliance Integration**: Injected dynamic Tribe icons and Alliance tags into the sidebar widgets alongside clickable profile hyperlinks.
+- **Smart Refresh & Notification Bubbles**: Def App button now correctly displays notification bubbles for active incoming attacks and standing defense requests, overlapping the shield icon smoothly.
+
+---
+
+## 🚀 WebStoreRelease V1.5
 *Deploy Date: July 2026*
 
 **⚔️ Troops Analyzer (Next-Gen UI)**
