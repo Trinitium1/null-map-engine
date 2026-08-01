@@ -1,0 +1,16 @@
+# Archivos de Graphify
+graphify-out/
+
+# Librerías de terceros y utilidades genéricas
+extension/apexcharts.min.js
+extension/tableFilter.js
+
+# Archivos de pruebas y scripts aislados
+extension/test-fetch.js
+
+# Datos estáticos puros
+extension/servers.json
+
+# Entornos virtuales (por si los usas para app.py)
+venv/
+__pycache__/

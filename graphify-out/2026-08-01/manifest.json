@@ -1,0 +1,97 @@
+{
+  "app.py": {
+    "mtime": 1784870584.9100947,
+    "ast_hash": "0a01c0cae0f177a328e102713cc28052",
+    "semantic_hash": "0a01c0cae0f177a328e102713cc28052"
+  },
+  "extension/aegisTerminal.js": {
+    "mtime": 1785465393.2391768,
+    "ast_hash": "d98a8c43d1bd54495d90f3121f587884",
+    "semantic_hash": "d98a8c43d1bd54495d90f3121f587884"
+  },
+  "extension/background.js": {
+    "mtime": 1785471831.7722213,
+    "ast_hash": "4264194fc391992195c4c604b7cc40ae",
+    "semantic_hash": "4264194fc391992195c4c604b7cc40ae"
+  },
+  "extension/content.js": {
+    "mtime": 1785469710.745347,
+    "ast_hash": "b0b625560358c1e69cf3f8bc8c2c014a",
+    "semantic_hash": "b0b625560358c1e69cf3f8bc8c2c014a"
+  },
+  "extension/interceptor.js": {
+    "mtime": 1785085322.449144,
+    "ast_hash": "f69c514ccd31fcca97bd5b43a5d84248",
+    "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
+  },
+  "extension/manifest.json": {
+    "mtime": 1785468939.0954182,
+    "ast_hash": "ca02361b9e8e04f844e41f9013911e62",
+    "semantic_hash": "ca02361b9e8e04f844e41f9013911e62"
+  },
+  "extension/mapRenderer.js": {
+    "mtime": 1785145753.4054039,
+    "ast_hash": "8d6931350ee3de8cdd6e921b50f909b3",
+    "semantic_hash": "8d6931350ee3de8cdd6e921b50f909b3"
+  },
+  "extension/popup.js": {
+    "mtime": 1785471765.0210278,
+    "ast_hash": "7e1c81c6c07ebbbe13fbf4590b22be7d",
+    "semantic_hash": "7e1c81c6c07ebbbe13fbf4590b22be7d"
+  },
+  "extension/pvpAnalyzer.js": {
+    "mtime": 1785384935.0106907,
+    "ast_hash": "13e8951b0fb9895fe36096d587f8b916",
+    "semantic_hash": "13e8951b0fb9895fe36096d587f8b916"
+  },
+  "extension/sidepanel.js": {
+    "mtime": 1785472658.228351,
+    "ast_hash": "77e313466883eb382ad51daec32d1a2e",
+    "semantic_hash": "77e313466883eb382ad51daec32d1a2e"
+  },
+  "extension/troopsAnalyzer.js": {
+    "mtime": 1785471828.3755949,
+    "ast_hash": "5da031092dd4edb2753c4d97f3237ae9",
+    "semantic_hash": "5da031092dd4edb2753c4d97f3237ae9"
+  },
+  ".agents/rules/graphify.md": {
+    "mtime": 1785569122.283859,
+    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
+    "semantic_hash": ""
+  },
+  ".agents/workflows/graphify.md": {
+    "mtime": 1785569122.283859,
+    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1785473034.8556414,
+    "ast_hash": "6177d28bcfe9b2f748c2fc7de81e8a6e",
+    "semantic_hash": ""
+  },
+  "extension/aegisTerminal.html": {
+    "mtime": 1785465393.2391768,
+    "ast_hash": "6201e3e068ff6009346702594c243188",
+    "semantic_hash": ""
+  },
+  "extension/popup.html": {
+    "mtime": 1785470296.9951732,
+    "ast_hash": "9fdabdf74657a566e6ca2a2bac6fd0fb",
+    "semantic_hash": ""
+  },
+  "extension/sidepanel.html": {
+    "mtime": 1785472610.5304701,
+    "ast_hash": "24dac7340e9e0e583383c44dcb6adf33",
+    "semantic_hash": ""
+  },
+  "extension/troopsAnalyzer.html": {
+    "mtime": 1785465393.241179,
+    "ast_hash": "6506f3c8994387d75cbf6c41963e5e92",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1784870584.9100947,
+    "ast_hash": "6b881986831b129904757fc6a6442957",
+    "semantic_hash": ""
+  }
+}

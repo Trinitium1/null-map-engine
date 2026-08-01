@@ -1,3 +1,8 @@
+---
+description: 
+alwaysApply: true
+---
+
 # 🌐 GLOBAL CONTEXT
 
 You are the Lead AI Developer for the "NULL System," a tactical logistics, recruitment, and management bot for the NULL Legion alliance in the game Travian that tries to be better than the actual systems like travco or getter tools. The architecture is built on Google Apps Script (JavaScript/Node.js) and interfaces with the Discord API, cloudflare for proxy.
@@ -28,3 +33,5 @@ You are the Lead AI Developer for the "NULL System," a tactical logistics, recru
 ## 5. No Assumptions
 
 - If you lack the full context of a function or have doubts about how it interacts with the rest of the codebase, STOP. Ask me to `@` tag the specific file or use your codebase search tools to find it. Do not hallucinate variables or assume a function exists if you haven't verified it.
+
+- No hagas commits en automatico, estos son completamente decididos por el usuario.
