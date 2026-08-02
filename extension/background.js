@@ -240,21 +240,38 @@ async function runVerificationSweep(discordId) {
 
     for (const [hostname, webhookUrl] of Object.entries(serversConfig)) {
         try {
-            const response = await fetch(webhookUrl, {
-                method: 'POST',
-                credentials: 'omit',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify([{ action: "verify", discordId: discordId, extVersion: version }])
-            });
-            
-            // To debug HTML errors, we can read as text first
-            const rawText = await response.text();
+            let rawText = "";
+            let response;
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        redirect: 'follow',
+                        credentials: 'omit',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify([{ action: "verify", discordId: discordId, extVersion: version }])
+                    });
+                    rawText = await response.text();
+                    if (rawText && !rawText.trim().startsWith('<')) {
+                        break; // Valid non-HTML response received
+                    }
+                    if (attempt === 1) {
+                        console.warn(`[Verification] Host ${hostname} returned HTML redirect on attempt 1, retrying...`);
+                        await new Promise(r => setTimeout(r, 600));
+                    }
+                } catch (fetchErr) {
+                    if (attempt === 1) {
+                        await new Promise(r => setTimeout(r, 600));
+                    }
+                }
+            }
+
             let data;
             try {
                 data = JSON.parse(rawText);
             } catch (jsonErr) {
-                console.error(`Verification failed for ${hostname}: Expected JSON but got:`, rawText.substring(0, 100));
-                continue; // Skip this server
+                console.warn(`[Verification] Non-JSON response received from ${hostname}:`, rawText.substring(0, 100));
+                continue; // Skip this server gracefully without cluttering Extension Errors
             }
             
             if (data.status === "KILL") {
@@ -285,7 +302,7 @@ async function runVerificationSweep(discordId) {
                 return { status: data.status, msg: data.msg || data.status, hostname: hostname, serverData, verifiedServers };
             }
         } catch (e) {
-            console.error(`Verification failed for ${hostname}:`, e);
+            console.warn(`Verification network warning for ${hostname}:`, e);
         }
     }
 
@@ -449,6 +466,7 @@ function flushCache(hostname) {
 
                 fetch(webhookUrl, {
                     method: 'POST',
+                    redirect: 'follow',
                     credentials: 'omit',
                     // Allow CORS so we can read the version check from the server response
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Avoid preflight by using text/plain
@@ -475,10 +493,10 @@ function flushCache(hostname) {
                             console.log(`[NULL Map Engine] Flushed with unknown status: ${data.status}`);
                         }
                     } catch (jsonErr) {
-                        console.error(`Flush failed for ${hostname}: Expected JSON but got:`, rawText.substring(0, 100));
+                        console.warn(`[NULL Map Engine] Flush response from ${hostname} was not JSON:`, rawText.substring(0, 100));
                     }
         })
-        .catch(err => console.error("Error sending to GAS:", err));
+        .catch(err => console.warn("Error sending to GAS:", err));
     });
 })
 .catch(err => {
