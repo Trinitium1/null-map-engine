@@ -10,9 +10,9 @@
     "semantic_hash": ""
   },
   "extension/background.js": {
-    "mtime": 1785644962.979805,
-    "ast_hash": "ddc6bd6598b6e76c511d89197ec8e986",
-    "semantic_hash": "ddc6bd6598b6e76c511d89197ec8e986"
+    "mtime": 1785656662.1678,
+    "ast_hash": "f61b9b634c9b7944abcaabded65dd81c",
+    "semantic_hash": ""
   },
   "extension/content.js": {
     "mtime": 1785469710.745347,
