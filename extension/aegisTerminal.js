@@ -96,6 +96,9 @@ function bindEvents() {
     modalClose.addEventListener('click', closeModal);
     modalCancel.addEventListener('click', closeModal);
     modalConfirm.addEventListener('click', handleModalConfirm);
+
+    // Delegated handlers for dynamically generated kanban card buttons (MV3 CSP: no inline onclick)
+    bindDelegatedCardClicks();
 }
 
 // --- DATA FETCHING ---
@@ -194,9 +197,11 @@ function renderRadar() {
                 totalCommitted += inc.commits[ign].amount;
                 let cTribeIcon = getTribeMediumIcon(inc.commits[ign].tribe);
                 let tImg = cTribeIcon ? `<img src="${cTribeIcon}" class="tribe-icon" title="${inc.commits[ign].tribe}">` : "";
-                
+                let ignUrl = inc.commits[ign].uid && inc.commits[ign].uid !== "0"
+                    ? `https://${currentHostname}/profile/${inc.commits[ign].uid}`
+                    : `https://${currentHostname}/statistiken.php?id=0&name=${encodeURIComponent(ign)}`;
                 cList += `<div class="defender-item">
-                    <span>${tImg} <b>${ign}</b></span>
+                    <span>${tImg} <a href="${ignUrl}" target="_blank" class="app-link">${ign}</a></span>
                     <span>${inc.commits[ign].amount.toLocaleString()} 🪖 <span style="color:var(--text-muted);font-size:10px;">(${inc.commits[ign].eta})</span></span>
                 </div>`;
             }
@@ -210,18 +215,18 @@ function renderRadar() {
             }
         }
         
-        // Actions
+        // Actions — use data-action + data-id to avoid MV3 inline-onclick CSP violation
         let actionsHtml = "";
         if (!isEscalated) {
             actionsHtml = `
-                <button class="btn btn-danger" onclick="doEscalate('${inc.id}')" ${!isLeader ? 'disabled title="Only High Command can escalate"' : ''}>${!isLeader ? '🔒 ' : ''}Escalate to Normal Def</button>
-                <button class="btn btn-secondary" onclick="doDismiss('${inc.id}')" ${!isLeader ? 'disabled title="Only High Command can dismiss"' : ''}>${!isLeader ? '🔒 ' : ''}Dismiss (Fake)</button>
+                <button class="btn btn-danger" data-action="escalate" data-id="${inc.id}" ${!isLeader ? 'disabled title="Only High Command can escalate"' : ''}>${!isLeader ? '🔒 ' : ''}Escalate to Normal Def</button>
+                <button class="btn btn-secondary" data-action="dismiss" data-id="${inc.id}" ${!isLeader ? 'disabled title="Only High Command can dismiss"' : ''}>${!isLeader ? '🔒 ' : ''}Dismiss (Fake)</button>
             `;
         } else {
             actionsHtml = `
-                <button class="btn btn-success" onclick="doCommit('${inc.id}')">🛡️ Commit Troops</button>
-                <button class="btn btn-secondary" onclick="doEditNotes('${inc.id}')" ${!isLeader ? 'disabled title="Only High Command can edit"' : ''}>${!isLeader ? '🔒 ' : ''}Edit Notes</button>
-                <button class="btn btn-danger" onclick="doResolve('${inc.id}')" ${!isLeader ? 'disabled title="Only High Command can resolve"' : ''}>${!isLeader ? '🔒 ' : ''}Close / Resolve</button>
+                <button class="btn btn-success" data-action="commit" data-id="${inc.id}">🛡️ Commit Troops</button>
+                <button class="btn btn-secondary" data-action="editnotes" data-id="${inc.id}" ${!isLeader ? 'disabled title="Only High Command can edit"' : ''}>${!isLeader ? '🔒 ' : ''}Edit Notes</button>
+                <button class="btn btn-danger" data-action="resolve" data-id="${inc.id}" ${!isLeader ? 'disabled title="Only High Command can resolve"' : ''}>${!isLeader ? '🔒 ' : ''}Close / Resolve</button>
             `;
         }
 
@@ -278,13 +283,16 @@ function renderStanding() {
         let garrisonHtml = "";
         if (wall.garrison) {
             for (let ign in wall.garrison) {
-                let dTribeIcon = getTribeMediumIcon(wall.garrison[ign].tribe);
-                let tImg = dTribeIcon ? `<img src="${dTribeIcon}" class="tribe-icon" title="${wall.garrison[ign].tribe}">` : "";
-                
+                let gEntry = wall.garrison[ign];
+                let dTribeIcon = getTribeMediumIcon(gEntry.tribe);
+                let tImg = dTribeIcon ? `<img src="${dTribeIcon}" class="tribe-icon" title="${gEntry.tribe}">` : "";
+                let ignUrl = gEntry.uid && gEntry.uid !== "0"
+                    ? `https://${currentHostname}/profile/${gEntry.uid}`
+                    : `https://${currentHostname}/statistiken.php?id=0&name=${encodeURIComponent(ign)}`;
                 garrisonHtml += `
                     <div class="defender-item">
-                        <span>${tImg} <b>${ign}</b></span>
-                        <span>${wall.garrison[ign].amount.toLocaleString()} 🪖</span>
+                        <span>${tImg} <a href="${ignUrl}" target="_blank" class="app-link">${ign}</a></span>
+                        <span>${gEntry.amount.toLocaleString()} 🪖</span>
                     </div>
                 `;
             }
@@ -292,11 +300,12 @@ function renderStanding() {
         }
         if(!garrisonHtml) garrisonHtml = `<div style="font-size:11px; color:var(--text-muted); margin-top:10px; font-style:italic;">No garrison assigned yet.</div>`;
 
+        // Actions — data-action + data-* to avoid MV3 CSP violation on inline onclick
         let actionsHtml = `
-            <button class="btn btn-success" onclick="doGarrison('${wall.id}')">🛡️ Garrison</button>
-            <button class="btn btn-secondary" onclick="doWithdraw('${wall.id}')">🔙 Withdraw</button>
-            <button class="btn btn-secondary" onclick="doEditStanding('${wall.id}', ${wall.goal}, '${wall.reason.replace(/'/g,"\\'")}')" ${!isLeader ? 'disabled' : ''}>${!isLeader ? '🔒 ' : ''}Edit</button>
-            <button class="btn btn-danger" onclick="doCloseStanding('${wall.id}')" ${!isLeader ? 'disabled' : ''}>${!isLeader ? '🔒 ' : ''}Close Wall</button>
+            <button class="btn btn-success" data-action="garrison" data-id="${wall.id}">🛡️ Garrison</button>
+            <button class="btn btn-secondary" data-action="withdraw" data-id="${wall.id}">🔙 Withdraw</button>
+            <button class="btn btn-secondary" data-action="editstanding" data-id="${wall.id}" data-goal="${wall.goal}" data-reason="${(wall.reason || '').replace(/"/g,'&quot;')}" ${!isLeader ? 'disabled' : ''}>${!isLeader ? '🔒 ' : ''}Edit</button>
+            <button class="btn btn-danger" data-action="closestanding" data-id="${wall.id}" ${!isLeader ? 'disabled' : ''}>${!isLeader ? '🔒 ' : ''}Close Wall</button>
         `;
 
         let cUrl = wall.commanderUid && wall.commanderUid !== "0" ? `https://${currentHostname}/profile/${wall.commanderUid}` : `https://${currentHostname}/statistiken.php?id=0&name=${encodeURIComponent(wall.commander)}`;
@@ -339,6 +348,30 @@ function renderStanding() {
             <div class="ticket-actions" style="margin-top:15px;">${actionsHtml}</div>
         `;
         standingGrid.appendChild(card);
+    });
+}
+
+// Delegated click handler for all dynamically rendered kanban buttons
+// Avoids inline onclick which is blocked by Manifest V3 CSP
+function bindDelegatedCardClicks() {
+    [radarGrid, standingGrid].forEach(grid => {
+        grid.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn || btn.disabled) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            switch(action) {
+                case 'escalate':    doEscalate(id); break;
+                case 'dismiss':     doDismiss(id); break;
+                case 'commit':      doCommit(id); break;
+                case 'editnotes':   doEditNotes(id); break;
+                case 'resolve':     doResolve(id); break;
+                case 'garrison':    doGarrison(id); break;
+                case 'withdraw':    doWithdraw(id); break;
+                case 'editstanding': doEditStanding(id, btn.dataset.goal, btn.dataset.reason); break;
+                case 'closestanding': doCloseStanding(id); break;
+            }
+        });
     });
 }
 
