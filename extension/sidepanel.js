@@ -190,6 +190,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const manifest = chrome.runtime.getManifest();
     versionDisplay.textContent = manifest.version;
 
+    // --- ASCII GLITCH RIPPLE COMPONENT ---
+    const glitchTitleEl = document.getElementById('glitch-header-title');
+    if (glitchTitleEl) {
+        const originalText = glitchTitleEl.getAttribute('data-value') || glitchTitleEl.textContent;
+        const glitchChars = '!@#$%^&*()_+-=[]{}|;:,.<>?/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZØ';
+        let isGlitching = false;
+
+        const getRandomChar = () => glitchChars[Math.floor(Math.random() * glitchChars.length)];
+
+        const triggerAsciiRipple = () => {
+            if (isGlitching) return;
+            isGlitching = true;
+            glitchTitleEl.classList.add('ascii-glitch-active');
+
+            const textLength = originalText.length;
+            let frame = 0;
+            const totalFrames = 25;
+
+            const interval = setInterval(() => {
+                frame++;
+                const progress = frame / totalFrames;
+
+                let currentString = "";
+                for (let i = 0; i < textLength; i++) {
+                    if (originalText[i] === " ") {
+                        currentString += " ";
+                        continue;
+                    }
+
+                    const charProgress = (i / textLength);
+                    const diff = Math.abs(progress - charProgress);
+
+                    if (diff < 0.22) {
+                        currentString += `<span class="glitch-char">${getRandomChar()}</span>`;
+                    } else if (progress > charProgress) {
+                        currentString += originalText[i];
+                    } else {
+                        currentString += (Math.random() < 0.08) ? getRandomChar() : originalText[i];
+                    }
+                }
+
+                glitchTitleEl.innerHTML = currentString;
+
+                if (frame >= totalFrames) {
+                    clearInterval(interval);
+                    glitchTitleEl.textContent = originalText;
+                    glitchTitleEl.classList.remove('ascii-glitch-active');
+                    isGlitching = false;
+                }
+            }, 35);
+        };
+
+        glitchTitleEl.addEventListener('mouseenter', triggerAsciiRipple);
+        glitchTitleEl.addEventListener('click', triggerAsciiRipple);
+        setTimeout(triggerAsciiRipple, 600);
+    }
+
     const loginBtn = document.getElementById('btn-login-discord');
     const discordIdDisplay = document.getElementById('discord-id-display');
     const saveStatus = document.getElementById('save-status');

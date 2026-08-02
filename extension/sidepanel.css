@@ -81,6 +81,41 @@ h3 {
     font-size: 16px;
     color: #f1f2f6;
     letter-spacing: 1px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    font-weight: 800;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.header h1:hover {
+    color: #00f2fe;
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+}
+
+.ascii-glitch-active {
+    animation: rgbSplitGlitch 0.3s infinite alternate ease-in-out;
+}
+
+.glitch-char {
+    color: #ff007f;
+    font-family: monospace;
+    font-weight: bold;
+    text-shadow: 0 0 8px #ff007f, 0 0 12px #00f2fe;
+    display: inline-block;
+    transform: scale(1.08);
+}
+
+@keyframes rgbSplitGlitch {
+    0% {
+        text-shadow: -1.5px -1.5px 0 #ff007f, 1.5px 1.5px 0 #00f2fe;
+    }
+    50% {
+        text-shadow: 2px -1px 0 #00f2fe, -2px 1px 0 #ff007f;
+    }
+    100% {
+        text-shadow: -1px 2px 0 #ff007f, 1px -2px 0 #00f2fe;
+    }
 }
 
 .header-icons {
