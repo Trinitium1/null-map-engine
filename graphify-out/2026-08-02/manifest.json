@@ -5,9 +5,9 @@
     "semantic_hash": "0a01c0cae0f177a328e102713cc28052"
   },
   "extension/aegisTerminal.js": {
-    "mtime": 1785651174.7114706,
-    "ast_hash": "88e5f30fa94685bbbe50cdf45e89806e",
-    "semantic_hash": ""
+    "mtime": 1785465393.2391768,
+    "ast_hash": "d98a8c43d1bd54495d90f3121f587884",
+    "semantic_hash": "d98a8c43d1bd54495d90f3121f587884"
   },
   "extension/background.js": {
     "mtime": 1785644962.979805,
@@ -25,7 +25,7 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1785651407.28979,
+    "mtime": 1785645783.493466,
     "ast_hash": "974ad3ab378ef300110c2b985e38d5ea",
     "semantic_hash": "974ad3ab378ef300110c2b985e38d5ea"
   },
@@ -60,23 +60,23 @@
     "semantic_hash": ""
   },
   "extension/aegisTerminal.html": {
-    "mtime": 1785656440.8677387,
-    "ast_hash": "8f638a3c07bbb84a4715259f1f768a58",
+    "mtime": 1785465393.2391768,
+    "ast_hash": "6201e3e068ff6009346702594c243188",
     "semantic_hash": ""
   },
   "extension/popup.html": {
-    "mtime": 1785656434.5892549,
-    "ast_hash": "c226afc48c1aa334b10a84a0434c0612",
+    "mtime": 1785470296.9951732,
+    "ast_hash": "9fdabdf74657a566e6ca2a2bac6fd0fb",
     "semantic_hash": ""
   },
   "extension/sidepanel.html": {
-    "mtime": 1785656429.9059067,
-    "ast_hash": "d6bc942c1cf8f02715ef37ec7be80a8c",
+    "mtime": 1785639160.3466666,
+    "ast_hash": "853b05b9ec440fbda1857a8a86b871a7",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.html": {
-    "mtime": 1785656446.2895982,
-    "ast_hash": "c584c0ce532fa1e9e330f239b9c861c9",
+    "mtime": 1785465393.241179,
+    "ast_hash": "6506f3c8994387d75cbf6c41963e5e92",
     "semantic_hash": ""
   },
   "requirements.txt": {
@@ -197,16 +197,6 @@
   "extension/logisticsTerminal.html": {
     "mtime": 1785643501.9321823,
     "ast_hash": "b5c98429692750cc617dc06c50cc8c94",
-    "semantic_hash": ""
-  },
-  "Docs/Releases/Release_v1.7.0.md": {
-    "mtime": 1785645657.296472,
-    "ast_hash": "6bb4a26ed386a3b37fa6fe159a7a5502",
-    "semantic_hash": ""
-  },
-  "extension/assets/NULL_Logo_Animated.svg": {
-    "mtime": 1785654925.0787227,
-    "ast_hash": "b22e315fb3b0aa70c1e22a73ec015cf2",
     "semantic_hash": ""
   }
 }

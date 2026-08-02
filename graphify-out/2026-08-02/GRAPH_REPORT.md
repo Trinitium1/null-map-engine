@@ -1,16 +1,15 @@
-# Graph Report - null-map-engine  (2026-08-02)
+# Graph Report - .  (2026-08-01)
 
 ## Corpus Check
-- 14 files · ~35,615 words
-- Verdict: corpus is large enough that graph structure adds value.
+- cluster-only mode — file stats not available
 
 ## Summary
-- 254 nodes · 397 edges · 13 communities (10 shown, 3 thin omitted)
+- 236 nodes · 380 edges · 11 communities (8 shown, 3 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 13 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3defafcd`
+- Built from commit: `7e73044d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -26,17 +25,15 @@
 - render_map
 - content.js
 - interceptor.js
-- NULL Map Engine - Version Logs
-- 🚀 What's New in v1.7.0
 
 ## God Nodes (most connected - your core abstractions)
 1. `processRawTiles()` - 13 edges
 2. `fetchLogisticsData()` - 13 edges
 3. `fetchLogisticsData()` - 11 edges
 4. `fetchAegisData()` - 9 edges
-5. `bindEvents()` - 8 edges
-6. `host_permissions` - 8 edges
-7. `fetchAegisTop10()` - 8 edges
+5. `host_permissions` - 8 edges
+6. `fetchAegisTop10()` - 8 edges
+7. `bindEvents()` - 7 edges
 8. `permissions` - 7 edges
 9. `setRefreshBusy()` - 7 edges
 10. `applyRefreshTimestamp()` - 7 edges
@@ -47,7 +44,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (13 total, 3 thin omitted)
+## Communities (11 total, 3 thin omitted)
 
 ### Community 0 - "sidepanel.js"
 Cohesion: 0.11
@@ -67,7 +64,7 @@ Nodes (31): action, default_icon, default_popup, background, service_worker, con
 
 ### Community 4 - "aegisTerminal.js"
 Cohesion: 0.11
-Nodes (31): aegisData, bindDelegatedCardClicks(), bindEvents(), btnRefresh, closeModal(), currentModalPayload, fetchAegisData(), formatLastUpdated() (+23 more)
+Nodes (30): aegisData, bindEvents(), btnRefresh, closeModal(), currentModalPayload, fetchAegisData(), formatLastUpdated(), getTribeMediumIcon() (+22 more)
 
 ### Community 5 - "background.js"
 Cohesion: 0.17
@@ -81,26 +78,16 @@ Nodes (9): NullMapRenderer, executeMapRequest(), generateBasicMapDataset(), _get
 Cohesion: 0.67
 Nodes (3): parse_color(), render_map(), route
 
-### Community 11 - "NULL Map Engine - Version Logs"
-Cohesion: 0.22
-Nodes (8): NULL Map Engine - Version Logs, V1.0, V1.1, V1.2, 🗺️ V1.3, 🚀 WebStoreRelease V1.4, 🚀 WebStoreRelease V1.5, 🚀 WebStoreRelease V1.6 (Current Release)
-
-### Community 12 - "🚀 What's New in v1.7.0"
-Cohesion: 0.25
-Nodes (7): 1. Interactive Logistics Command Terminal, 2. Manifest V3 CSP Compliance & UI Polish, 3. Background Network Resilience (`background.js`), 4. Background Notification Auto-Sync, 🌐 NULL Map Engine Extension — Release v1.7.0 (Webstore Candidate), 📦 Release Overview, 🚀 What's New in v1.7.0
-
 ## Knowledge Gaps
-- **100 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+95 more)
+- **89 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+84 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Are the 5 inferred relationships involving `bindEvents()` (e.g. with `closeModal()` and `fetchAegisData()`) actually correct?**
-  _`bindEvents()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `aegisData`, `loadingOverlay`, `loadingText` to the rest of the system?**
-  _100 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _89 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidepanel.js` be split into smaller, more focused modules?**
   _Cohesion score 0.10852713178294573 - nodes in this community are weakly interconnected._
 - **Should `troopsAnalyzer.js` be split into smaller, more focused modules?**
@@ -110,4 +97,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `manifest.json` be split into smaller, more focused modules?**
   _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
 - **Should `aegisTerminal.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.10685483870967742 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10967741935483871 - nodes in this community are weakly interconnected._

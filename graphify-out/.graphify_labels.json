@@ -1,1 +1,15 @@
-{"0": "sidepanel.js", "1": "troopsAnalyzer.js", "2": "logisticsTerminal.js", "3": "manifest.json", "4": "aegisTerminal.js", "5": "background.js", "6": "pvpAnalyzer.js", "7": "popup.js", "8": "render_map", "9": "content.js", "10": "interceptor.js"}
+{
+  "0": "sidepanel.js",
+  "1": "troopsAnalyzer.js",
+  "2": "logisticsTerminal.js",
+  "3": "manifest.json",
+  "4": "aegisTerminal.js",
+  "5": "background.js",
+  "6": "pvpAnalyzer.js",
+  "7": "popup.js",
+  "8": "render_map",
+  "9": "content.js",
+  "10": "interceptor.js",
+  "11": "NULL Map Engine - Version Logs",
+  "12": "🚀 What's New in v1.7.0"
+}
