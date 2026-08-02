@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
         el.innerHTML = `Updated<br>${h}:${m} (UTC${offsetStr})`;
 
         // Color by how fresh THIS successful refresh was (not map tile age)
-        let diffMs = Date.now() - (fetchedAtMs || 0);
+        let diffMs = Date.now() - ts.getTime();
         if (btn) {
             setRefreshBusy(btn, false);
             if (!fetchedAtMs) {
@@ -2141,7 +2141,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         let data = JSON.parse(rawText);
                         if (data.status === "ok") {
-                            const now = new Date().toISOString();
+                            const now = Date.now();
                             const utcOffset = data.utcOffset || "+01:00";
                             applyRefreshTimestamp(el, btn, now, utcOffset);
 

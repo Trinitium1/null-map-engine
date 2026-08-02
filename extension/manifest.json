@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NULL Map Engine",
-  "version": "1.7",
+  "version": "1.8",
   "description": "Passive Map Sniffer for NULL System Gamification",
   "permissions": [
     "storage",

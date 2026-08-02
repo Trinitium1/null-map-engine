@@ -65,6 +65,9 @@ function init() {
     fetchSitterData();
 }
 
+let currentSortKey = 'operative';
+let currentSortOrder = 'asc';
+
 function bindEvents() {
     btnRefresh.addEventListener('click', fetchSitterData);
     
@@ -87,10 +90,41 @@ function bindEvents() {
         });
     }
 
+    const sortableHeaders = document.querySelectorAll('.matrix-table th.sortable');
+    sortableHeaders.forEach(th => {
+        th.addEventListener('click', () => {
+            const key = th.dataset.sort;
+            if (currentSortKey === key) {
+                currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortKey = key;
+                currentSortOrder = 'asc';
+            }
+            updateSortHeaderIcons();
+            renderMatrixTable();
+        });
+    });
+
     const btnSaveProfile = document.getElementById('btn-save-profile');
     if (btnSaveProfile) {
         btnSaveProfile.addEventListener('click', saveProfileData);
     }
+}
+
+function updateSortHeaderIcons() {
+    const headers = document.querySelectorAll('.matrix-table th.sortable');
+    headers.forEach(th => {
+        const key = th.dataset.sort;
+        const iconEl = th.querySelector('.sort-icon');
+        if (!iconEl) return;
+        if (key === currentSortKey) {
+            iconEl.textContent = currentSortOrder === 'asc' ? '▲' : '▼';
+            th.style.color = '#3498db';
+        } else {
+            iconEl.textContent = '⇅';
+            th.style.color = 'var(--text-muted)';
+        }
+    });
 }
 
 // --- DATA FETCHING ---
@@ -153,17 +187,94 @@ function renderMatrixTable() {
     const tbody = document.getElementById('matrix-table-body');
     if (!tbody) return;
 
-    const players = sitterData.players || [];
+    let players = [...(sitterData.players || [])];
     if (players.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No operative sitter data found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No operative sitter data found.</td></tr>`;
         return;
     }
+
+    // Determine current user's active hours for Sitter Match % calculation
+    let myActiveHours = profileActiveHours;
+    if (sitterData.currentMember && sitterData.currentMember.activeHours) {
+        if (Array.isArray(sitterData.currentMember.activeHours)) {
+            myActiveHours = sitterData.currentMember.activeHours;
+        }
+    }
+
+    let myIgn = (sitterData.currentMember?.ign || '').toLowerCase();
+    let myInactiveCount = 0;
+    for (let h = 0; h < 24; h++) {
+        if (!myActiveHours[h]) myInactiveCount++;
+    }
+
+    // Compute Sitter Match % for each player
+    players.forEach(p => {
+        let isSelf = (p.ign.toLowerCase() === myIgn);
+        p.isSelf = isSelf;
+
+        if (isSelf) {
+            p.sitterMatchPct = -1;
+            p.sitterMatchBadge = `<span style="color:var(--text-muted); font-size:11px;">Self</span>`;
+        } else {
+            let matchedCount = 0;
+            let cActiveHours = p.activeHours || new Array(24).fill(false);
+            for (let h = 0; h < 24; h++) {
+                if (!myActiveHours[h] && cActiveHours[h]) {
+                    matchedCount++;
+                }
+            }
+
+            let pct = 0;
+            if (myInactiveCount === 0) {
+                pct = 100;
+            } else {
+                pct = Math.round((matchedCount / myInactiveCount) * 100);
+            }
+            p.sitterMatchPct = pct;
+
+            if (pct >= 75) {
+                p.sitterMatchBadge = `<span style="background:rgba(85,239,196,0.15); color:#55efc4; border:1px solid rgba(85,239,196,0.3); padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">🎯 ${pct}% (${matchedCount}/${myInactiveCount}h)</span>`;
+            } else if (pct >= 40) {
+                p.sitterMatchBadge = `<span style="background:rgba(255,234,167,0.15); color:#ffeaa7; border:1px solid rgba(255,234,167,0.3); padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">⚡ ${pct}% (${matchedCount}/${myInactiveCount}h)</span>`;
+            } else {
+                p.sitterMatchBadge = `<span style="background:rgba(255,118,117,0.15); color:#ff7675; border:1px solid rgba(255,118,117,0.3); padding:3px 8px; border-radius:4px; font-weight:700; font-size:11px;">🔴 ${pct}% (${matchedCount}/${myInactiveCount}h)</span>`;
+            }
+        }
+    });
+
+    // Sort players array based on currentSortKey
+    players.sort((a, b) => {
+        let valA, valB;
+        if (currentSortKey === 'operative') {
+            valA = a.ign.toLowerCase();
+            valB = b.ign.toLowerCase();
+        } else if (currentSortKey === 'status') {
+            valA = a.statusType || '';
+            valB = b.statusType || '';
+        } else if (currentSortKey === 'timezone') {
+            valA = a.coveredHours || 0;
+            valB = b.coveredHours || 0;
+        } else if (currentSortKey === 'coverage') {
+            valA = a.covPct || 0;
+            valB = b.covPct || 0;
+        } else if (currentSortKey === 'sittedBy') {
+            valA = (a.s1 + " " + a.s2).toLowerCase();
+            valB = (b.s1 + " " + b.s2).toLowerCase();
+        } else if (currentSortKey === 'matchPct') {
+            valA = a.sitterMatchPct;
+            valB = b.sitterMatchPct;
+        }
+
+        if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
+        if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
 
     let html = '';
     players.forEach(p => {
         let tribeImg = getTribeIconHtml(p.tribe);
         let allyLink = p.ally && p.ally !== "Unknown" ? `[<a href="https://${currentHostname}/allianzen.php?tag=${encodeURIComponent(p.ally)}" target="_blank" class="app-link">${p.ally}</a>]` : '';
-        let playerLink = `<a href="https://${currentHostname}/profile/${p.uid || '0'}" target="_blank" class="app-link" style="color:#fff;">${p.ign}</a>`;
+        let playerLink = `<a href="https://${currentHostname}/profile/${p.uid || '0'}" target="_blank" class="app-link" style="color:#fff; font-weight:700;">${p.ign}</a>`;
 
         let sits = [];
         if (p.isProxy) {
@@ -181,6 +292,7 @@ function renderMatrixTable() {
                 <td><code style="color:var(--gold);">${p.tz}</code></td>
                 <td><strong style="color:var(--text-primary);">${p.covDisplay || '--'}</strong></td>
                 <td>${sitsStr}</td>
+                <td>${p.sitterMatchBadge}</td>
             </tr>
         `;
     });
@@ -210,9 +322,6 @@ function renderHeatmapChart() {
         return;
     }
 
-    // Build series data: Each row is a player series
-    // X-axis: 00:00 to 23:00
-    // Values: 2 = Active (Green), 1 = Adjacent (Orange), 0 = Inactive (Red)
     const hoursCategories = [];
     for (let h = 0; h < 24; h++) {
         hoursCategories.push(`${h < 10 ? '0' + h : h}:00`);
@@ -261,9 +370,9 @@ function renderHeatmapChart() {
                 enableShades: false,
                 colorScale: {
                     ranges: [
-                        { from: 0, to: 0, color: '#ff4757', name: 'Inactive (Red)' },
-                        { from: 1, to: 1, color: '#f39c12', name: 'Adjacent (Orange)' },
-                        { from: 2, to: 2, color: '#2ecc71', name: 'Active (Green)' }
+                        { from: 0, to: 0, color: '#ff7675', name: 'Inactive (Pastel Red)' },
+                        { from: 1, to: 1, color: '#ffeaa7', name: 'Adjacent (Pastel Yellow)' },
+                        { from: 2, to: 2, color: '#55efc4', name: 'Active (Pastel Green)' }
                     ]
                 }
             }
@@ -363,13 +472,56 @@ function populateProfileForm() {
         `;
     }
 
-    if (current.s1) document.getElementById('prof-s1').value = current.s1;
-    if (current.s2) document.getElementById('prof-s2').value = current.s2;
-    if (current.tz) document.getElementById('prof-tz').value = current.tz;
+    const players = sitterData.players || [];
+    const myIgn = (current.ign || '').toLowerCase();
+
+    const currS1 = current.s1 || '';
+    const currS2 = current.s2 || '';
+    const currSitList = current.iSitFor || [];
+    const currT1 = currSitList[0] || '';
+    const currT2 = currSitList[1] || '';
+
+    const elS1 = document.getElementById('prof-s1');
+    const elS2 = document.getElementById('prof-s2');
+    const elT1 = document.getElementById('prof-sit-target1');
+    const elT2 = document.getElementById('prof-sit-target2');
+
+    // Build options HTML for Sitter 1 & Sitter 2
+    const buildSitterOptions = (selectedIgn) => {
+        let opts = `<option value="">None (No Sitter assigned)</option>`;
+        players.forEach(p => {
+            if (p.ign.toLowerCase() === myIgn) return;
+            let slots = p.availableSlots !== undefined ? p.availableSlots : 2;
+            let isCurrent = (p.ign.toLowerCase() === selectedIgn.toLowerCase());
+            let isFull = (slots <= 0 && !isCurrent);
+
+            if (isFull) {
+                opts += `<option value="${p.ign}" disabled style="color:#ff7675;">${p.ign} [${p.ally || 'UNK'}] (FULL - 2/2 slots used)</option>`;
+            } else {
+                opts += `<option value="${p.ign}">${p.ign} [${p.ally || 'UNK'}] (${slots} slot(s) open)</option>`;
+            }
+        });
+        return opts;
+    };
+
+    // Build options HTML for Accounts I Sit
+    const buildTargetOptions = () => {
+        let opts = `<option value="">None (Not sitting for anyone)</option>`;
+        players.forEach(p => {
+            if (p.ign.toLowerCase() === myIgn) return;
+            opts += `<option value="${p.ign}">${p.ign} [${p.ally || 'UNK'}]</option>`;
+        });
+        return opts;
+    };
+
+    if (elS1) { elS1.innerHTML = buildSitterOptions(currS1); elS1.value = currS1; }
+    if (elS2) { elS2.innerHTML = buildSitterOptions(currS2); elS2.value = currS2; }
+    if (elT1) { elT1.innerHTML = buildTargetOptions(); elT1.value = currT1; }
+    if (elT2) { elT2.innerHTML = buildTargetOptions(); elT2.value = currT2; }
 
     if (current.activeHours) {
         try {
-            let parsed = JSON.parse(current.activeHours);
+            let parsed = typeof current.activeHours === 'string' ? JSON.parse(current.activeHours) : current.activeHours;
             if (Array.isArray(parsed) && parsed.length === 24) {
                 profileActiveHours = parsed.map(Boolean);
             }
@@ -385,9 +537,22 @@ function populateProfileForm() {
 }
 
 function saveProfileData() {
-    const s1 = document.getElementById('prof-s1').value.trim();
-    const s2 = document.getElementById('prof-s2').value.trim();
-    const tz = document.getElementById('prof-tz').value;
+    const s1 = document.getElementById('prof-s1') ? document.getElementById('prof-s1').value.trim() : '';
+    const s2 = document.getElementById('prof-s2') ? document.getElementById('prof-s2').value.trim() : '';
+    const t1 = document.getElementById('prof-sit-target1') ? document.getElementById('prof-sit-target1').value.trim() : '';
+    const t2 = document.getElementById('prof-sit-target2') ? document.getElementById('prof-sit-target2').value.trim() : '';
+
+    // Validations
+    if (s1 && s2 && s1.toLowerCase() === s2.toLowerCase()) {
+        alert("Cannot assign the same operative as both Sitter 1 and Sitter 2.");
+        return;
+    }
+    if (t1 && t2 && t1.toLowerCase() === t2.toLowerCase()) {
+        alert("Cannot select the same account twice under Accounts I Sit.");
+        return;
+    }
+
+    const iSitForList = [t1, t2].filter(Boolean);
 
     showLoading("Transmitting profile updates to Sitter Network...");
 
@@ -401,7 +566,7 @@ function saveProfileData() {
                     discordId: res.discordId,
                     s1: s1,
                     s2: s2,
-                    tz: tz,
+                    iSitFor: iSitForList,
                     activeHours: profileActiveHours
                 }];
                 chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {

@@ -95,6 +95,9 @@
         /* MATRIX TABLE */
         .matrix-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .matrix-table th { background: rgba(0,0,0,0.3); padding: 10px; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; text-align: left; border-bottom: 1px solid var(--border); }
+        .matrix-table th.sortable { cursor: pointer; user-select: none; transition: background 0.2s, color 0.2s; }
+        .matrix-table th.sortable:hover { color: #fff; background: rgba(52, 152, 219, 0.15); }
+        .sort-icon { font-size: 10px; opacity: 0.6; margin-left: 4px; }
         .matrix-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 12px; }
 
         /* LOADING OVERLAY */
@@ -155,9 +158,9 @@
                     <div class="card-title">
                         <span>🗺️ CONFEDERACY ACTIVE TIME HEATMAP (00:00 - 23:00)</span>
                         <div style="display:flex; gap:12px; font-size:10px; font-weight:700;">
-                            <span style="color:#2ecc71;">🟢 ACTIVE</span>
-                            <span style="color:#f39c12;">🟡 ADJACENT</span>
-                            <span style="color:#ff4757;">🔴 INACTIVE</span>
+                            <span style="color:#55efc4;">🟢 ACTIVE</span>
+                            <span style="color:#ffeaa7;">🟡 ADJACENT</span>
+                            <span style="color:#ff7675;">🔴 INACTIVE</span>
                         </div>
                     </div>
                     <div id="heatmap-chart" style="min-height: 380px;"></div>
@@ -173,15 +176,16 @@
                         <table class="matrix-table">
                             <thead>
                                 <tr>
-                                    <th>Operative (Tribe + [Ally] + IGN)</th>
-                                    <th>Status</th>
-                                    <th>Timezone</th>
-                                    <th>Coverage %</th>
-                                    <th>Sitted By</th>
+                                    <th class="sortable" data-sort="operative">Operative <span class="sort-icon">⇅</span></th>
+                                    <th class="sortable" data-sort="status">Status <span class="sort-icon">⇅</span></th>
+                                    <th class="sortable" data-sort="timezone">Active Hours <span class="sort-icon">⇅</span></th>
+                                    <th class="sortable" data-sort="coverage">Coverage % <span class="sort-icon">⇅</span></th>
+                                    <th class="sortable" data-sort="sittedBy">Sitted By <span class="sort-icon">⇅</span></th>
+                                    <th class="sortable" data-sort="matchPct">Sitter Match % <span class="sort-icon">⇅</span></th>
                                 </tr>
                             </thead>
                             <tbody id="matrix-table-body">
-                                <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading sitter matrix...</td></tr>
+                                <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Loading sitter matrix...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -197,44 +201,42 @@
                             Loading identity...
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
-                                <label>Timezone (UTC Offset)</label>
-                                <select id="prof-tz" class="form-control">
-                                    <option value="UTC-12">UTC-12</option>
-                                    <option value="UTC-11">UTC-11</option>
-                                    <option value="UTC-10">UTC-10</option>
-                                    <option value="UTC-9">UTC-9</option>
-                                    <option value="UTC-8">UTC-8 (PST)</option>
-                                    <option value="UTC-7">UTC-7 (MST)</option>
-                                    <option value="UTC-6">UTC-6 (CST)</option>
-                                    <option value="UTC-5">UTC-5 (EST)</option>
-                                    <option value="UTC-4">UTC-4</option>
-                                    <option value="UTC-3">UTC-3</option>
-                                    <option value="UTC-2">UTC-2</option>
-                                    <option value="UTC-1">UTC-1</option>
-                                    <option value="UTC+0">UTC+0 (WET/GMT)</option>
-                                    <option value="UTC+1">UTC+1 (CET)</option>
-                                    <option value="UTC+2">UTC+2 (EET)</option>
-                                    <option value="UTC+3">UTC+3 (MSK)</option>
-                                    <option value="UTC+4">UTC+4</option>
-                                    <option value="UTC+5">UTC+5</option>
-                                    <option value="UTC+6">UTC+6</option>
-                                    <option value="UTC+7">UTC+7</option>
-                                    <option value="UTC+8">UTC+8</option>
-                                    <option value="UTC+9">UTC+9 (JST)</option>
-                                    <option value="UTC+10">UTC+10</option>
-                                    <option value="UTC+11">UTC+11</option>
-                                    <option value="UTC+12">UTC+12</option>
-                                </select>
+                        <!-- 4 SITTER RELATIONSHIP DROPDOWN CONTROLS -->
+                        <div style="margin-top: 15px;">
+                            <div style="font-size: 11px; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                                🤝 MY SITTERS (Who sits my account - Max 2)
                             </div>
-                            <div class="form-group">
-                                <label>Sitter 1 IGN</label>
-                                <input type="text" id="prof-s1" class="form-control" placeholder="e.g. Miller Navy">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                                <div class="form-group">
+                                    <label>My Sitter 1 (Slot 1)</label>
+                                    <select id="prof-s1" class="form-control">
+                                        <option value="">None (No Sitter assigned)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>My Sitter 2 (Slot 2)</label>
+                                    <select id="prof-s2" class="form-control">
+                                        <option value="">None (No Sitter assigned)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>Sitter 2 IGN</label>
-                                <input type="text" id="prof-s2" class="form-control" placeholder="e.g. Leonidas">
+
+                            <div style="font-size: 11px; font-weight: 700; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                                🛡️ ACCOUNTS I SIT (Accounts I sit for - Max 2)
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label>Account I Sit 1 (Target 1)</label>
+                                    <select id="prof-sit-target1" class="form-control">
+                                        <option value="">None (Not sitting for anyone)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Account I Sit 2 (Target 2)</label>
+                                    <select id="prof-sit-target2" class="form-control">
+                                        <option value="">None (Not sitting for anyone)</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 

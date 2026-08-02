@@ -25,9 +25,9 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1785651407.28979,
-    "ast_hash": "974ad3ab378ef300110c2b985e38d5ea",
-    "semantic_hash": "974ad3ab378ef300110c2b985e38d5ea"
+    "mtime": 1785661834.5971966,
+    "ast_hash": "b4d7ebcf121e44c5e54d04fa1844e20a",
+    "semantic_hash": ""
   },
   "extension/mapRenderer.js": {
     "mtime": 1785145753.4054039,
@@ -45,9 +45,9 @@
     "semantic_hash": "13e8951b0fb9895fe36096d587f8b916"
   },
   "extension/sidepanel.js": {
-    "mtime": 1785643491.2998273,
-    "ast_hash": "17edafc93f8ddf322bc80156b73dbdbf",
-    "semantic_hash": "17edafc93f8ddf322bc80156b73dbdbf"
+    "mtime": 1785661762.9630792,
+    "ast_hash": "5e7ae3f6402fdd4f070728fca9e3fc44",
+    "semantic_hash": ""
   },
   "extension/troopsAnalyzer.js": {
     "mtime": 1785471828.3755949,
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.html": {
-    "mtime": 1785656429.9059067,
-    "ast_hash": "d6bc942c1cf8f02715ef37ec7be80a8c",
+    "mtime": 1785661596.367386,
+    "ast_hash": "20bc6c88c54405df4a4fbe0b1f9bc38e",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.html": {
@@ -207,6 +207,16 @@
   "extension/assets/NULL_Logo_Animated.svg": {
     "mtime": 1785654925.0787227,
     "ast_hash": "b22e315fb3b0aa70c1e22a73ec015cf2",
+    "semantic_hash": ""
+  },
+  "extension/sitterTerminal.js": {
+    "mtime": 1785661808.8355336,
+    "ast_hash": "7cb88eb6fe3a9485655a0dca957139db",
+    "semantic_hash": ""
+  },
+  "extension/sitterTerminal.html": {
+    "mtime": 1785661779.274761,
+    "ast_hash": "0a6b50408d176685f58c16ee6c8322b9",
     "semantic_hash": ""
   }
 }
