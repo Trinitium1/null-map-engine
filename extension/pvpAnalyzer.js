@@ -2,6 +2,17 @@
 // NULL LEGION - PVP ANALYZER MODULE
 // ==========================================
 
+function safeParseJSON(text) {
+    if (!text || typeof text !== 'string') return null;
+    const trimmed = text.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null;
+    try {
+        return JSON.parse(trimmed);
+    } catch(e) {
+        return null;
+    }
+}
+
 let pvpRecordings = [];
 
 function initPvPAnalyzer() {
@@ -198,8 +209,8 @@ function loadPvPOverview() {
                 }];
                 chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {
                     if (!rawText) { elStats.innerHTML = 'Network error.'; return; }
-                    try {
-                    let data = JSON.parse(rawText);
+                    let data = safeParseJSON(rawText);
+                    if (!data) { elStats.innerHTML = 'Server error.'; return; }
                     if (data.error) { elStats.innerHTML = '<span style="color:#ff4757;">' + data.error + '</span>'; }
                     else {
                         let html = `
@@ -223,7 +234,6 @@ function loadPvPOverview() {
                         `;
                         elStats.innerHTML = html;
                     }
-                } catch (e) { elStats.innerHTML = 'Server error.'; }
                 });
             });
         } else { elStats.innerHTML = 'Navigate to game.'; }
@@ -245,8 +255,8 @@ function executeMapRequest(action, extraPayload, resultElementId, title, dataset
                 
                 chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: [payload] }, (rawText) => {
                     if (!rawText) { elResults.innerHTML = 'Network error.'; return; }
-                    try {
-                    let data = JSON.parse(rawText);
+                    let data = safeParseJSON(rawText);
+                    if (!data) { elResults.innerHTML = 'Server error.'; return; }
                     if (data.error) { elResults.innerHTML = '<span style="color:#ff4757;">' + data.error + '</span>'; }
                     else {
                         if (!data.villages || data.villages.length === 0) {
@@ -272,7 +282,6 @@ function executeMapRequest(action, extraPayload, resultElementId, title, dataset
                             `;
                         });
                     }
-                } catch (e) { elResults.innerHTML = 'Server error.'; }
                 });
             });
         } else { elResults.innerHTML = 'Navigate to game.'; }

@@ -3,8 +3,8 @@
 ## 📦 Release Overview
 **Version**: `v1.8.0`  
 **Date**: August 2, 2026  
-**Target Platform**: Chrome Web Store / Manifest V3 (`manifest.json` v1.8)  
-**Key Modules**: `sitterTerminal.html`, `sitterTerminal.js`, `sidepanel.js`, `sidepanel.css`, `manifest.json`  
+**Target Platform**: Chrome Extension / Manifest V3 (`manifest.json` v1.8)  
+**Key Modules**: `sitterTerminal.html`, `sitterTerminal.js`, `sidepanel.js`, `sidepanel.css`, `background.js`, `logisticsTerminal.js`, `pvpAnalyzer.js`  
 
 ---
 
@@ -14,31 +14,31 @@
 * **24-Hour Active Time Heatmap**: ApexCharts visual rendering of active online hours across all confederacy operatives.
 * **Muted Dark-Mode Pastel Palette**: Softened heatmap color scales (`#55efc4` Active Mint, `#ffeaa7` Adjacent Yellow, `#ff7675` Inactive Red) for eye-comfort during long operational sessions.
 * **Operative Sitter Matrix**: Roster table with live status badges (`🟢 SECURE`, `🟡 AT_RISK`, `🔴 CRITICAL`, `🛡️ PROXY`).
+* **4 Dropdown Relationship Controls**: Live capacity validation displaying open slots (e.g. `PlayerName [ALLY] (1 slot(s) open)`) and disabling full sitters.
 
-### 2. 4 Sitter Relationship Dropdown Controls
-* **My Sitters (Who sits my account)**:
-  * Dropdown controls for **My Sitter 1** and **My Sitter 2**.
-  * Live slot capacity validation displaying open slots e.g., `PlayerName [ALLY] (1 slot(s) open)` and disabling full sitters e.g., `PlayerName [ALLY] (FULL - 2/2 slots used)`.
-* **Accounts I Sit (Accounts I sit for)**:
-  * Dropdown controls for **Account I Sit 1** and **Account I Sit 2**.
+### 2. Standardized Leaderboards & Direct Alliance Links (`/alliance/AID`)
+* **Unified Top 10 Layout**: Standardized **INTEL** (Map Ownership & Scanners) and **DEF** (Aegis Paragon Top 10) leaderboards:
+  $$\text{Rank.} \quad \langle\text{TribeIcon}\rangle \quad \mathbf{[ALLY\_LINK]} \quad \mathbf{IGN\_LINK}$$
+* **Direct Alliance URLs**: Corrected link builder to target direct alliance profiles: `https://<hostname>/alliance/<aid>` (e.g. `https://cw.x2.international.travian.com/alliance/19`).
 
-### 3. Sitter Match % Algorithm
-* **Tactical Pairing**: Measures how well candidate operatives cover **your specific offline/inactive hours**.
-* **Formula**:
-  $$\text{Match \%} = \left(\frac{\text{Candidate Active Hours during Your Inactive Hours}}{\text{Your Total Inactive Hours}}\right) \times 100$$
-* **Match Badges**: `🎯 88% (7/8h)` (Pastel Mint), `⚡ 50% (4/8h)` (Pastel Amber), `🔴 25% (2/8h)` (Pastel Red).
+### 3. Manifest V3 CSP Compliance & UI Hover Styling
+* **Zero Inline Handler Violations**: Removed all inline `onmouseover` / `onmouseout` attributes to comply with Chrome Extension Manifest V3 Content Security Policy (CSP).
+* **CSS Hover Highlights**: Implemented `.leaderboard-link` and `.leaderboard-ally-link` CSS classes with smooth `#00f2fe` hover transitions in `sidepanel.css`.
 
-### 4. Interactive Column Sorting & Hyperlinks
-* **Header Sorting**: Clickable table headers with visual sort indicators (`▲`, `▼`, `⇅`).
-* **Profile Links**: `[ALLY]` alliance tags link to `/allianzen.php?tag=...` and `IGN` player names link to `/profile/...`.
+### 4. Real-Time Debug Logger & Network Status Relay
+* **Persistent Log Buffer**: Added an in-memory `logHistory` buffer (up to 150 entries) that populates `#debug-console-logs` automatically when opening **`>_ DEBUG CONSOLE`**.
+* **Background Log Relay**: `background.js` forwards background network request status, retries, response payload sizes, and connection drops in real-time to the UI console.
+
+### 5. Extension-Wide JSON Hardening (`safeParseJSON`)
+* **Non-JSON & HTML Error Safety**: Replaced raw `JSON.parse(rawText)` with `safeParseJSON` across all extension files to safely digest plain-text status banners or HTML fallback error pages without throwing unhandled `SyntaxError` console exceptions.
 
 ---
 
 ## 🛠️ Internal Code Changes
-* `manifest.json`: Version bumped to `"1.8"`.
-* `sitterTerminal.html` & `sitterTerminal.js`:
-  * Built 4 dropdown selectors and slot validation logic.
-  * Added `Sitter Match %` column and sort handler.
-  * Updated ApexCharts heatmap configuration to dark-mode pastels.
+* `manifest.json`: Maintained at `"1.8"`.
 * `sidepanel.js`:
-  * Fixed refresh timestamp milliseconds subtraction logic (`diffMs = Date.now() - ts.getTime()`), restoring green refresh button indicators upon successful data fetch.
+  * Updated `renderLeaderboardRow` and `renderAegisTop10` with CSP-compliant CSS class links and `/alliance/AID` URLs.
+  * Added `safeParseJSON` and in-memory `logHistory` buffer for Debug Console modal.
+* `sidepanel.css`: Added `.leaderboard-link` and `.leaderboard-ally-link` hover rules.
+* `background.js`: Added `relayLog` function for real-time background service worker log forwarding.
+* `logisticsTerminal.js`, `sitterTerminal.js`, `pvpAnalyzer.js`: Applied `safeParseJSON` hardening and cleaned up orphaned `catch` blocks.

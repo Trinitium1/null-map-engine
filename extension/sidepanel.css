@@ -823,6 +823,7 @@ input:checked+.slider:before {
 }
 .range-slider {
     -webkit-appearance: none;
+    appearance: none;
     width: 100%;
     height: 6px;
     background: rgba(255, 255, 255, 0.1);
@@ -944,4 +945,28 @@ input:checked+.slider:before {
 .pvp-card.history-card:hover {
     border-color: rgba(83, 82, 237, 0.5);
     box-shadow: 0 6px 12px rgba(55, 66, 250, 0.25);
+}
+
+/* Leaderboard Links (CSP Compliant) */
+.leaderboard-link {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.leaderboard-link:hover {
+    color: #00f2fe !important;
+    text-decoration: underline;
+}
+
+.leaderboard-ally-link {
+    color: #dcdde1;
+    font-weight: 700;
+    margin-right: 4px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.leaderboard-ally-link:hover {
+    color: #00f2fe !important;
+    text-decoration: underline;
 }

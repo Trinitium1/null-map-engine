@@ -2,6 +2,17 @@
  * SITTERS COMMAND TERMINAL - Frontend Logic & Heatmap Engine
  */
 
+function safeParseJSON(text) {
+    if (!text || typeof text !== 'string') return null;
+    const trimmed = text.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null;
+    try {
+        return JSON.parse(trimmed);
+    } catch(e) {
+        return null;
+    }
+}
+
 let sitterData = { status: "ok", serverTime: "", utcOffset: "+01:00", stats: {}, players: [], currentMember: null };
 let currentHostname = "";
 let chartInstance = null;
@@ -146,24 +157,19 @@ function fetchSitterData() {
                 chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {
                     hideLoading();
                     if (!rawText) { alert("Network error."); return; }
-                    try {
-                        let data = JSON.parse(rawText);
-                        if (data.status === "ok") {
-                            sitterData = data;
-                            
-                            let luEl = document.getElementById('last-updated');
-                            if (luEl) luEl.innerText = formatLastUpdated(data.serverTime, data.utcOffset);
-                            
-                            renderMetricsSummary();
-                            renderHeatmapChart();
-                            renderMatrixTable();
-                            populateProfileForm();
-                        } else {
-                            alert("Error: " + (data.msg || data.status));
-                        }
-                    } catch (e) {
-                        console.error("Sitter Parse/Render Error:", e);
-                        alert("Server or render error. Check console.");
+                    let data = safeParseJSON(rawText);
+                    if (data && data.status === "ok") {
+                        sitterData = data;
+                        
+                        let luEl = document.getElementById('last-updated');
+                        if (luEl) luEl.innerText = formatLastUpdated(data.serverTime, data.utcOffset);
+                        
+                        renderMetricsSummary();
+                        renderHeatmapChart();
+                        renderMatrixTable();
+                        populateProfileForm();
+                    } else {
+                        alert("Error: " + (data ? (data.msg || data.status) : "Server returned non-JSON response"));
                     }
                 });
             });

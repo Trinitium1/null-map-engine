@@ -1,24 +1,62 @@
+function safeParseJSON(text) {
+    if (!text || typeof text !== 'string') return null;
+    const trimmed = text.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null;
+    try {
+        return JSON.parse(trimmed);
+    } catch(e) {
+        return null;
+    }
+}
+
 // --- DEBUG CONSOLE HOOK ---
 (function() {
     const originalLog = console.log;
     const originalError = console.error;
     const originalWarn = console.warn;
+    const logHistory = [];
     
     function logToUI(msg, type) {
+        const time = new Date().toLocaleTimeString();
+        const entry = { time, msg, type };
+        logHistory.push(entry);
+        if (logHistory.length > 150) logHistory.shift();
+
         const consoleLogs = document.getElementById('debug-console-logs');
         if (consoleLogs) {
-            const time = new Date().toLocaleTimeString();
-            const color = type === 'error' ? '#ff4757' : (type === 'warn' ? '#ffa502' : '#a4b0be');
+            const color = type === 'error' ? '#ff4757' : (type === 'warn' ? '#ffa502' : '#2ed573');
             const div = document.createElement('div');
             div.style.color = color;
             div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
             div.style.paddingBottom = '4px';
             div.style.marginBottom = '4px';
+            div.style.fontFamily = 'monospace';
+            div.style.fontSize = '11px';
             div.textContent = `[${time}] ${msg}`;
             consoleLogs.appendChild(div);
             consoleLogs.scrollTop = consoleLogs.scrollHeight;
         }
     }
+
+    window.renderLogHistory = function() {
+        const consoleLogs = document.getElementById('debug-console-logs');
+        if (consoleLogs) {
+            consoleLogs.innerHTML = '';
+            logHistory.forEach(entry => {
+                const color = entry.type === 'error' ? '#ff4757' : (entry.type === 'warn' ? '#ffa502' : '#2ed573');
+                const div = document.createElement('div');
+                div.style.color = color;
+                div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                div.style.paddingBottom = '4px';
+                div.style.marginBottom = '4px';
+                div.style.fontFamily = 'monospace';
+                div.style.fontSize = '11px';
+                div.textContent = `[${entry.time}] ${entry.msg}`;
+                consoleLogs.appendChild(div);
+            });
+            consoleLogs.scrollTop = consoleLogs.scrollHeight;
+        }
+    };
 
     console.log = function(...args) {
         originalLog.apply(console, args);
@@ -35,6 +73,15 @@
         logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn');
     };
 
+    // Relay debug logs from background service worker
+    chrome.runtime.onMessage.addListener((message) => {
+        if (message && message.type === 'DEBUG_LOG') {
+            if (message.level === 'error') console.error(`[BG] ${message.msg}`);
+            else if (message.level === 'warn') console.warn(`[BG] ${message.msg}`);
+            else console.log(`[BG] ${message.msg}`);
+        }
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
         const btnConsole = document.getElementById('btn-debug-console');
         const consoleModal = document.getElementById('debug-console-modal');
@@ -47,9 +94,11 @@
                 btnConsole.style.borderColor = 'rgba(255,255,255,0.1)';
                 btnConsole.style.color = '#a4b0be';
                 btnConsole.style.boxShadow = 'none';
+                if (window.renderLogHistory) window.renderLogHistory();
             });
             btnCloseConsole.addEventListener('click', () => consoleModal.classList.add('hidden'));
             btnClearConsole.addEventListener('click', () => {
+                logHistory.length = 0;
                 const logs = document.getElementById('debug-console-logs');
                 if (logs) logs.innerHTML = '';
             });
@@ -526,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Helper to get tribe medium icon
         const getTribeImg = (tribe) => {
             if (!tribe) return "";
-            let t = tribe.toLowerCase();
+            let t = String(tribe).toLowerCase();
             if (t.includes('roman')) return 'assets/roman_medium.png';
             if (t.includes('gaul')) return 'assets/gaul_medium.png';
             if (t.includes('teuton')) return 'assets/teuton_medium.png';
@@ -536,20 +585,42 @@ document.addEventListener('DOMContentLoaded', () => {
             return "";
         };
 
+        const renderLeaderboardRow = (p, idx, currentIgn) => {
+            const playerUrl = p.uid && p.uid !== "0" ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
+            const allyUrl = (p.aid && p.aid !== "0" && p.aid !== 0) ? `https://${hostname}/alliance/${p.aid}` : (p.ally ? `https://${hostname}/statistiken.php?id=2&name=${encodeURIComponent(p.ally)}` : null);
+            
+            const row = document.createElement('div');
+            row.className = "table-row" + (p.ign === currentIgn ? " highlight" : "");
+            
+            let tribeImg = getTribeImg(p.tribe);
+            let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:text-bottom;margin-right:4px;">` : "";
+            
+            let allyTagHtml = "";
+            if (p.ally && p.ally !== "Unknown" && p.ally !== "None") {
+                if (allyUrl) {
+                    allyTagHtml = `<a href="${allyUrl}" target="_blank" class="leaderboard-ally-link">[${p.ally}]</a>`;
+                } else {
+                    allyTagHtml = `<span style="color:#dcdde1;font-weight:700;margin-right:4px;">[${p.ally}]</span>`;
+                }
+            }
+
+            row.innerHTML = `
+                <span style="display:inline-flex;align-items:center;">
+                    <span style="min-width:18px;font-weight:600;margin-right:2px;">${idx+1}.</span>
+                    ${tribeHtml}
+                    ${allyTagHtml}
+                    <a href="${playerUrl}" target="_blank" class="leaderboard-link">${p.ign}</a>
+                </span>
+                <span class="table-count">${p.count.toLocaleString()}</span>
+            `;
+            return row;
+        };
+
         // Ownership
         tableOwnership.innerHTML = "";
         if (data.topOwnership && data.topOwnership.length > 0) {
             data.topOwnership.forEach((p, idx) => {
-                const url = p.uid ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
-                const row = document.createElement('div');
-                row.className = "table-row" + (p.ign === data.ign ? " highlight" : "");
-                let tribeImg = getTribeImg(p.tribe);
-                let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:text-bottom;margin-right:4px;">` : "";
-                row.innerHTML = `
-                    <span>${idx+1}. ${tribeHtml}<a href="${url}" target="_blank">${p.ign}</a></span>
-                    <span class="table-count">${p.count.toLocaleString()}</span>
-                `;
-                tableOwnership.appendChild(row);
+                tableOwnership.appendChild(renderLeaderboardRow(p, idx, data.ign));
             });
         } else {
             tableOwnership.innerHTML = "<div class='table-row'>No data yet.</div>";
@@ -559,16 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tableScanners.innerHTML = "";
         if (data.topScanners && data.topScanners.length > 0) {
             data.topScanners.forEach((p, idx) => {
-                const url = p.uid ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
-                const row = document.createElement('div');
-                row.className = "table-row" + (p.ign === data.ign ? " highlight" : "");
-                let tribeImg = getTribeImg(p.tribe);
-                let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:16px;height:16px;image-rendering:pixelated;vertical-align:text-bottom;margin-right:4px;">` : "";
-                row.innerHTML = `
-                    <span>${idx+1}. ${tribeHtml}<a href="${url}" target="_blank">${p.ign}</a></span>
-                    <span class="table-count">${p.count.toLocaleString()}</span>
-                `;
-                tableScanners.appendChild(row);
+                tableScanners.appendChild(renderLeaderboardRow(p, idx, data.ign));
             });
         } else {
             tableScanners.innerHTML = "<div class='table-row'>No data yet.</div>";
@@ -623,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const url = new URL(tabs[0].url);
                     const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                     activeServerName.textContent = shortName;
+                    console.log(`🌐 [GAME TAB] Detected Travian server: ${url.hostname}`);
                     
                     chrome.storage.local.get(['authError', 'discordId', 'serverData'], (storageRes) => {
                         if (!storageRes.discordId) {
@@ -633,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             activeServerScans.textContent = "";
                             leaderboardsContainer.classList.add('hidden');
                             chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
+                            console.warn(`⚠️ [AUTH] Discord ID not linked in extension storage.`);
                             return;
                         }
 
@@ -653,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             leaderboardsContainer.classList.remove('hidden');
                             renderLeaderboards(url.hostname, data);
+                            console.log(`✅ [AUTH VERIFIED] Connected to ${url.hostname} as Operative ${data.ign || 'Member'}`);
                         } else {
                             activeServerBadge.style.background = "#ff4757";
                             activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
@@ -669,6 +734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             leaderboardsContainer.classList.add('hidden');
                             
                             chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
+                            console.warn(`🔴 [AUTH DENIAL] Access failed for ${url.hostname}: ${denial}`);
                         }
                     });
                 } catch (e) {
@@ -828,28 +894,28 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
                             return;
                         }
-                        try {
-                            let data = JSON.parse(rawText);
-                            if (data.status === "ok") {
-                                const fetchedAt = Date.now();
-                                const utcOffset = (data.stats && data.stats.utcOffset) || "+00:00";
-                                chrome.storage.local.set({
-                                    mapStatsCache: data.stats,
-                                    mapStatsLastRefresh: fetchedAt,
-                                    mapStatsUtcOffset: utcOffset
-                                });
-                                renderMapStats(data.stats, fetchedAt, utcOffset);
-                            } else if (data.status === "KILL") {
-                                chrome.storage.local.set({ killSwitch: true });
-                                killScreen.classList.remove('hidden');
-                                if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
-                            } else {
-                                mapGlobalStats.innerHTML = 'Error: ' + (data.msg || data.status);
-                                console.error(`[Map Stats] ${data.status}: ${data.msg || ''}`);
-                                if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
-                            }
-                        } catch (e) {
+                        let data = safeParseJSON(rawText);
+                        if (!data) {
                             mapGlobalStats.innerHTML = 'Server error.';
+                            if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
+                            return;
+                        }
+                        if (data.status === "ok") {
+                            const fetchedAt = Date.now();
+                            const utcOffset = (data.stats && data.stats.utcOffset) || "+00:00";
+                            chrome.storage.local.set({
+                                mapStatsCache: data.stats,
+                                mapStatsLastRefresh: fetchedAt,
+                                mapStatsUtcOffset: utcOffset
+                            });
+                            renderMapStats(data.stats, fetchedAt, utcOffset);
+                        } else if (data.status === "KILL") {
+                            chrome.storage.local.set({ killSwitch: true });
+                            killScreen.classList.remove('hidden');
+                            if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
+                        } else {
+                            mapGlobalStats.innerHTML = 'Error: ' + (data.msg || data.status);
+                            console.error(`[Map Stats] ${data.status}: ${data.msg || ''}`);
                             if (fromRefresh) markRefreshError(btnRefreshMap, lastUpdatedEl);
                         }
                     });
@@ -1120,41 +1186,41 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
                             return; 
                         }
-                        try {
-                            let data = JSON.parse(rawText);
-                            if (data.status === "KILL") {
-                                chrome.storage.local.set({ killSwitch: true });
-                                killScreen.classList.remove('hidden');
-                                if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
-                                return;
-                            }
-                            if (data.status !== "ok") {
-                                elContainer.innerHTML = "<div class='table-row'>Error: " + (data.msg || data.status) + "</div>";
-                                if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
-                            } else {
-                                renderAegisTop10(data.stats, url.hostname);
-                                renderAegisSidebarCards(data, url.hostname);
-                                updateDefBubbles(data.incomings, data.standing);
-
-                                const fetchedAt = Date.now();
-                                const utcOffsetStr = data.utcOffset || "+00:00";
-                                chrome.storage.local.set({
-                                    aegisLastRefresh: fetchedAt,
-                                    aegisUtcOffset: utcOffsetStr,
-                                    aegisDataCache: {
-                                        hostname: url.hostname,
-                                        stats: data.stats,
-                                        incomings: data.incomings,
-                                        standing: data.standing,
-                                        utcOffset: utcOffsetStr,
-                                        serverTime: data.serverTime
-                                    }
-                                });
-                                applyRefreshTimestamp(lastUpdatedEl, btnRefreshAegis, fetchedAt, utcOffsetStr);
-                            }
-                        } catch (e) { 
-                            elContainer.innerHTML = "<div class='table-row'>Server error.</div>"; 
+                        let data = safeParseJSON(rawText);
+                        if (!data) {
+                            elContainer.innerHTML = "<div class='table-row'>Network/Server Error.</div>";
                             if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
+                            return;
+                        }
+                        if (data.status === "KILL") {
+                            chrome.storage.local.set({ killSwitch: true });
+                            killScreen.classList.remove('hidden');
+                            if (sidepanelContainer) sidepanelContainer.classList.add('hidden');
+                            return;
+                        }
+                        if (data.status !== "ok") {
+                            elContainer.innerHTML = "<div class='table-row'>Error: " + (data.msg || data.status) + "</div>";
+                            if (fromRefresh) markRefreshError(btnRefreshAegis, lastUpdatedEl);
+                        } else {
+                            renderAegisTop10(data.stats, url.hostname);
+                            renderAegisSidebarCards(data, url.hostname);
+                            updateDefBubbles(data.incomings, data.standing);
+
+                            const fetchedAt = Date.now();
+                            const utcOffsetStr = data.utcOffset || "+00:00";
+                            chrome.storage.local.set({
+                                aegisLastRefresh: fetchedAt,
+                                aegisUtcOffset: utcOffsetStr,
+                                aegisDataCache: {
+                                    hostname: url.hostname,
+                                    stats: data.stats,
+                                    incomings: data.incomings,
+                                    standing: data.standing,
+                                    utcOffset: utcOffsetStr,
+                                    serverTime: data.serverTime
+                                }
+                            });
+                            applyRefreshTimestamp(lastUpdatedEl, btnRefreshAegis, fetchedAt, utcOffsetStr);
                         }
                     });
                 });
@@ -1225,7 +1291,9 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         
         sorted.slice(0, 10).forEach((p, idx) => {
-            const url = p.uid && p.uid !== "0" ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
+            const playerUrl = p.uid && p.uid !== "0" ? `https://${hostname}/profile/${p.uid}` : `https://${hostname}/statistiken.php?id=0&name=${encodeURIComponent(p.ign)}`;
+            const allyUrl = (p.aid && p.aid !== "0" && p.aid !== 0) ? `https://${hostname}/alliance/${p.aid}` : (p.ally ? `https://${hostname}/statistiken.php?id=2&name=${encodeURIComponent(p.ally)}` : null);
+
             let tribeImg = getTribeImg(p.tribe);
             let tribeHtml = tribeImg ? `<img src="${tribeImg}" style="width:14px;height:14px;image-rendering:pixelated;vertical-align:middle;margin-right:4px;" title="${p.tribe}">` : "";
             
@@ -1235,17 +1303,27 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (idx === 2) emoji = "🥉";
             else emoji = `${idx + 1}.`;
 
+            let allyTagHtml = "";
+            if (p.ally && p.ally !== "Unknown" && p.ally !== "None") {
+                if (allyUrl) {
+                    allyTagHtml = `<a href="${allyUrl}" target="_blank" class="leaderboard-ally-link">[${p.ally}]</a>`;
+                } else {
+                    allyTagHtml = `<span style="color:#dcdde1;font-weight:700;margin-right:4px;">[${p.ally}]</span>`;
+                }
+            }
+
             html += `
                 <div class="table-row" style="padding: 6px 12px; display:flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); align-items:center;">
                     <div style="display:flex; align-items:center; gap:2px; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">
                         <span style="width:20px; font-weight:bold; color:#a4b0be; font-size:11px; text-align:center;">${emoji}</span>
                         ${tribeHtml}
-                        <a href="${url}" target="_blank" class="app-link" style="color:#dcdde1; font-weight:600; text-decoration:none;">${p.ign}</a>
+                        ${allyTagHtml}
+                        <a href="${playerUrl}" target="_blank" class="leaderboard-link">${p.ign}</a>
                     </div>
                     <div style="display:flex; align-items:center; gap: 10px; font-family:monospace; font-size:11px; text-align:right;">
-                        <span style="color:#ff4757; width:35px;" title="Vanguard (Active)"><span style="font-size:10px;color:#a4b0be;margin-right:2px;">⚔️</span>${p.vanguard.toLocaleString()}</span>
-                        <span style="color:#3498db; width:35px;" title="Sentinel (Static)"><span style="font-size:10px;color:#a4b0be;margin-right:2px;">🧱</span>${p.sentinel.toLocaleString()}</span>
-                        <span style="color:#f1c40f; font-weight:bold; font-size:12px; width:40px;" title="Total Score">${p.total.toLocaleString()}</span>
+                        <span style="color:#ff4757; width:35px;" title="Vanguard (Active)"><span style="font-size:10px;color:#a4b0be;margin-right:2px;">⚔️</span>${(p.vanguard || 0).toLocaleString()}</span>
+                        <span style="color:#3498db; width:35px;" title="Sentinel (Static)"><span style="font-size:10px;color:#a4b0be;margin-right:2px;">🧱</span>${(p.sentinel || 0).toLocaleString()}</span>
+                        <span style="color:#f1c40f; font-weight:bold; font-size:12px; width:40px;" title="Total Score">${(p.total || 0).toLocaleString()}</span>
                     </div>
                 </div>
             `;
@@ -1927,29 +2005,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         markRefreshError(btn, el);
                         return;
                     }
-                    try {
-                        let data = JSON.parse(rawText);
-                        if (data.status === "ok") {
-                            const now = Date.now();
-                            const utcOffset = data.utcOffset || "+01:00";
+                    let data = safeParseJSON(rawText);
+                    if (data && data.status === "ok") {
+                        const now = Date.now();
+                        const utcOffset = data.utcOffset || "+01:00";
 
-                            chrome.storage.local.set({
-                                logisticsDataCache: { ...data, hostname: hostname },
-                                logisticsLastRefresh: now,
-                                logisticsUtcOffset: utcOffset
-                            });
+                        chrome.storage.local.set({
+                            logisticsDataCache: { ...data, hostname: hostname },
+                            logisticsLastRefresh: now,
+                            logisticsUtcOffset: utcOffset
+                        });
 
-                            applyRefreshTimestamp(el, btn, now, utcOffset);
+                        applyRefreshTimestamp(el, btn, now, utcOffset);
 
-                            renderLogisticsTitans(data.titans || [], hostname);
-                            renderLogisticsRequested(data.requested || [], hostname);
-                            renderLogisticsDebtors(data.debtors || [], hostname);
-                            updateLogisticsBubbles(data.pushRequests || [], data.activePushes || [], data.role);
-                        } else {
-                            markRefreshError(btn, el);
-                        }
-                    } catch(e) {
-                        console.error("Logistics parse error:", e);
+                        renderLogisticsTitans(data.titans || [], hostname);
+                        renderLogisticsRequested(data.requested || [], hostname);
+                        renderLogisticsDebtors(data.debtors || [], hostname);
+                        updateLogisticsBubbles(data.pushRequests || [], data.activePushes || [], data.role);
+                    } else {
                         markRefreshError(btn, el);
                     }
                 });
@@ -2138,24 +2211,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (fromRefresh) setRefreshBusy(btn, false);
                     if (!rawText) return;
 
-                    try {
-                        let data = JSON.parse(rawText);
-                        if (data.status === "ok") {
-                            const now = Date.now();
-                            const utcOffset = data.utcOffset || "+01:00";
-                            applyRefreshTimestamp(el, btn, now, utcOffset);
+                    let data = safeParseJSON(rawText);
+                    if (!data) {
+                        let params = { action: "sitter_get_data", extVersion: chrome.runtime.getManifest().version, discordId: res.discordId };
+                        chrome.runtime.sendMessage({ type: 'FETCH_GAS_GET', hostname: hostname, params: params }, (rawTextGet) => {
+                            if (!rawTextGet) return;
+                            let dataGet = safeParseJSON(rawTextGet);
+                            if (dataGet && dataGet.status === "ok") {
+                                const now = Date.now();
+                                const utcOffset = dataGet.utcOffset || "+01:00";
+                                applyRefreshTimestamp(el, btn, now, utcOffset);
 
-                            chrome.storage.local.set({
-                                sitterDataCache: { ...data, hostname: hostname },
-                                sitterLastRefresh: now,
-                                sitterUtcOffset: utcOffset
-                            });
+                                chrome.storage.local.set({
+                                    sitterDataCache: { ...dataGet, hostname: hostname },
+                                    sitterLastRefresh: now,
+                                    sitterUtcOffset: utcOffset
+                                });
 
-                            renderSitterMetrics(data.stats || {});
-                            renderSitterMatrix(data.players || [], hostname);
-                        }
-                    } catch (e) {
-                        console.error("[SITTERS] Parse error:", e);
+                                renderSitterMetrics(dataGet.stats || {});
+                                renderSitterMatrix(dataGet.players || [], hostname);
+                            }
+                        });
+                        return;
+                    }
+
+                    if (data && data.status === "ok") {
+                        const now = Date.now();
+                        const utcOffset = data.utcOffset || "+01:00";
+                        applyRefreshTimestamp(el, btn, now, utcOffset);
+
+                        chrome.storage.local.set({
+                            sitterDataCache: { ...data, hostname: hostname },
+                            sitterLastRefresh: now,
+                            sitterUtcOffset: utcOffset
+                        });
+
+                        renderSitterMetrics(data.stats || {});
+                        renderSitterMatrix(data.players || [], hostname);
                     }
                 });
             });

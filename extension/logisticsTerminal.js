@@ -2,6 +2,17 @@
  * LOGISTICS COMMAND TERMINAL - Frontend Logic
  */
 
+function safeParseJSON(text) {
+    if (!text || typeof text !== 'string') return null;
+    const trimmed = text.trim();
+    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return null;
+    try {
+        return JSON.parse(trimmed);
+    } catch(e) {
+        return null;
+    }
+}
+
 let logisticsData = {
     status: "ok",
     role: "MEMBER",
@@ -214,9 +225,8 @@ function fetchLogisticsData() {
                 hideLoading();
                 if (!rawText) { alert("Network error connecting to backend."); return; }
 
-                try {
-                    let data = JSON.parse(rawText);
-                    if (data.status === "ok") {
+                let data = safeParseJSON(rawText);
+                if (data && data.status === "ok") {
                         logisticsData = data;
 
                         const lu = document.getElementById('last-updated');
@@ -233,12 +243,8 @@ function fetchLogisticsData() {
                         renderRequestsGrid();
                         renderActiveGrid();
                     } else {
-                        alert("Backend Error: " + (data.msg || data.status));
+                        alert("Backend Error: " + (data ? (data.msg || data.status) : "Failed to load data"));
                     }
-                } catch (e) {
-                    console.error("Logistics parse error:", e);
-                    alert("Error parsing logistics data.");
-                }
             });
         });
     });

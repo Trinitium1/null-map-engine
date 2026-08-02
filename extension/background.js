@@ -9,6 +9,10 @@ let cachedTiles = new Map();
 let sessionTilesCount = 0;
 // We will fetch servers.json dynamically on each request to avoid service worker caching issues.
 
+function relayLog(msg, level = 'info') {
+    chrome.runtime.sendMessage({ type: 'DEBUG_LOG', msg: msg, level: level }).catch(() => {});
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'PROCESS_MAP_DATA') {
         processRawTiles(message.payload, message.ign);
@@ -18,11 +22,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         runVerificationSweep(message.discordId).then(sendResponse);
         return true; // Keep message channel open for async
     } else if (message.type === 'FETCH_GAS') {
+        const actName = message.payload && message.payload[0] ? message.payload[0].action : 'unknown';
+        relayLog(`📡 [FETCH_GAS] Requesting ${message.hostname} (${actName})`, 'info');
         fetch(chrome.runtime.getURL('servers.json'))
             .then(response => response.json())
             .then(serversConfig => {
                 const webhookUrl = serversConfig[message.hostname];
                 if (!webhookUrl) {
+                    relayLog(`⚠️ [FETCH_GAS] No webhook URL configured for ${message.hostname}`, 'warn');
                     console.warn(`[FETCH_GAS] No webhook URL configured for hostname: ${message.hostname}`);
                     sendResponse(null);
                     return;
@@ -36,12 +43,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         body: JSON.stringify(message.payload)
                     })
                     .then(r => r.text())
-                    .then(sendResponse)
+                    .then(text => {
+                        relayLog(`📥 [FETCH_GAS] Response received (${text.length} bytes)`, 'info');
+                        sendResponse(text);
+                    })
                     .catch(err => {
                         if (attempt === 1) {
+                            relayLog(`⚠️ [FETCH_GAS] Attempt 1 failed for ${message.hostname}, retrying in 500ms...`, 'warn');
                             console.warn("[FETCH_GAS] First attempt failed, retrying in 500ms...", err);
                             setTimeout(() => executeFetch(2), 500);
                         } else {
+                            relayLog(`🔴 [FETCH_GAS] Connection failed for ${message.hostname}: ${err.message || err}`, 'error');
                             console.error("[FETCH_GAS] Final attempt failed:", err);
                             sendResponse(null);
                         }
@@ -51,17 +63,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 executeFetch(1);
             })
             .catch(err => {
+                relayLog(`🔴 Error loading servers.json: ${err.message || err}`, 'error');
                 console.error("Error loading servers.json:", err);
                 sendResponse(null);
             });
         return true; // async
     } else if (message.type === 'FETCH_GAS_GET') {
         // GET request to the GAS doGet endpoint (used by Troops Analyzer)
+        relayLog(`📡 [FETCH_GAS_GET] Requesting ${message.hostname}`, 'info');
         fetch(chrome.runtime.getURL('servers.json'))
             .then(response => response.json())
             .then(serversConfig => {
                 const baseUrl = serversConfig[message.hostname];
-                if (!baseUrl) { sendResponse(null); return; }
+                if (!baseUrl) {
+                    relayLog(`⚠️ [FETCH_GAS_GET] No webhook URL for ${message.hostname}`, 'warn');
+                    sendResponse(null); 
+                    return; 
+                }
                 const params = new URLSearchParams(message.params || {});
 
                 const executeGetFetch = (attempt = 1) => {
@@ -70,12 +88,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                         redirect: 'follow'
                     })
                     .then(r => r.text())
-                    .then(sendResponse)
+                    .then(text => {
+                        relayLog(`📥 [FETCH_GAS_GET] Response received (${text.length} bytes)`, 'info');
+                        sendResponse(text);
+                    })
                     .catch(err => {
                         if (attempt === 1) {
+                            relayLog(`⚠️ [FETCH_GAS_GET] Attempt 1 failed for ${message.hostname}, retrying in 500ms...`, 'warn');
                             console.warn("[FETCH_GAS_GET] First attempt failed, retrying in 500ms...", err);
                             setTimeout(() => executeGetFetch(2), 500);
                         } else {
+                            relayLog(`🔴 [FETCH_GAS_GET] Connection failed for ${message.hostname}: ${err.message || err}`, 'error');
                             console.error("[FETCH_GAS_GET] Final attempt failed:", err);
                             sendResponse(null);
                         }
