@@ -66,6 +66,8 @@
         "logisticsTerminal.js",
         "sitterTerminal.html",
         "sitterTerminal.js",
+        "statsTerminal.html",
+        "statsTerminal.js",
         "assets/*.png",
         "assets/*.svg"
       ],

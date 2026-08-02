@@ -147,7 +147,7 @@
 
             <!-- HOME SCREEN: APP GRID -->
             <div id="app-grid-container" class="app-grid">
-                <div class="app-icon disabled" id="app-btn-stats">
+                <div class="app-icon" id="app-btn-stats">
                     <div class="app-icon-inner" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">📊</div>
                     <span>STATISTICS</span>
                 </div>
@@ -697,6 +697,63 @@
                         </div>
                     </div>
                 </div> <!-- END SITTERS APP MODULE -->
+
+                <!-- STATISTICS APP MODULE -->
+                <div id="stats-modules-container" class="app-panel hidden">
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
+                        <div id="btn-stats-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="flex-grow: 1;">STATISTICS & METRICS</h2>
+                        <div id="stats-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                        <div id="btn-refresh-stats" class="icon-btn" title="Refresh Statistics" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(155, 89, 182, 0.2); color: #9b59b6;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- BUTTON TO OPEN ADVANCED STATISTICS -->
+                    <button id="btn-open-advanced-stats" class="btn" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #8e44ad, #2c3e50); border: 1px solid #9b59b6; color: white; padding: 12px; font-size: 13px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 10px rgba(142, 68, 173, 0.3); cursor: pointer;">
+                        ⚡ OPEN ADVANCED STATISTICS
+                    </button>
+
+                    <!-- PANEL 1: CONFEDERACY OVERVIEW -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0;">
+                            <h3>🛡️ CONFEDERACY OVERVIEW</h3>
+                        </div>
+                        <div id="stats-confed-overview" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                            Fetching overview...
+                        </div>
+                    </div>
+
+                    <!-- PANEL 2: FACTION BREAKDOWN -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0;">
+                            <h3>📊 FACTION BREAKDOWN</h3>
+                        </div>
+                        <div id="stats-faction-breakdown" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                            Fetching breakdown...
+                        </div>
+                    </div>
+
+                    <!-- PANEL 3: SERVER TOP 10 COMPARISON -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                            <h3>🌍 SERVER TOP 10 COMPARISON</h3>
+                            <div class="info-icon" title="Spreaded Topology measures the average Euclidean tile distance of all alliance member villages from their territorial center of mass (Core). Lower values (<35 tiles) indicate a consolidated fortress cluster; higher values indicate a geographically dispersed alliance." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">ℹ️</div>
+                        </div>
+                        <div id="stats-top5-comparison" style="font-size: 12px; color: #a4b0be; padding-top: 5px;">
+                            Fetching top 10...
+                        </div>
+                    </div>
+                </div> <!-- END STATISTICS APP MODULE -->
 
             </div> <!-- END APP PANELS WRAPPER -->
 

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADVANCED STATISTICS TERMINAL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary:   #0d0f14;
+            --bg-card:      #13161e;
+            --bg-card2:     #1a1e2a;
+            --bg-hover:     #20253a;
+            --border:       rgba(255,255,255,0.07);
+            --text-primary: #e8eaf0;
+            --text-muted:   #8b949e;
+            --gold:         #f1c40f;
+            --green:        #2ecc71;
+            --red:          #ff4757;
+            --purple:       #9b59b6;
+            --blue:         #3498db;
+            --accent:       #0fb9b1;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; background: var(--bg-primary); color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 13px; overflow: hidden; }
+
+        #app { display: flex; flex-direction: column; height: 100vh; position: relative; }
+
+        /* TOPBAR */
+        #topbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 20px; background: rgba(19, 22, 30, 0.8);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10;
+        }
+        #topbar .logo { width: 28px; height: 28px; border-radius: 6px; }
+        #topbar h1 { font-size: 14px; font-weight: 800; letter-spacing: 2px; color: var(--purple); flex: 1; text-shadow: 0 0 10px rgba(155, 89, 182, 0.3); }
+        
+        #last-updated { font-size: 11px; color: var(--text-muted); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 6px;
+            border: 1px solid transparent; cursor: pointer; transition: all 0.15s ease;
+        }
+        .btn-purple { background: rgba(155, 89, 182, 0.15); color: var(--purple); border-color: rgba(155, 89, 182, 0.3); }
+        .btn-purple:hover { background: rgba(155, 89, 182, 0.3); box-shadow: 0 0 10px rgba(155, 89, 182, 0.4); }
+
+        /* MAIN CONTENT */
+        #main-content {
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;
+        }
+        .card-header h2 { font-size: 13px; font-weight: 700; color: var(--text-primary); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* GRID LAYOUT FOR STATS */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;
+        }
+
+        .overview-box {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .overview-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; background: var(--bg-card2); border-radius: 6px; border: 1px solid var(--border);
+        }
+
+        .leaderboard-link { color: #00f2fe; text-decoration: none; font-weight: 700; }
+        .leaderboard-link:hover { text-decoration: underline; text-shadow: 0 0 8px #00f2fe; }
+
+        .info-tooltip {
+            position: relative; display: inline-block; cursor: help;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- TOPBAR -->
+        <div id="topbar">
+            <img src="assets/icon128.png" alt="NULL Logo" class="logo">
+            <h1>⚡ ADVANCED STATISTICS TERMINAL</h1>
+            <div id="last-updated">Updating...</div>
+            <button id="btn-refresh" class="btn btn-purple">🔄 Refresh Data</button>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div id="main-content">
+
+            <div class="stats-grid">
+                <!-- CONFEDERACY OVERVIEW CARD -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🛡️ CONFEDERACY OVERVIEW</h2>
+                    </div>
+                    <div id="confed-overview-content" class="overview-box">
+                        Loading...
+                    </div>
+                </div>
+
+                <!-- FACTION BREAKDOWN CARD -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📊 FACTION BREAKDOWN</h2>
+                    </div>
+                    <div id="faction-breakdown-content" class="overview-box">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+
+            <!-- SERVER TOP 10 COMPARISON CARD -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🌍 SERVER TOP 10 COMPARISON</h2>
+                    <span title="Spreaded Topology measures the average Euclidean tile distance of all alliance member villages from their territorial center of mass (Core). Lower values (<35 tiles) indicate a consolidated fortress cluster; higher values indicate a geographically dispersed alliance." style="cursor:help; font-size:14px;">ℹ️</span>
+                </div>
+                <div id="top5-comparison-content">
+                    Loading...
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="statsTerminal.js"></script>
+</body>
+</html>

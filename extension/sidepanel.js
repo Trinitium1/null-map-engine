@@ -9,31 +9,118 @@ function safeParseJSON(text) {
     }
 }
 
-// --- DEBUG CONSOLE HOOK ---
+// --- DEBUG CONSOLE HOOK & CARD ENGINE ---
 (function() {
     const originalLog = console.log;
     const originalError = console.error;
     const originalWarn = console.warn;
     const logHistory = [];
-    
-    function logToUI(msg, type) {
+
+    let lastLoggedMsg = "";
+    let lastLoggedTime = 0;
+
+    function isDuplicateLog(msg) {
+        const now = Date.now();
+        if (msg === lastLoggedMsg && (now - lastLoggedTime) < 5000) {
+            return true;
+        }
+        lastLoggedMsg = msg;
+        lastLoggedTime = now;
+        return false;
+    }
+
+    function createLogCardElement(entry) {
+        const card = document.createElement('div');
+        const color = entry.type === 'error' ? '#ff4757' : (entry.type === 'warn' ? '#ffa502' : '#2ed573');
+        const bgColor = entry.type === 'error' ? 'rgba(255, 71, 87, 0.1)' : (entry.type === 'warn' ? 'rgba(255, 165, 2, 0.08)' : 'rgba(46, 213, 115, 0.08)');
+        const borderColor = entry.type === 'error' ? 'rgba(255, 71, 87, 0.3)' : (entry.type === 'warn' ? 'rgba(255, 165, 2, 0.2)' : 'rgba(46, 213, 115, 0.2)');
+
+        card.style.background = bgColor;
+        card.style.border = `1px solid ${borderColor}`;
+        card.style.borderRadius = '6px';
+        card.style.padding = '8px 10px';
+        card.style.marginBottom = '6px';
+        card.style.fontFamily = 'monospace';
+        card.style.fontSize = '11px';
+
+        const header = document.createElement('div');
+        header.style.display = 'flex';
+        header.style.justifyContent = 'space-between';
+        header.style.alignItems = 'flex-start';
+        header.style.gap = '8px';
+
+        const textSpan = document.createElement('span');
+        textSpan.style.color = color;
+        textSpan.style.wordBreak = 'break-word';
+        textSpan.style.flex = '1';
+        textSpan.textContent = `[${entry.time}] ${entry.msg}`;
+
+        header.appendChild(textSpan);
+        card.appendChild(header);
+
+        // Technical details for errors or warnings or denials
+        const isErrorOrDenial = entry.type === 'error' || entry.type === 'warn' || entry.msg.includes('DENIAL') || entry.msg.includes('failed');
+        if (isErrorOrDenial) {
+            const toggleBtn = document.createElement('div');
+            toggleBtn.style.fontSize = '10px';
+            toggleBtn.style.color = '#70a1ff';
+            toggleBtn.style.cursor = 'pointer';
+            toggleBtn.style.marginTop = '4px';
+            toggleBtn.style.textDecoration = 'underline';
+            toggleBtn.textContent = '🔍 Click to expand full technical error details';
+
+            const detailsBox = document.createElement('div');
+            detailsBox.style.display = 'none';
+            detailsBox.style.marginTop = '6px';
+            detailsBox.style.padding = '6px 8px';
+            detailsBox.style.background = '#0d0f14';
+            detailsBox.style.border = `1px dashed ${borderColor}`;
+            detailsBox.style.borderRadius = '4px';
+            detailsBox.style.color = '#a4b0be';
+            detailsBox.style.fontSize = '10px';
+            detailsBox.style.whiteSpace = 'pre-wrap';
+            detailsBox.style.wordBreak = 'break-all';
+
+            let techDetails = `=== TECHNICAL DIAGNOSTICS ===\nTimestamp: ${entry.time}\nLog Type: ${entry.type.toUpperCase()}\nSummary: ${entry.msg}`;
+
+            if (entry.details) {
+                techDetails += `\nRaw Error Details: ${typeof entry.details === 'object' ? JSON.stringify(entry.details, null, 2) : entry.details}`;
+            } else {
+                techDetails += `\nTroubleshooting: Verify Discord ID authentication in DB_Members, check hostname in servers.json, and verify Google Apps Script web app permissions.`;
+            }
+
+            detailsBox.textContent = techDetails;
+
+            toggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (detailsBox.style.display === 'none') {
+                    detailsBox.style.display = 'block';
+                    toggleBtn.textContent = '✖ Collapse technical error details';
+                } else {
+                    detailsBox.style.display = 'none';
+                    toggleBtn.textContent = '🔍 Click to expand full technical error details';
+                }
+            });
+
+            card.appendChild(toggleBtn);
+            card.appendChild(detailsBox);
+        }
+
+        return card;
+    }
+
+    function logToUI(msg, type, details = null) {
+        if (isDuplicateLog(msg)) return;
+
         const time = new Date().toLocaleTimeString();
-        const entry = { time, msg, type };
+        const entry = { time, msg, type, details };
         logHistory.push(entry);
         if (logHistory.length > 150) logHistory.shift();
 
         const consoleLogs = document.getElementById('debug-console-logs');
         if (consoleLogs) {
-            const color = type === 'error' ? '#ff4757' : (type === 'warn' ? '#ffa502' : '#2ed573');
-            const div = document.createElement('div');
-            div.style.color = color;
-            div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-            div.style.paddingBottom = '4px';
-            div.style.marginBottom = '4px';
-            div.style.fontFamily = 'monospace';
-            div.style.fontSize = '11px';
-            div.textContent = `[${time}] ${msg}`;
-            consoleLogs.appendChild(div);
+            const card = createLogCardElement(entry);
+            consoleLogs.appendChild(card);
             consoleLogs.scrollTop = consoleLogs.scrollHeight;
         }
     }
@@ -43,16 +130,8 @@ function safeParseJSON(text) {
         if (consoleLogs) {
             consoleLogs.innerHTML = '';
             logHistory.forEach(entry => {
-                const color = entry.type === 'error' ? '#ff4757' : (entry.type === 'warn' ? '#ffa502' : '#2ed573');
-                const div = document.createElement('div');
-                div.style.color = color;
-                div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-                div.style.paddingBottom = '4px';
-                div.style.marginBottom = '4px';
-                div.style.fontFamily = 'monospace';
-                div.style.fontSize = '11px';
-                div.textContent = `[${entry.time}] ${entry.msg}`;
-                consoleLogs.appendChild(div);
+                const card = createLogCardElement(entry);
+                consoleLogs.appendChild(card);
             });
             consoleLogs.scrollTop = consoleLogs.scrollHeight;
         }
@@ -65,12 +144,12 @@ function safeParseJSON(text) {
     
     console.error = function(...args) {
         originalError.apply(console, args);
-        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error');
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error', args.length > 1 ? args : args[0]);
     };
     
     console.warn = function(...args) {
         originalWarn.apply(console, args);
-        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn');
+        logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn', args.length > 1 ? args : args[0]);
     };
 
     // Relay debug logs from background service worker
@@ -266,6 +345,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const appBtnStats = document.getElementById('app-btn-stats');
+    const statsModules = document.getElementById('stats-modules-container');
+    const btnStatsBack = document.getElementById('btn-stats-back');
+    const btnRefreshStats = document.getElementById('btn-refresh-stats');
+    const btnOpenAdvancedStats = document.getElementById('btn-open-advanced-stats');
+
+    if (appBtnStats) {
+        appBtnStats.addEventListener('click', () => {
+            appGridContainer.classList.add('hidden');
+            if (statsModules) statsModules.classList.remove('hidden');
+            loadStatsPanel();
+        });
+    }
+
+    if (btnStatsBack) {
+        btnStatsBack.addEventListener('click', () => {
+            if (statsModules) statsModules.classList.add('hidden');
+            appGridContainer.classList.remove('hidden');
+        });
+    }
+
+    if (btnRefreshStats) {
+        btnRefreshStats.addEventListener('click', () => {
+            fetchStatsOverview(true);
+        });
+    }
+
+    if (btnOpenAdvancedStats) {
+        btnOpenAdvancedStats.addEventListener('click', () => {
+            let url = chrome.runtime.getURL('statsTerminal.html');
+            if (currentServerData && Object.keys(currentServerData).length > 0) {
+                url += `?server=${Object.keys(currentServerData)[0]}`;
+            }
+            chrome.tabs.create({ url: url });
+        });
+    }
+
     const btnDefBack = document.getElementById('btn-def-back');
     if (btnDefBack) {
         btnDefBack.addEventListener('click', () => {
@@ -280,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             defModules.classList.add('hidden');
             if (logisticsModules) logisticsModules.classList.add('hidden');
             if (sittersModules) sittersModules.classList.add('hidden');
+            if (statsModules) statsModules.classList.add('hidden');
             btnBackHome.classList.add('hidden');
             appGridContainer.classList.remove('hidden');
             
@@ -676,6 +793,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return msg || status || "Unregistered / No Access";
     }
 
+    let lastCheckedState = { hostname: "", statusText: "", time: 0 };
+
     function updateActiveGameStatus() {
         if (!activeServerName) return;
         
@@ -685,7 +804,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const url = new URL(tabs[0].url);
                     const shortName = url.hostname.split('.international.travian.com')[0].toUpperCase();
                     activeServerName.textContent = shortName;
-                    console.log(`🌐 [GAME TAB] Detected Travian server: ${url.hostname}`);
+                    
+                    const now = Date.now();
+                    const hostnameChanged = (lastCheckedState.hostname !== url.hostname);
+                    const timeElapsed = (now - lastCheckedState.time) > 25000;
                     
                     chrome.storage.local.get(['authError', 'discordId', 'serverData'], (storageRes) => {
                         if (!storageRes.discordId) {
@@ -696,7 +818,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             activeServerScans.textContent = "";
                             leaderboardsContainer.classList.add('hidden');
                             chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
-                            console.warn(`⚠️ [AUTH] Discord ID not linked in extension storage.`);
+                            
+                            if (hostnameChanged || timeElapsed || lastCheckedState.statusText !== "NO_DISCORD") {
+                                console.warn(`⚠️ [AUTH] Discord ID not linked in extension storage.`);
+                                lastCheckedState = { hostname: url.hostname, statusText: "NO_DISCORD", time: now };
+                            }
                             return;
                         }
 
@@ -717,7 +843,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             
                             leaderboardsContainer.classList.remove('hidden');
                             renderLeaderboards(url.hostname, data);
-                            console.log(`✅ [AUTH VERIFIED] Connected to ${url.hostname} as Operative ${data.ign || 'Member'}`);
+                            
+                            if (hostnameChanged || timeElapsed || lastCheckedState.statusText !== "OK") {
+                                console.log(`✅ [AUTH VERIFIED] Connected to ${url.hostname} as Operative ${data.ign || 'Member'}`);
+                                lastCheckedState = { hostname: url.hostname, statusText: "OK", time: now };
+                            }
                         } else {
                             activeServerBadge.style.background = "#ff4757";
                             activeServerBadge.style.boxShadow = "0 0 8px #ff4757";
@@ -734,7 +864,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             leaderboardsContainer.classList.add('hidden');
                             
                             chrome.runtime.sendMessage({ type: 'UPDATE_ICON_COLOR', color: 'red' }).catch(() => {});
-                            console.warn(`🔴 [AUTH DENIAL] Access failed for ${url.hostname}: ${denial}`);
+                            
+                            if (hostnameChanged || timeElapsed || lastCheckedState.statusText !== denial) {
+                                console.warn(`🔴 [AUTH DENIAL] Access failed for ${url.hostname}: ${denial}`, storageRes.authError);
+                                lastCheckedState = { hostname: url.hostname, statusText: denial, time: now };
+                            }
                         }
                     });
                 } catch (e) {
@@ -2321,6 +2455,172 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchSitterData(false);
         if (typeof fetchAegisTop10 === 'function') fetchAegisTop10(false);
     }, 30000);
+
+    // --- STATISTICS MODULE ENGINE ---
+    function loadStatsPanel() {
+        const lastUpdatedEl = document.getElementById('stats-last-updated');
+        const btnRefreshStats = document.getElementById('btn-refresh-stats');
+        chrome.storage.local.get(['statsDataCache', 'statsLastRefresh', 'statsUtcOffset', 'serverData'], (result) => {
+            if (result.serverData) currentServerData = result.serverData;
+            if (result.statsLastRefresh) {
+                applyRefreshTimestamp(lastUpdatedEl, btnRefreshStats, result.statsLastRefresh, result.statsUtcOffset || "+01:00");
+            }
+            if (result.statsDataCache && result.statsDataCache.hostname && (result.statsDataCache.top10 || result.statsDataCache.top5)) {
+                const cache = result.statsDataCache;
+                renderConfedOverview(cache.confed || {});
+                renderFactionBreakdown(cache.factions || [], cache.hostname);
+                renderTop10Comparison(cache.top10 || cache.top5 || [], cache.hostname);
+            } else {
+                fetchStatsOverview(false);
+            }
+        });
+    }
+
+    function fetchStatsOverview(fromRefresh) {
+        const btn = document.getElementById('btn-refresh-stats');
+        const el = document.getElementById('stats-last-updated');
+        if (fromRefresh) {
+            setRefreshBusy(btn, true);
+            if (el) el.innerHTML = `Fetching...`;
+        }
+
+        chrome.tabs.query({ url: "*://*.travian.com/*" }, (tabs) => {
+            if (!tabs || tabs.length === 0) {
+                if (fromRefresh) setRefreshBusy(btn, false);
+                return;
+            }
+            const url = new URL(tabs[0].url);
+            const hostname = url.hostname;
+
+            chrome.storage.local.get(['discordId'], (res) => {
+                let payload = [{ action: "stats_get_overview", extVersion: chrome.runtime.getManifest().version, discordId: res.discordId || "unknown" }];
+                chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: hostname, payload: payload }, (rawText) => {
+                    if (fromRefresh) setRefreshBusy(btn, false);
+                    if (!rawText) {
+                        if (fromRefresh) markRefreshError(btn, el);
+                        return;
+                    }
+
+                    let data = safeParseJSON(rawText);
+                    if (data && data.status === "ok") {
+                        const now = Date.now();
+                        const utcOffset = data.utcOffset || "+01:00";
+                        applyRefreshTimestamp(el, btn, now, utcOffset);
+
+                        chrome.storage.local.set({
+                            statsDataCache: { ...data, hostname: hostname },
+                            statsLastRefresh: now,
+                            statsUtcOffset: utcOffset
+                        });
+
+                        renderConfedOverview(data.confed || {});
+                        renderFactionBreakdown(data.factions || [], hostname);
+                        renderTop10Comparison(data.top10 || data.top5 || [], hostname);
+                    } else {
+                        if (fromRefresh) markRefreshError(btn, el);
+                    }
+                });
+            });
+        });
+    }
+
+    function renderConfedOverview(c) {
+        const el = document.getElementById('stats-confed-overview');
+        if (!el) return;
+        if (!c || c.members === undefined) {
+            el.innerHTML = "<div style='padding:8px; text-align:center;'>No overview metrics available.</div>";
+            return;
+        }
+        el.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                    <span>👥 <b>Members:</b></span> <span style="color:#fff; font-weight:700;">${(c.members || 0).toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                    <span>📈 <b>Total Pop:</b></span> <span style="color:#2ed573; font-weight:700;">${(c.totalPop || 0).toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                    <span>🏠 <b>Villages:</b></span> <span style="color:#eccc68; font-weight:700;">${(c.villages || 0).toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                    <span>📊 <b>Avg Pop/Member:</b></span> <span style="color:#70a1ff; font-weight:700;">${(c.avgPop || 0).toLocaleString()}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                    <span>🎯 <b>Core Coords:</b></span> <span style="color:#fff; font-weight:700;">(${c.cx || 0}, ${c.cy || 0})</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:4px;">
+                    <span>🕸️ <b>Spread:</b></span> <span style="color:#ff7675; font-weight:700;">${c.spread || "0.0"} tiles</span>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>🏆 <b>Core Server Rank:</b></span> <span style="color:#f1c40f; font-weight:800;">#${c.coreRank || 1}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderFactionBreakdown(factions, hostname) {
+        const el = document.getElementById('stats-faction-breakdown');
+        if (!el) return;
+        if (!factions || factions.length === 0) {
+            el.innerHTML = "<div style='padding:8px; text-align:center;'>No faction data found.</div>";
+            return;
+        }
+
+        let html = "";
+        factions.forEach(f => {
+            const allyLink = getAllianceProfileLink(f.tag, f.aid, hostname);
+            html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.05); padding:6px 0; font-size:12px;">
+                    <div>
+                        ${allyLink}
+                    </div>
+                    <div style="display:flex; gap:10px; font-size:11px;">
+                        <span>👥 <b>${(f.members || 0).toLocaleString()}</b></span>
+                        <span style="color:#2ed573;">📈 <b>${(f.pop || 0).toLocaleString()} Pop</b></span>
+                        <span>🎯 <b>(${f.cx || 0}, ${f.cy || 0})</b></span>
+                    </div>
+                </div>
+            `;
+        });
+        el.innerHTML = html;
+    }
+
+    function renderTop5Comparison(topList, hostname) {
+        renderTop10Comparison(topList, hostname);
+    }
+
+    function renderTop10Comparison(topList, hostname) {
+        const el = document.getElementById('stats-top5-comparison');
+        if (!el) return;
+        if (!topList || topList.length === 0) {
+            el.innerHTML = "<div style='padding:8px; text-align:center;'>No top 10 data found.</div>";
+            return;
+        }
+
+        let html = "";
+        topList.forEach(t => {
+            const allyLink = getAllianceProfileLink(t.tag, t.aid, hostname);
+            let medal = `#${t.rank}`;
+            if (t.rank === 1) medal = "🥇 #1";
+            else if (t.rank === 2) medal = "🥈 #2";
+            else if (t.rank === 3) medal = "🥉 #3";
+
+            html += `
+                <div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:8px 0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:12px;">
+                        <span style="font-weight:700; color:#fff;">${medal} ${allyLink}</span>
+                        <span style="color:#2ed573; font-weight:700;">📈 ${(t.pop || 0).toLocaleString()} Pop</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a4b0be;">
+                        <span>👤 <b>${(t.avgPop || 0).toLocaleString()} Ø/Usr</b></span>
+                        <span>🎯 <b>(${t.cx || 0}, ${t.cy || 0})</b></span>
+                        <span>🕸️ <b>${t.spread || "0.0"}</b></span>
+                    </div>
+                </div>
+            `;
+        });
+        el.innerHTML = html;
+    }
 
 });
 
