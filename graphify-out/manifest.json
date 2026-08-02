@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.js": {
-    "mtime": 1785705887.0195844,
-    "ast_hash": "6396ef91e8d688978d08fc6a5ca25605",
+    "mtime": 1785711120.7110586,
+    "ast_hash": "b02095efdb3643621ce6165101983838",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.js": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.html": {
-    "mtime": 1785705523.0172675,
-    "ast_hash": "410cb0667f79ed2cb1d71af027938428",
+    "mtime": 1785711101.7608418,
+    "ast_hash": "77313bfc817564a8baa48030b7f9e2d9",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.html": {

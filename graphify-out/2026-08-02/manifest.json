@@ -25,8 +25,8 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1785665495.51912,
-    "ast_hash": "e884d1b9edab1ed075a20ba0a3094f71",
+    "mtime": 1785704826.6166613,
+    "ast_hash": "f6eb273314b60a4336e2813e35d3d0a5",
     "semantic_hash": ""
   },
   "extension/mapRenderer.js": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.js": {
-    "mtime": 1785700273.2201476,
-    "ast_hash": "242a8056af11de74f32e548b0f7192c8",
+    "mtime": 1785705887.0195844,
+    "ast_hash": "6396ef91e8d688978d08fc6a5ca25605",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.js": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.html": {
-    "mtime": 1785661596.367386,
-    "ast_hash": "20bc6c88c54405df4a4fbe0b1f9bc38e",
+    "mtime": 1785705523.0172675,
+    "ast_hash": "410cb0667f79ed2cb1d71af027938428",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.html": {
@@ -222,6 +222,16 @@
   "Docs/Releases/Release_v1.8.0.md": {
     "mtime": 1785701167.1235647,
     "ast_hash": "434c0b832152a1f56114145b678daf82",
+    "semantic_hash": ""
+  },
+  "extension/statsTerminal.js": {
+    "mtime": 1785705569.271872,
+    "ast_hash": "3aed9948ea2a355b409f23cdfd018232",
+    "semantic_hash": ""
+  },
+  "extension/statsTerminal.html": {
+    "mtime": 1785705544.2320855,
+    "ast_hash": "e367a52dd5c1cb9eed69ce263c3100b8",
     "semantic_hash": ""
   }
 }

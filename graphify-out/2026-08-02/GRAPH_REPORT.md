@@ -1,16 +1,16 @@
 # Graph Report - null-map-engine  (2026-08-02)
 
 ## Corpus Check
-- 16 files · ~41,410 words
+- 17 files · ~43,931 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 298 nodes · 482 edges · 15 communities (12 shown, 3 thin omitted)
+- 316 nodes · 526 edges · 16 communities (13 shown, 3 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a0b7b360`
+- Built from commit: `68a6a229`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -30,18 +30,19 @@
 - 🚀 What's New in v1.7.0
 - sitterTerminal.js
 - 🚀 What's New in v1.8.0
+- statsTerminal.js
 
 ## God Nodes (most connected - your core abstractions)
 1. `fetchLogisticsData()` - 14 edges
 2. `processRawTiles()` - 13 edges
 3. `fetchLogisticsData()` - 12 edges
 4. `fetchSitterData()` - 12 edges
-5. `fetchAegisData()` - 9 edges
-6. `applyRefreshTimestamp()` - 9 edges
-7. `fetchAegisTop10()` - 9 edges
-8. `bindEvents()` - 8 edges
-9. `host_permissions` - 8 edges
-10. `setRefreshBusy()` - 8 edges
+5. `applyRefreshTimestamp()` - 11 edges
+6. `fetchAegisData()` - 9 edges
+7. `setRefreshBusy()` - 9 edges
+8. `fetchAegisTop10()` - 9 edges
+9. `fetchStatsOverview()` - 9 edges
+10. `bindEvents()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
@@ -49,11 +50,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (15 total, 3 thin omitted)
+## Communities (16 total, 3 thin omitted)
 
 ### Community 0 - "sidepanel.js"
-Cohesion: 0.11
-Nodes (42): applyRefreshTimestamp(), fetchAegisTop10(), fetchChronosAlliance(), fetchChronosEvents(), fetchChronosRadar(), fetchLogisticsData(), fetchMapStats(), fetchPveCage() (+34 more)
+Cohesion: 0.09
+Nodes (51): applyRefreshTimestamp(), createLogCardElement(), fetchAegisTop10(), fetchChronosAlliance(), fetchChronosEvents(), fetchChronosRadar(), fetchLogisticsData(), fetchMapStats() (+43 more)
 
 ### Community 1 - "troopsAnalyzer.js"
 Cohesion: 0.07
@@ -99,6 +100,10 @@ Nodes (25): bindEvents(), btnRefresh, fetchSitterData(), filterMatrixTable(), fo
 Cohesion: 0.20
 Nodes (9): 1. Interactive Sitters Command Terminal, 2. Standardized Leaderboards & Direct Alliance Links (`/alliance/AID`), 3. Manifest V3 CSP Compliance & UI Hover Styling, 4. Real-Time Debug Logger & Network Status Relay, 5. Extension-Wide JSON Hardening (`safeParseJSON`), 🛠️ Internal Code Changes, 🌐 NULL Map Engine Extension — Release v1.8.0, 📦 Release Overview (+1 more)
 
+### Community 15 - "statsTerminal.js"
+Cohesion: 0.42
+Nodes (9): fetchStatsData(), fetchStatsDataForHost(), getAllianceProfileLink(), loadStatsData(), renderAll(), renderConfedOverview(), renderFactionBreakdown(), renderTop10Comparison() (+1 more)
+
 ## Knowledge Gaps
 - **114 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+109 more)
   These have ≤1 connection - possible missing edges or undocumented components.
@@ -110,7 +115,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `aegisData`, `loadingOverlay`, `loadingText` to the rest of the system?**
   _114 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidepanel.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.10549645390070922 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09350649350649351 - nodes in this community are weakly interconnected._
 - **Should `troopsAnalyzer.js` be split into smaller, more focused modules?**
   _Cohesion score 0.0728744939271255 - nodes in this community are weakly interconnected._
 - **Should `logisticsTerminal.js` be split into smaller, more focused modules?**
