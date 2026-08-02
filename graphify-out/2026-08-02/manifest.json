@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "extension/background.js": {
-    "mtime": 1785656662.1678,
-    "ast_hash": "f61b9b634c9b7944abcaabded65dd81c",
+    "mtime": 1785700247.5832846,
+    "ast_hash": "8050feeb62bceb5ee59e8d0191de0f91",
     "semantic_hash": ""
   },
   "extension/content.js": {
@@ -40,13 +40,13 @@
     "semantic_hash": "7e1c81c6c07ebbbe13fbf4590b22be7d"
   },
   "extension/pvpAnalyzer.js": {
-    "mtime": 1785384935.0106907,
-    "ast_hash": "13e8951b0fb9895fe36096d587f8b916",
-    "semantic_hash": "13e8951b0fb9895fe36096d587f8b916"
+    "mtime": 1785699348.855711,
+    "ast_hash": "f939faa69ebe28e95fefb0dbcbec2172",
+    "semantic_hash": ""
   },
   "extension/sidepanel.js": {
-    "mtime": 1785663812.8994563,
-    "ast_hash": "332f0707de3711895ec3af298bcf1c05",
+    "mtime": 1785700273.2201476,
+    "ast_hash": "242a8056af11de74f32e548b0f7192c8",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.js": {
@@ -190,9 +190,9 @@
     "semantic_hash": ""
   },
   "extension/logisticsTerminal.js": {
-    "mtime": 1785645071.2798553,
-    "ast_hash": "a89e9acf47d8a593ed6473d7c6d776e9",
-    "semantic_hash": "a89e9acf47d8a593ed6473d7c6d776e9"
+    "mtime": 1785698023.4301324,
+    "ast_hash": "36cbfdb3039090d62bd6ff560de5f006",
+    "semantic_hash": ""
   },
   "extension/logisticsTerminal.html": {
     "mtime": 1785643501.9321823,
@@ -210,13 +210,18 @@
     "semantic_hash": ""
   },
   "extension/sitterTerminal.js": {
-    "mtime": 1785664022.3829656,
-    "ast_hash": "fe59972f8dbec8f3b2fd8d066e28b5d0",
+    "mtime": 1785699089.7631998,
+    "ast_hash": "4e40b6a73bd5a00da5f4f5ae1d1b0205",
     "semantic_hash": ""
   },
   "extension/sitterTerminal.html": {
     "mtime": 1785664002.3977156,
     "ast_hash": "90c114dc02d093fd84e78930bf5e3f83",
+    "semantic_hash": ""
+  },
+  "Docs/Releases/Release_v1.8.0.md": {
+    "mtime": 1785701167.1235647,
+    "ast_hash": "434c0b832152a1f56114145b678daf82",
     "semantic_hash": ""
   }
 }
