@@ -1,16 +1,16 @@
 # Graph Report - null-map-engine  (2026-08-02)
 
 ## Corpus Check
-- 15 files · ~40,469 words
+- 16 files · ~41,410 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 283 nodes · 460 edges · 14 communities (11 shown, 3 thin omitted)
+- 298 nodes · 482 edges · 15 communities (12 shown, 3 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e1a2a133`
+- Built from commit: `a0b7b360`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,18 +29,19 @@
 - NULL Map Engine - Version Logs
 - 🚀 What's New in v1.7.0
 - sitterTerminal.js
+- 🚀 What's New in v1.8.0
 
 ## God Nodes (most connected - your core abstractions)
-1. `processRawTiles()` - 13 edges
-2. `fetchLogisticsData()` - 13 edges
-3. `fetchLogisticsData()` - 11 edges
-4. `fetchSitterData()` - 11 edges
+1. `fetchLogisticsData()` - 14 edges
+2. `processRawTiles()` - 13 edges
+3. `fetchLogisticsData()` - 12 edges
+4. `fetchSitterData()` - 12 edges
 5. `fetchAegisData()` - 9 edges
 6. `applyRefreshTimestamp()` - 9 edges
-7. `bindEvents()` - 8 edges
-8. `host_permissions` - 8 edges
-9. `setRefreshBusy()` - 8 edges
-10. `refreshPanel()` - 8 edges
+7. `fetchAegisTop10()` - 9 edges
+8. `bindEvents()` - 8 edges
+9. `host_permissions` - 8 edges
+10. `setRefreshBusy()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
@@ -48,19 +49,19 @@
 ## Import Cycles
 - None detected.
 
-## Communities (14 total, 3 thin omitted)
+## Communities (15 total, 3 thin omitted)
 
 ### Community 0 - "sidepanel.js"
 Cohesion: 0.11
-Nodes (41): applyRefreshTimestamp(), fetchAegisTop10(), fetchChronosAlliance(), fetchChronosEvents(), fetchChronosRadar(), fetchLogisticsData(), fetchMapStats(), fetchPveCage() (+33 more)
+Nodes (42): applyRefreshTimestamp(), fetchAegisTop10(), fetchChronosAlliance(), fetchChronosEvents(), fetchChronosRadar(), fetchLogisticsData(), fetchMapStats(), fetchPveCage() (+34 more)
 
 ### Community 1 - "troopsAnalyzer.js"
 Cohesion: 0.07
 Nodes (38): allianceTbody, allPlayers, chartContainer, dateHeaders, ddDef, ddOff, ddPlayerMeta, ddPlayerName (+30 more)
 
 ### Community 2 - "logisticsTerminal.js"
-Cohesion: 0.11
-Nodes (36): activeGrid, bindEvents(), btnInitiatePush, btnRefresh, detailsBody, detailsCancel, detailsClose, detailsTitle (+28 more)
+Cohesion: 0.10
+Nodes (37): activeGrid, bindEvents(), btnInitiatePush, btnRefresh, detailsBody, detailsCancel, detailsClose, detailsTitle (+29 more)
 
 ### Community 3 - "manifest.json"
 Cohesion: 0.06
@@ -71,12 +72,12 @@ Cohesion: 0.11
 Nodes (31): aegisData, bindDelegatedCardClicks(), bindEvents(), btnRefresh, closeModal(), currentModalPayload, fetchAegisData(), formatLastUpdated() (+23 more)
 
 ### Community 5 - "background.js"
-Cohesion: 0.17
+Cohesion: 0.16
 Nodes (20): cachedTiles, drawCustomBadge(), evaluateTabForBadge(), extractAnimals(), extractBonuses(), extractOasisType(), extractRegionData(), extractStatus() (+12 more)
 
 ### Community 6 - "pvpAnalyzer.js"
 Cohesion: 0.19
-Nodes (9): NullMapRenderer, executeMapRequest(), generateBasicMapDataset(), _getColorForAlliance(), initPvPAnalyzer(), loadPvPOverview(), pvpRecordings, renderRecordings() (+1 more)
+Nodes (10): NullMapRenderer, executeMapRequest(), generateBasicMapDataset(), _getColorForAlliance(), initPvPAnalyzer(), loadPvPOverview(), pvpRecordings, renderRecordings() (+2 more)
 
 ### Community 8 - "render_map"
 Cohesion: 0.67
@@ -91,11 +92,15 @@ Cohesion: 0.25
 Nodes (7): 1. Interactive Logistics Command Terminal, 2. Manifest V3 CSP Compliance & UI Polish, 3. Background Network Resilience (`background.js`), 4. Background Notification Auto-Sync, 🌐 NULL Map Engine Extension — Release v1.7.0 (Webstore Candidate), 📦 Release Overview, 🚀 What's New in v1.7.0
 
 ### Community 13 - "sitterTerminal.js"
-Cohesion: 0.16
-Nodes (24): bindEvents(), btnRefresh, fetchSitterData(), filterMatrixTable(), formatLastUpdated(), getTribeIconHtml(), hideLoading(), init() (+16 more)
+Cohesion: 0.15
+Nodes (25): bindEvents(), btnRefresh, fetchSitterData(), filterMatrixTable(), formatLastUpdated(), getTribeIconHtml(), hideLoading(), init() (+17 more)
+
+### Community 14 - "🚀 What's New in v1.8.0"
+Cohesion: 0.20
+Nodes (9): 1. Interactive Sitters Command Terminal, 2. Standardized Leaderboards & Direct Alliance Links (`/alliance/AID`), 3. Manifest V3 CSP Compliance & UI Hover Styling, 4. Real-Time Debug Logger & Network Status Relay, 5. Extension-Wide JSON Hardening (`safeParseJSON`), 🛠️ Internal Code Changes, 🌐 NULL Map Engine Extension — Release v1.8.0, 📦 Release Overview (+1 more)
 
 ## Knowledge Gaps
-- **107 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+102 more)
+- **114 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+109 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **3 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -103,13 +108,13 @@ Nodes (24): bindEvents(), btnRefresh, fetchSitterData(), filterMatrixTable(), fo
 _Questions this graph is uniquely positioned to answer:_
 
 - **What connects `aegisData`, `loadingOverlay`, `loadingText` to the rest of the system?**
-  _107 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _114 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `sidepanel.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.10545790934320073 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10549645390070922 - nodes in this community are weakly interconnected._
 - **Should `troopsAnalyzer.js` be split into smaller, more focused modules?**
   _Cohesion score 0.0728744939271255 - nodes in this community are weakly interconnected._
 - **Should `logisticsTerminal.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.1066066066066066 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10384068278805121 - nodes in this community are weakly interconnected._
 - **Should `manifest.json` be split into smaller, more focused modules?**
   _Cohesion score 0.0625 - nodes in this community are weakly interconnected._
 - **Should `aegisTerminal.js` be split into smaller, more focused modules?**

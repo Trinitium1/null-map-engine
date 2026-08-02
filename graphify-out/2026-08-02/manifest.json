@@ -25,8 +25,8 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1785661834.5971966,
-    "ast_hash": "b4d7ebcf121e44c5e54d04fa1844e20a",
+    "mtime": 1785665495.51912,
+    "ast_hash": "e884d1b9edab1ed075a20ba0a3094f71",
     "semantic_hash": ""
   },
   "extension/mapRenderer.js": {
@@ -45,8 +45,8 @@
     "semantic_hash": "13e8951b0fb9895fe36096d587f8b916"
   },
   "extension/sidepanel.js": {
-    "mtime": 1785661762.9630792,
-    "ast_hash": "5e7ae3f6402fdd4f070728fca9e3fc44",
+    "mtime": 1785663812.8994563,
+    "ast_hash": "332f0707de3711895ec3af298bcf1c05",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.js": {
@@ -210,13 +210,13 @@
     "semantic_hash": ""
   },
   "extension/sitterTerminal.js": {
-    "mtime": 1785661808.8355336,
-    "ast_hash": "7cb88eb6fe3a9485655a0dca957139db",
+    "mtime": 1785664022.3829656,
+    "ast_hash": "fe59972f8dbec8f3b2fd8d066e28b5d0",
     "semantic_hash": ""
   },
   "extension/sitterTerminal.html": {
-    "mtime": 1785661779.274761,
-    "ast_hash": "0a6b50408d176685f58c16ee6c8322b9",
+    "mtime": 1785664002.3977156,
+    "ast_hash": "90c114dc02d093fd84e78930bf5e3f83",
     "semantic_hash": ""
   }
 }

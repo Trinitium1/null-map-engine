@@ -1,16 +1,16 @@
 # Graph Report - null-map-engine  (2026-08-02)
 
 ## Corpus Check
-- 15 files · ~39,651 words
+- 15 files · ~40,469 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 282 nodes · 457 edges · 14 communities (11 shown, 3 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.5)
+- 283 nodes · 460 edges · 14 communities (11 shown, 3 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5c1a8098`
+- Built from commit: `e1a2a133`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -92,7 +92,7 @@ Nodes (7): 1. Interactive Logistics Command Terminal, 2. Manifest V3 CSP Complia
 
 ### Community 13 - "sitterTerminal.js"
 Cohesion: 0.16
-Nodes (23): bindEvents(), btnRefresh, fetchSitterData(), filterMatrixTable(), formatLastUpdated(), getTribeIconHtml(), hideLoading(), init() (+15 more)
+Nodes (24): bindEvents(), btnRefresh, fetchSitterData(), filterMatrixTable(), formatLastUpdated(), getTribeIconHtml(), hideLoading(), init() (+16 more)
 
 ## Knowledge Gaps
 - **107 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+102 more)
