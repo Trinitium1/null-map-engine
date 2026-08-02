@@ -64,7 +64,10 @@
         "aegisTerminal.js",
         "logisticsTerminal.html",
         "logisticsTerminal.js",
-        "assets/*.png"
+        "sitterTerminal.html",
+        "sitterTerminal.js",
+        "assets/*.png",
+        "assets/*.svg"
       ],
       "matches": [
         "<all_urls>"

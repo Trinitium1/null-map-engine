@@ -147,9 +147,32 @@
 
             <!-- HOME SCREEN: APP GRID -->
             <div id="app-grid-container" class="app-grid">
+                <div class="app-icon disabled" id="app-btn-stats">
+                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">📊</div>
+                    <span>STATISTICS</span>
+                </div>
+                <div class="app-icon" id="app-btn-sitters">
+                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #3498db, #2980b9); position: relative;">
+                        🤝
+                        <div id="sitter-bubble-alert" title="Critical Sitter Alerts" style="position: absolute; top: -6px; right: -6px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(231, 76, 60, 0.8); z-index: 10;"></div>
+                    </div>
+                    <span>SITTERS</span>
+                </div>
+                <div class="app-icon" id="app-btn-logistics">
+                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #f39c12, #d35400); position: relative;">
+                        📦
+                        <div id="log-bubble-req" title="Pending Push Requests (Leader Approval Required)" style="position: absolute; top: -6px; left: -6px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(231, 76, 60, 0.8); z-index: 10;"></div>
+                        <div id="log-bubble-act" title="Active Logistics Push Operations" style="position: absolute; top: -6px; right: -6px; background: #f39c12; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(243, 156, 18, 0.8); z-index: 10;"></div>
+                    </div>
+                    <span>LOGISTICS</span>
+                </div>
                 <div class="app-icon" id="app-btn-troops">
                     <div class="app-icon-inner" style="background: linear-gradient(135deg, #ff4757, #ffd700);">⚔️</div>
                     <span>TROOPS</span>
+                </div>
+                <div class="app-icon disabled" id="app-btn-off">
+                    <div class="app-icon-inner">🐎</div>
+                    <span>OFF</span>
                 </div>
                 <div class="app-icon" id="app-btn-def">
                     <div class="app-icon-inner" style="background: linear-gradient(135deg, #2980b9, #2c3e50); position: relative;">
@@ -159,25 +182,9 @@
                     </div>
                     <span>DEF</span>
                 </div>
-                <div class="app-icon disabled">
-                    <div class="app-icon-inner">🐎</div>
-                    <span>OFF</span>
-                </div>
-                <div class="app-icon disabled">
-                    <div class="app-icon-inner">👁️</div>
-                    <span>SCOUT</span>
-                </div>
-                <div class="app-icon disabled">
+                <div class="app-icon disabled" id="app-btn-oracle">
                     <div class="app-icon-inner">🔮</div>
                     <span>ORACLE</span>
-                </div>
-                <div class="app-icon" id="app-btn-logistics">
-                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #f39c12, #d35400); position: relative;">
-                        📦
-                        <div id="log-bubble-req" title="Pending Push Requests (Leader Approval Required)" style="position: absolute; top: -6px; left: -6px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(231, 76, 60, 0.8); z-index: 10;"></div>
-                        <div id="log-bubble-act" title="Active Logistics Push Operations" style="position: absolute; top: -6px; right: -6px; background: #f39c12; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(243, 156, 18, 0.8); z-index: 10;"></div>
-                    </div>
-                    <span>LOGISTICS</span>
                 </div>
                 <div class="app-icon" id="app-btn-map">
                     <div class="app-icon-inner" style="background: linear-gradient(135deg, #2ed573, #1e90ff);">🗺️</div>
@@ -627,6 +634,69 @@
                         </div>
                     </div>
                 </div> <!-- END LOGISTICS APP MODULE -->
+
+                <!-- SITTERS APP MODULE -->
+                <div id="sitters-modules-container" class="app-panel hidden">
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
+                        <div id="btn-sitters-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="flex-grow: 1;">SITTERS TERMINAL</h2>
+                        <div id="sitters-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                        <div id="btn-refresh-sitters" class="icon-btn" title="Refresh Sitter Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(52, 152, 219, 0.2); color: #3498db;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- BUTTON TO OPEN FULL TAB -->
+                    <button id="btn-open-sitters" class="btn" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #3498db, #2980b9); border: 1px solid #3498db; color: white; padding: 12px; font-size: 13px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+                        🤝 OPEN SITTERS COMMAND TERMINAL
+                    </button>
+
+                    <!-- QUICK STATUS SUMMARY BOX -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                            <h3>📊 STATUS LEGEND & METRICS</h3>
+                            <div class="info-icon" title="🟢 Secure: Timezone and BOTH sitters registered.&#10;🟡 At Risk: Timezone registered, missing 1 or both sitters.&#10;🔴 Critical: Missing Timezone data.&#10;🛡️ Proxy/Dual: Account has duals." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">?</div>
+                        </div>
+                        <div id="sitters-metrics-summary" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 8px;">
+                            <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.2); padding: 8px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; color: #2ecc71; font-weight: 700;">🟢 Secure</div>
+                                <div id="sitter-count-secure" style="font-size: 16px; font-weight: 800; color: #fff;">-</div>
+                            </div>
+                            <div style="background: rgba(241, 196, 15, 0.1); border: 1px solid rgba(241, 196, 15, 0.2); padding: 8px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; color: #f1c40f; font-weight: 700;">🟡 At Risk</div>
+                                <div id="sitter-count-atrisk" style="font-size: 16px; font-weight: 800; color: #fff;">-</div>
+                            </div>
+                            <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.2); padding: 8px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; color: #e74c3c; font-weight: 700;">🔴 Critical</div>
+                                <div id="sitter-count-critical" style="font-size: 16px; font-weight: 800; color: #fff;">-</div>
+                            </div>
+                            <div style="background: rgba(52, 152, 219, 0.1); border: 1px solid rgba(52, 152, 219, 0.2); padding: 8px; border-radius: 6px; text-align: center;">
+                                <div style="font-size: 11px; color: #3498db; font-weight: 700;">🛡️ Proxy/Dual</div>
+                                <div id="sitter-count-proxy" style="font-size: 16px; font-weight: 800; color: #fff;">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ALLIANCE MATRIX CONTAINER -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                            <h3>📋 ALLIANCE SITTER MATRIX</h3>
+                            <div class="info-icon" title="Operative coverage and sitted status across the confederacy." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">?</div>
+                        </div>
+                        <div class="table-container" id="sitters-matrix-container" style="padding-top:5px;">
+                            <div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Waiting for data...</div>
+                        </div>
+                    </div>
+                </div> <!-- END SITTERS APP MODULE -->
 
             </div> <!-- END APP PANELS WRAPPER -->
 

@@ -183,6 +183,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const appBtnSitters = document.getElementById('app-btn-sitters');
+    const sittersModules = document.getElementById('sitters-modules-container');
+    const btnSittersBack = document.getElementById('btn-sitters-back');
+    const btnRefreshSitters = document.getElementById('btn-refresh-sitters');
+    const btnOpenSitters = document.getElementById('btn-open-sitters');
+
+    if (appBtnSitters) {
+        appBtnSitters.addEventListener('click', () => {
+            appGridContainer.classList.add('hidden');
+            if (sittersModules) sittersModules.classList.remove('hidden');
+            loadSittersPanel();
+        });
+    }
+
+    if (btnSittersBack) {
+        btnSittersBack.addEventListener('click', () => {
+            if (sittersModules) sittersModules.classList.add('hidden');
+            appGridContainer.classList.remove('hidden');
+        });
+    }
+
+    if (btnRefreshSitters) {
+        btnRefreshSitters.addEventListener('click', () => {
+            refreshPanel('sitters');
+        });
+    }
+
+    if (btnOpenSitters) {
+        btnOpenSitters.addEventListener('click', () => {
+            let url = chrome.runtime.getURL('sitterTerminal.html');
+            chrome.tabs.create({ url: url });
+        });
+    }
+
     const btnDefBack = document.getElementById('btn-def-back');
     if (btnDefBack) {
         btnDefBack.addEventListener('click', () => {
@@ -196,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mapModules.classList.add('hidden');
             defModules.classList.add('hidden');
             if (logisticsModules) logisticsModules.classList.add('hidden');
+            if (sittersModules) sittersModules.classList.add('hidden');
             btnBackHome.classList.add('hidden');
             appGridContainer.classList.remove('hidden');
             
@@ -711,7 +746,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Unified refresh entry-point used by MAP, DEF, and LOGISTICS headers
+    // Unified refresh entry-point used by MAP, DEF, LOGISTICS, and SITTERS headers
     function refreshPanel(panel) {
         let btn, el;
         if (panel === 'aegis') {
@@ -720,6 +755,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (panel === 'logistics') {
             btn = document.getElementById('btn-refresh-logistics');
             el = document.getElementById('logistics-last-updated');
+        } else if (panel === 'sitters') {
+            btn = document.getElementById('btn-refresh-sitters');
+            el = document.getElementById('sitters-last-updated');
         } else {
             btn = document.getElementById('btn-refresh-map');
             el = document.getElementById('map-last-updated');
@@ -736,6 +774,8 @@ document.addEventListener('DOMContentLoaded', () => {
             fetchAegisTop10(true);
         } else if (panel === 'logistics') {
             fetchLogisticsData(true);
+        } else if (panel === 'sitters') {
+            fetchSitterData(true);
         } else {
             fetchMapStats(true);
             fetchWorldEvents();
@@ -2058,10 +2098,137 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = html;
     }
 
+    // --- SITTERS MODULE SIDE PANEL ENGINE ---
+    function loadSittersPanel() {
+        const lastUpdatedEl = document.getElementById('sitters-last-updated');
+        const btnRefreshSitters = document.getElementById('btn-refresh-sitters');
+        chrome.storage.local.get(['sitterDataCache', 'sitterLastRefresh', 'sitterUtcOffset', 'serverData'], (result) => {
+            if (result.serverData) currentServerData = result.serverData;
+            if (result.sitterLastRefresh) {
+                applyRefreshTimestamp(lastUpdatedEl, btnRefreshSitters, result.sitterLastRefresh, result.sitterUtcOffset || "+01:00");
+            }
+            if (result.sitterDataCache && result.sitterDataCache.hostname) {
+                const cache = result.sitterDataCache;
+                renderSitterMetrics(cache.stats || {});
+                renderSitterMatrix(cache.players || [], cache.hostname);
+            } else {
+                fetchSitterData();
+            }
+        });
+    }
+
+    function fetchSitterData(fromRefresh) {
+        const btn = document.getElementById('btn-refresh-sitters');
+        const el = document.getElementById('sitters-last-updated');
+        if (fromRefresh) {
+            setRefreshBusy(btn, true);
+            if (el) el.innerHTML = `Fetching...`;
+        }
+
+        chrome.tabs.query({ url: "*://*.travian.com/*" }, (tabs) => {
+            if (!tabs || tabs.length === 0) return;
+            const url = new URL(tabs[0].url);
+            const hostname = url.hostname;
+
+            chrome.storage.local.get(['discordId'], (res) => {
+                if (!res.discordId) return;
+
+                let payload = [{ action: "sitter_get_data", extVersion: chrome.runtime.getManifest().version, discordId: res.discordId }];
+                chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: hostname, payload: payload }, (rawText) => {
+                    if (fromRefresh) setRefreshBusy(btn, false);
+                    if (!rawText) return;
+
+                    try {
+                        let data = JSON.parse(rawText);
+                        if (data.status === "ok") {
+                            const now = new Date().toISOString();
+                            const utcOffset = data.utcOffset || "+01:00";
+                            applyRefreshTimestamp(el, btn, now, utcOffset);
+
+                            chrome.storage.local.set({
+                                sitterDataCache: { ...data, hostname: hostname },
+                                sitterLastRefresh: now,
+                                sitterUtcOffset: utcOffset
+                            });
+
+                            renderSitterMetrics(data.stats || {});
+                            renderSitterMatrix(data.players || [], hostname);
+                        }
+                    } catch (e) {
+                        console.error("[SITTERS] Parse error:", e);
+                    }
+                });
+            });
+        });
+    }
+
+    function renderSitterMetrics(stats) {
+        const elSecure = document.getElementById('sitter-count-secure');
+        const elAtRisk = document.getElementById('sitter-count-atrisk');
+        const elCritical = document.getElementById('sitter-count-critical');
+        const elProxy = document.getElementById('sitter-count-proxy');
+
+        if (elSecure) elSecure.textContent = (stats.secure !== undefined ? stats.secure : 0);
+        if (elAtRisk) elAtRisk.textContent = (stats.atRisk !== undefined ? stats.atRisk : 0);
+        if (elCritical) elCritical.textContent = (stats.critical !== undefined ? stats.critical : 0);
+        if (elProxy) elProxy.textContent = (stats.proxy !== undefined ? stats.proxy : 0);
+    }
+
+    function renderSitterMatrix(players, hostname) {
+        const container = document.getElementById('sitters-matrix-container');
+        if (!container) return;
+        if (!players || players.length === 0) {
+            container.innerHTML = `<div style="font-size: 11px; color: #a4b0be; padding: 10px; text-align: center;">No operative sitter data available.</div>`;
+            return;
+        }
+
+        let html = '';
+        players.forEach(p => {
+            let tribeHtml = getTribeIconHtml(p.tribe);
+            let allyLink = getAllianceProfileLink(p.ally, p.aid || "0", hostname);
+            let playerLink = getPlayerProfileLink(p.ign, p.uid || "0", hostname);
+
+            let sitsHtml = [];
+            if (p.isProxy) {
+                sitsHtml.push('<span style="color:#a4b0be;font-size:11px;">Dual/Proxy</span>');
+            } else {
+                if (p.s1) {
+                    let s1Link = getPlayerProfileLink(p.s1, p.s1Uid || "0", hostname);
+                    sitsHtml.push(s1Link);
+                }
+                if (p.s2) {
+                    let s2Link = getPlayerProfileLink(p.s2, p.s2Uid || "0", hostname);
+                    sitsHtml.push(s2Link);
+                }
+            }
+            let sittersStr = sitsHtml.length > 0 ? sitsHtml.join(' | ') : '<span style="color:#e74c3c;font-size:11px;">None ⚠️</span>';
+            let covStr = p.covDisplay ? `<span style="background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px; font-size:10px; color:#f1c40f; margin-right:6px;">${p.covDisplay}</span>` : '';
+
+            // User Rule: TRIBE + [ALLY] + IGN order!
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
+                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+                    <span style="font-size:13px; margin-right:4px;">${p.statusIcon}</span>
+                    ${tribeHtml}
+                    ${allyLink}
+                    ${playerLink}
+                </div>
+                <div style="display:flex; align-items:center; text-align:right;">
+                    ${covStr}
+                    <div style="font-size:11px;">
+                        <span style="color:#a4b0be; font-size:10px;">Sitted By: </span>${sittersStr}
+                    </div>
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
     // ⏱️ PERIODIC BACKGROUND AUTO-REFRESH FOR DEF & LOGISTICS BADGE NOTIFICATIONS (Every 30 seconds)
     setInterval(() => {
         fetchLogisticsData(false);
+        fetchSitterData(false);
         if (typeof fetchAegisTop10 === 'function') fetchAegisTop10(false);
     }, 30000);
 
 });
+
