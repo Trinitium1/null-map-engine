@@ -1,6 +1,51 @@
 {
   "communities": {
     "0": [
+      "extension_sidepanel",
+      "extension_sidepanel_applyrefreshtimestamp",
+      "extension_sidepanel_fetchaegistop10",
+      "extension_sidepanel_fetchchronosalliance",
+      "extension_sidepanel_fetchchronosallianceslist",
+      "extension_sidepanel_fetchchronosevents",
+      "extension_sidepanel_fetchchronosradar",
+      "extension_sidepanel_fetchlogisticsdata",
+      "extension_sidepanel_fetchmapstats",
+      "extension_sidepanel_fetchpvecage",
+      "extension_sidepanel_fetchworldevents",
+      "extension_sidepanel_formatauthdenial",
+      "extension_sidepanel_getactiveserverhostname",
+      "extension_sidepanel_getallianceprofilelink",
+      "extension_sidepanel_getplayerprofilelink",
+      "extension_sidepanel_gettribeiconhtml",
+      "extension_sidepanel_loadaegispanel",
+      "extension_sidepanel_loadlogisticspanel",
+      "extension_sidepanel_loadmapstats",
+      "extension_sidepanel_logtoui",
+      "extension_sidepanel_markrefresherror",
+      "extension_sidepanel_refreshpanel",
+      "extension_sidepanel_renderaegissidebarcards",
+      "extension_sidepanel_renderaegistop10",
+      "extension_sidepanel_renderchronosalliance",
+      "extension_sidepanel_renderchronosevents",
+      "extension_sidepanel_renderchronosradar",
+      "extension_sidepanel_renderleaderboards",
+      "extension_sidepanel_renderlogisticsdebtors",
+      "extension_sidepanel_renderlogisticsrequested",
+      "extension_sidepanel_renderlogisticstitans",
+      "extension_sidepanel_rendermapstats",
+      "extension_sidepanel_renderpvecage",
+      "extension_sidepanel_renderworldevents",
+      "extension_sidepanel_setnoactivegame",
+      "extension_sidepanel_setrefreshbusy",
+      "extension_sidepanel_triggerverificationsweep",
+      "extension_sidepanel_updateactivegamestatus",
+      "extension_sidepanel_updatedefbubbles",
+      "extension_sidepanel_updatediscordwidget",
+      "extension_sidepanel_updatehudstatustext",
+      "extension_sidepanel_updatelogisticsbubbles",
+      "extension_sidepanel_updatestatustext"
+    ],
+    "1": [
       "extension_troopsanalyzer",
       "extension_troopsanalyzer_alliancetbody",
       "extension_troopsanalyzer_allplayers",
@@ -41,42 +86,46 @@
       "extension_troopsanalyzer_villagetbody",
       "extension_troopsanalyzer_villagethead"
     ],
-    "1": [
-      "extension_sidepanel",
-      "extension_sidepanel_applyrefreshtimestamp",
-      "extension_sidepanel_fetchaegistop10",
-      "extension_sidepanel_fetchchronosalliance",
-      "extension_sidepanel_fetchchronosallianceslist",
-      "extension_sidepanel_fetchchronosevents",
-      "extension_sidepanel_fetchchronosradar",
-      "extension_sidepanel_fetchmapstats",
-      "extension_sidepanel_fetchpvecage",
-      "extension_sidepanel_fetchworldevents",
-      "extension_sidepanel_formatauthdenial",
-      "extension_sidepanel_loadaegispanel",
-      "extension_sidepanel_loadmapstats",
-      "extension_sidepanel_logtoui",
-      "extension_sidepanel_markrefresherror",
-      "extension_sidepanel_refreshpanel",
-      "extension_sidepanel_renderaegissidebarcards",
-      "extension_sidepanel_renderaegistop10",
-      "extension_sidepanel_renderchronosalliance",
-      "extension_sidepanel_renderchronosevents",
-      "extension_sidepanel_renderchronosradar",
-      "extension_sidepanel_renderleaderboards",
-      "extension_sidepanel_rendermapstats",
-      "extension_sidepanel_renderpvecage",
-      "extension_sidepanel_renderworldevents",
-      "extension_sidepanel_setnoactivegame",
-      "extension_sidepanel_setrefreshbusy",
-      "extension_sidepanel_triggerverificationsweep",
-      "extension_sidepanel_updateactivegamestatus",
-      "extension_sidepanel_updatedefbubbles",
-      "extension_sidepanel_updatediscordwidget",
-      "extension_sidepanel_updatehudstatustext",
-      "extension_sidepanel_updatestatustext"
-    ],
     "2": [
+      "extension_logisticsterminal",
+      "extension_logisticsterminal_activegrid",
+      "extension_logisticsterminal_bindevents",
+      "extension_logisticsterminal_btninitiatepush",
+      "extension_logisticsterminal_btnrefresh",
+      "extension_logisticsterminal_detailsbody",
+      "extension_logisticsterminal_detailscancel",
+      "extension_logisticsterminal_detailsclose",
+      "extension_logisticsterminal_detailstitle",
+      "extension_logisticsterminal_fetchlogisticsdata",
+      "extension_logisticsterminal_formattimestampwithserverutc",
+      "extension_logisticsterminal_getactiveserverhostname",
+      "extension_logisticsterminal_getdynamicprogresscolor",
+      "extension_logisticsterminal_gettribemediumicon",
+      "extension_logisticsterminal_handlecreatepushrequest",
+      "extension_logisticsterminal_handleleaderdecision",
+      "extension_logisticsterminal_handlereportshipment",
+      "extension_logisticsterminal_handleshipmentdecision",
+      "extension_logisticsterminal_hideloading",
+      "extension_logisticsterminal_loadingoverlay",
+      "extension_logisticsterminal_loadingtext",
+      "extension_logisticsterminal_logisticsdata",
+      "extension_logisticsterminal_modaldetails",
+      "extension_logisticsterminal_modalrequest",
+      "extension_logisticsterminal_opendetailsmodal",
+      "extension_logisticsterminal_populateuservillagesdropdown",
+      "extension_logisticsterminal_renderactivegrid",
+      "extension_logisticsterminal_renderrequestsgrid",
+      "extension_logisticsterminal_reqcancel",
+      "extension_logisticsterminal_reqclose",
+      "extension_logisticsterminal_reqsubmit",
+      "extension_logisticsterminal_requestsgrid",
+      "extension_logisticsterminal_showloading",
+      "extension_logisticsterminal_tabactive",
+      "extension_logisticsterminal_tabbtnactive",
+      "extension_logisticsterminal_tabbtnrequests",
+      "extension_logisticsterminal_tabrequests"
+    ],
+    "3": [
       "extension_manifest",
       "extension_manifest_action",
       "extension_manifest_action_default_icon",
@@ -110,7 +159,7 @@
       "ref_travian_com",
       "ref_webnavigation"
     ],
-    "3": [
+    "4": [
       "extension_aegisterminal",
       "extension_aegisterminal_aegisdata",
       "extension_aegisterminal_bindevents",
@@ -143,7 +192,7 @@
       "extension_aegisterminal_tabbtns",
       "extension_aegisterminal_tabcontents"
     ],
-    "4": [
+    "5": [
       "extension_background",
       "extension_background_cachedtiles",
       "extension_background_drawcustombadge",
@@ -166,7 +215,7 @@
       "extension_background_terrain_map",
       "extension_background_updatebadgestate"
     ],
-    "5": [
+    "6": [
       "extension_maprenderer",
       "extension_maprenderer_nullmaprenderer",
       "extension_maprenderer_nullmaprenderer_constructor",
@@ -184,7 +233,7 @@
       "extension_pvpanalyzer_renderrecordings",
       "extension_pvpanalyzer_savepvprecording"
     ],
-    "6": [
+    "7": [
       "extension_popup",
       "extension_popup_logtoui",
       "extension_popup_triggerverificationsweep",
@@ -193,40 +242,51 @@
       "extension_popup_updatehudstatustext",
       "extension_popup_updatestatustext"
     ],
-    "7": [
+    "8": [
       "app",
       "app_parse_color",
       "app_render_map",
       "route"
     ],
-    "8": [
+    "9": [
       "extension_content",
       "extension_content_createhud",
       "extension_content_script"
     ],
-    "9": [
+    "10": [
       "extension_interceptor",
       "extension_interceptor_getign",
       "extension_interceptor_newxhr"
     ]
   },
   "cohesion": {
-    "0": 0.0728744939271255,
-    "1": 0.12121212121212122,
-    "2": 0.0625,
-    "3": 0.10967741935483871,
-    "4": 0.17142857142857143,
-    "5": 0.19166666666666668,
-    "6": 0.3333333333333333,
-    "7": 0.6666666666666666,
+    "0": 0.10852713178294573,
+    "1": 0.0728744939271255,
+    "2": 0.1066066066066066,
+    "3": 0.0625,
+    "4": 0.10967741935483871,
+    "5": 0.17142857142857143,
+    "6": 0.19166666666666668,
+    "7": 0.3333333333333333,
     "8": 0.6666666666666666,
-    "9": 1.0
+    "9": 0.6666666666666666,
+    "10": 1.0
   },
   "gods": [
     {
       "id": "extension_background_processrawtiles",
       "label": "processRawTiles()",
       "degree": 13
+    },
+    {
+      "id": "extension_logisticsterminal_fetchlogisticsdata",
+      "label": "fetchLogisticsData()",
+      "degree": 13
+    },
+    {
+      "id": "extension_sidepanel_fetchlogisticsdata",
+      "label": "fetchLogisticsData()",
+      "degree": 11
     },
     {
       "id": "extension_aegisterminal_fetchaegisdata",
@@ -254,57 +314,19 @@
       "degree": 7
     },
     {
-      "id": "extension_troopsanalyzer_opendrilldown",
-      "label": "openDrilldown()",
+      "id": "extension_sidepanel_setrefreshbusy",
+      "label": "setRefreshBusy()",
       "degree": 7
     },
     {
-      "id": "extension_aegisterminal_sendaegismutation",
-      "label": "sendAegisMutation()",
-      "degree": 6
-    },
-    {
-      "id": "extension_sidepanel_setrefreshbusy",
-      "label": "setRefreshBusy()",
-      "degree": 6
-    },
-    {
-      "id": "extension_sidepanel_refreshpanel",
-      "label": "refreshPanel()",
-      "degree": 6
+      "id": "extension_sidepanel_applyrefreshtimestamp",
+      "label": "applyRefreshTimestamp()",
+      "degree": 7
     }
   ],
   "surprises": [],
-  "questions": [
-    {
-      "type": "verify_inferred",
-      "question": "Are the 5 inferred relationships involving `bindEvents()` (e.g. with `closeModal()` and `fetchAegisData()`) actually correct?",
-      "why": "`bindEvents()` has 5 INFERRED edges - model-reasoned connections that need verification."
-    },
-    {
-      "type": "isolated_nodes",
-      "question": "What connects `aegisData`, `loadingOverlay`, `loadingText` to the rest of the system?",
-      "why": "69 weakly-connected nodes found - possible documentation gaps or missing edges."
-    },
-    {
-      "type": "low_cohesion",
-      "question": "Should `troopsAnalyzer.js` be split into smaller, more focused modules?",
-      "why": "Cohesion score 0.0728744939271255 - nodes in this community are weakly interconnected."
-    },
-    {
-      "type": "low_cohesion",
-      "question": "Should `sidepanel.js` be split into smaller, more focused modules?",
-      "why": "Cohesion score 0.12121212121212122 - nodes in this community are weakly interconnected."
-    },
-    {
-      "type": "low_cohesion",
-      "question": "Should `manifest.json` be split into smaller, more focused modules?",
-      "why": "Cohesion score 0.0625 - nodes in this community are weakly interconnected."
-    },
-    {
-      "type": "low_cohesion",
-      "question": "Should `aegisTerminal.js` be split into smaller, more focused modules?",
-      "why": "Cohesion score 0.10967741935483871 - nodes in this community are weakly interconnected."
-    }
-  ]
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
 }

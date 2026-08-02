@@ -10,9 +10,9 @@
     "semantic_hash": "d98a8c43d1bd54495d90f3121f587884"
   },
   "extension/background.js": {
-    "mtime": 1785471831.7722213,
-    "ast_hash": "4264194fc391992195c4c604b7cc40ae",
-    "semantic_hash": "4264194fc391992195c4c604b7cc40ae"
+    "mtime": 1785644962.979805,
+    "ast_hash": "ddc6bd6598b6e76c511d89197ec8e986",
+    "semantic_hash": "ddc6bd6598b6e76c511d89197ec8e986"
   },
   "extension/content.js": {
     "mtime": 1785469710.745347,
@@ -25,9 +25,9 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1785468939.0954182,
-    "ast_hash": "ca02361b9e8e04f844e41f9013911e62",
-    "semantic_hash": "ca02361b9e8e04f844e41f9013911e62"
+    "mtime": 1785645783.493466,
+    "ast_hash": "974ad3ab378ef300110c2b985e38d5ea",
+    "semantic_hash": "974ad3ab378ef300110c2b985e38d5ea"
   },
   "extension/mapRenderer.js": {
     "mtime": 1785145753.4054039,
@@ -45,24 +45,14 @@
     "semantic_hash": "13e8951b0fb9895fe36096d587f8b916"
   },
   "extension/sidepanel.js": {
-    "mtime": 1785472658.228351,
-    "ast_hash": "77e313466883eb382ad51daec32d1a2e",
-    "semantic_hash": "77e313466883eb382ad51daec32d1a2e"
+    "mtime": 1785643491.2998273,
+    "ast_hash": "17edafc93f8ddf322bc80156b73dbdbf",
+    "semantic_hash": "17edafc93f8ddf322bc80156b73dbdbf"
   },
   "extension/troopsAnalyzer.js": {
     "mtime": 1785471828.3755949,
     "ast_hash": "5da031092dd4edb2753c4d97f3237ae9",
     "semantic_hash": "5da031092dd4edb2753c4d97f3237ae9"
-  },
-  ".agents/rules/graphify.md": {
-    "mtime": 1785569122.283859,
-    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
-    "semantic_hash": ""
-  },
-  ".agents/workflows/graphify.md": {
-    "mtime": 1785569122.283859,
-    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
-    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1785473034.8556414,
@@ -80,8 +70,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.html": {
-    "mtime": 1785472610.5304701,
-    "ast_hash": "24dac7340e9e0e583383c44dcb6adf33",
+    "mtime": 1785639160.3466666,
+    "ast_hash": "853b05b9ec440fbda1857a8a86b871a7",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.html": {
@@ -197,6 +187,16 @@
   "extension/assets/teuton_small.png": {
     "mtime": 1772355830.9956315,
     "ast_hash": "481b336272184e4c2e9c386e0da387fe",
+    "semantic_hash": ""
+  },
+  "extension/logisticsTerminal.js": {
+    "mtime": 1785645071.2798553,
+    "ast_hash": "a89e9acf47d8a593ed6473d7c6d776e9",
+    "semantic_hash": "a89e9acf47d8a593ed6473d7c6d776e9"
+  },
+  "extension/logisticsTerminal.html": {
+    "mtime": 1785643501.9321823,
+    "ast_hash": "b5c98429692750cc617dc06c50cc8c94",
     "semantic_hash": ""
   }
 }

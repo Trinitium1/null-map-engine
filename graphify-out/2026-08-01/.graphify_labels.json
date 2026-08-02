@@ -1,15 +1,1 @@
-{
-  "0": "troopsAnalyzer.js",
-  "1": "sidepanel.js",
-  "2": "manifest.json",
-  "3": "aegisTerminal.js",
-  "4": "background.js",
-  "5": "pvpAnalyzer.js",
-  "6": "popup.js",
-  "7": "render_map",
-  "8": "content.js",
-  "9": "interceptor.js",
-  "10": "NULL Map Engine - Version Logs",
-  "11": "rules/graphify.md",
-  "12": "workflows/graphify.md"
-}
+{"0": "troopsAnalyzer.js", "1": "sidepanel.js", "2": "manifest.json", "3": "aegisTerminal.js", "4": "background.js", "5": "pvpAnalyzer.js", "6": "popup.js", "7": "render_map", "8": "content.js", "9": "interceptor.js", "10": "NULL Map Engine - Version Logs", "11": "rules/graphify.md", "12": "workflows/graphify.md", "13": "main.js", "14": "constructor", "15": "createRow", "16": "logisticsTerminal.js", "17": "dispose", "18": "add", "19": "get", "20": "t", "21": "splice", "22": "e", "23": "fire", "24": "sl", "25": "i", "26": "keydown", "27": "vi", "28": "push", "29": "handleMouseDown", "30": "setScrollDimensions", "31": "_setCursor", "32": "getWidth", "33": "_reveal", "34": "charAttributes", "35": "refresh", "36": "refreshRows", "37": "scroll", "38": "_sliderPointerDown", "39": "preventDefault", "40": "r", "41": "warn", "42": "open", "43": "_getCyclicIndex", "44": "_handleMouseUp", "45": "_handleMouseMove", "46": "_moveCursor", "47": "_refreshDecorations", "48": "antigravity-cli-sidebar/manifest.json", "49": "handleResize", "50": "O", "51": "_reflowSmaller", "52": "scrollLines", "53": "Ne", "54": "_step", "55": "ns", "56": "render", "57": "acceptStandardWheelEvent", "58": "charProperties", "59": "getWindowId", "60": "emitMany", "61": "_refreshComputedValues", "62": "_log", "63": "loadSettings", "64": "addDecoration", "65": "update", "66": "windowOptions", "67": "_setDprAndFireIfDiffers", "68": "_setOrReportSpecialColor", "69": "areSelectionValuesReversed", "70": "spawn", "71": "createInstance", "72": "_handleSelectionChange", "73": "execute", "74": "_handleColorEvent", "75": "_setCellUnderline", "76": "_sanitizeAndValidateOption", "77": "_removeListener", "78": "registerOscHandler", "79": "_batchedMemoryCleanup", "80": "compositionupdate", "81": "emit", "82": "_equalEvents", "83": "fromCharData", "84": "isFgPalette", "85": "markRangeDirty", "86": "_measure", "87": "Vo", "88": "toPromise", "89": "app.json"}

@@ -1,16 +1,34 @@
 # Archivos de Graphify
 graphify-out/
+**/graphify-out/**
+
+# OBSIDIAN
+.obsidian
+.obsidian/
+.obsidian/**
+**/.obsidian/**
+
+# AGENTS
+.agents
+.agents/
+.agents/**
+**/.agents/**
 
 # Librerías de terceros y utilidades genéricas
 extension/apexcharts.min.js
 extension/tableFilter.js
+**/apexcharts.min.js
+**/tableFilter.js
 
 # Archivos de pruebas y scripts aislados
 extension/test-fetch.js
+**/test-fetch.js
 
 # Datos estáticos puros
 extension/servers.json
+**/servers.json
 
-# Entornos virtuales (por si los usas para app.py)
+# Entornos virtuales
 venv/
 __pycache__/
+**/__pycache__/**

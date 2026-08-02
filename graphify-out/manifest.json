@@ -12,7 +12,7 @@
   "extension/background.js": {
     "mtime": 1785644962.979805,
     "ast_hash": "ddc6bd6598b6e76c511d89197ec8e986",
-    "semantic_hash": ""
+    "semantic_hash": "ddc6bd6598b6e76c511d89197ec8e986"
   },
   "extension/content.js": {
     "mtime": 1785469710.745347,
@@ -25,9 +25,9 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1785645542.6837394,
-    "ast_hash": "af533a85ee01dc5269eabb7377646075",
-    "semantic_hash": ""
+    "mtime": 1785645783.493466,
+    "ast_hash": "974ad3ab378ef300110c2b985e38d5ea",
+    "semantic_hash": "974ad3ab378ef300110c2b985e38d5ea"
   },
   "extension/mapRenderer.js": {
     "mtime": 1785145753.4054039,
@@ -47,22 +47,12 @@
   "extension/sidepanel.js": {
     "mtime": 1785643491.2998273,
     "ast_hash": "17edafc93f8ddf322bc80156b73dbdbf",
-    "semantic_hash": ""
+    "semantic_hash": "17edafc93f8ddf322bc80156b73dbdbf"
   },
   "extension/troopsAnalyzer.js": {
     "mtime": 1785471828.3755949,
     "ast_hash": "5da031092dd4edb2753c4d97f3237ae9",
     "semantic_hash": "5da031092dd4edb2753c4d97f3237ae9"
-  },
-  ".agents/rules/graphify.md": {
-    "mtime": 1785569122.283859,
-    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
-    "semantic_hash": ""
-  },
-  ".agents/workflows/graphify.md": {
-    "mtime": 1785569122.283859,
-    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
-    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1785473034.8556414,
@@ -199,50 +189,10 @@
     "ast_hash": "481b336272184e4c2e9c386e0da387fe",
     "semantic_hash": ""
   },
-  ".obsidian/app.json": {
-    "mtime": 1785593367.492092,
-    "ast_hash": "99914b932bd37a50b983c5e7c90ae93b",
-    "semantic_hash": ""
-  },
-  ".obsidian/appearance.json": {
-    "mtime": 1785593367.4961917,
-    "ast_hash": "99914b932bd37a50b983c5e7c90ae93b",
-    "semantic_hash": ""
-  },
-  ".obsidian/community-plugins.json": {
-    "mtime": 1785593391.091159,
-    "ast_hash": "ead6aec76f6ef25cd76af5100244fd86",
-    "semantic_hash": ""
-  },
-  ".obsidian/core-plugins.json": {
-    "mtime": 1785593367.0575213,
-    "ast_hash": "7c877bea49eaeabb100563bd157b9051",
-    "semantic_hash": ""
-  },
-  ".obsidian/graph.json": {
-    "mtime": 1785593505.486,
-    "ast_hash": "da0efe3df3594d4c3a95e40c4565aa18",
-    "semantic_hash": ""
-  },
-  ".obsidian/plugins/antigravity-cli-sidebar/main.js": {
-    "mtime": 1785593388.9450421,
-    "ast_hash": "9be29411d907512f08701cf403f63ccf",
-    "semantic_hash": ""
-  },
-  ".obsidian/plugins/antigravity-cli-sidebar/manifest.json": {
-    "mtime": 1785593388.6243422,
-    "ast_hash": "dce6fcb92b0a44ca60273873416b0e9e",
-    "semantic_hash": ""
-  },
-  ".obsidian/workspace.json": {
-    "mtime": 1785593508.0996437,
-    "ast_hash": "df9cbfd9baf456e12de55c75d620aa45",
-    "semantic_hash": ""
-  },
   "extension/logisticsTerminal.js": {
     "mtime": 1785645071.2798553,
     "ast_hash": "a89e9acf47d8a593ed6473d7c6d776e9",
-    "semantic_hash": ""
+    "semantic_hash": "a89e9acf47d8a593ed6473d7c6d776e9"
   },
   "extension/logisticsTerminal.html": {
     "mtime": 1785643501.9321823,
