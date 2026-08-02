@@ -32,3 +32,13 @@ extension/servers.json
 venv/
 __pycache__/
 **/__pycache__/**
+
+# Config & Manifest JSON Files
+appsscript.json
+**/appsscript.json
+package.json
+**/package.json
+package-lock.json
+**/package-lock.json
+jsconfig.json
+**/jsconfig.json
