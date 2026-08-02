@@ -171,8 +171,12 @@
                     <div class="app-icon-inner">🔮</div>
                     <span>ORACLE</span>
                 </div>
-                <div class="app-icon disabled">
-                    <div class="app-icon-inner">📦</div>
+                <div class="app-icon" id="app-btn-logistics">
+                    <div class="app-icon-inner" style="background: linear-gradient(135deg, #f39c12, #d35400); position: relative;">
+                        📦
+                        <div id="log-bubble-req" title="Pending Push Requests (Leader Approval Required)" style="position: absolute; top: -6px; left: -6px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(231, 76, 60, 0.8); z-index: 10;"></div>
+                        <div id="log-bubble-act" title="Active Logistics Push Operations" style="position: absolute; top: -6px; right: -6px; background: #f39c12; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5), 0 0 5px rgba(243, 156, 18, 0.8); z-index: 10;"></div>
+                    </div>
                     <span>LOGISTICS</span>
                 </div>
                 <div class="app-icon" id="app-btn-map">
@@ -564,6 +568,65 @@
                             </div>
                         </div>
                 </div> <!-- END DEF APP MODULE -->
+
+                <!-- LOGISTICS APP MODULE -->
+                <div id="logistics-modules-container" class="app-panel hidden">
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
+                        <div id="btn-logistics-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="flex-grow: 1;">LOGISTICS TERMINAL</h2>
+                        <div id="logistics-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                        <div id="btn-refresh-logistics" class="icon-btn" title="Refresh Logistics Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(231, 76, 60, 0.2); color: #e74c3c;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- BUTTON TO OPEN FULL TAB (1.1) -->
+                    <button id="btn-open-logistics" class="btn" style="width: 100%; margin-bottom: 20px; background: linear-gradient(135deg, #f39c12, #d35400); border: 1px solid #e67e22; color: white; padding: 12px; font-size: 13px; font-weight: bold; border-radius: 8px; box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);">
+                        📦 OPEN LOGISTICS COMMAND TERMINAL
+                    </button>
+
+                    <!-- 1.2 HOF TOP 10 DONORS WIDGET -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                            <h3>🏆 THE TITANS OF LOGISTICS (TOP 10 DONORS)</h3>
+                            <div class="info-icon" title="Ranks members by total verified resource contributions." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">?</div>
+                        </div>
+                        <div class="table-container" id="logistics-titans-container" style="padding-top:5px;">
+                            <div class="table-row">Waiting for data...</div>
+                        </div>
+                    </div>
+
+                    <!-- 1.3 RESOURCES REQUESTED WIDGET -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                            <h3>⚖️ RESOURCES REQUESTED</h3>
+                            <div class="info-icon" title="Historical ratio of requested vs received resources." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">?</div>
+                        </div>
+                        <div class="table-container" id="logistics-requested-container" style="padding-top:5px;">
+                            <div class="table-row">Waiting for data...</div>
+                        </div>
+                    </div>
+
+                    <!-- 1.4 ACTIVE OPERATION DEBTORS WIDGET -->
+                    <div class="card" style="margin-bottom: 15px;">
+                        <div class="lb-header" style="margin-top:0; display:flex; justify-content:space-between; align-items:center;">
+                            <h3>🚨 ACTIVE OPERATION DEBTORS (TOP 10)</h3>
+                            <div class="info-icon" title="Members with highest active unfulfilled push quotas." style="cursor:help; background:rgba(255,255,255,0.1); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; color:#a4b0be;">?</div>
+                        </div>
+                        <div class="table-container" id="logistics-debtors-container" style="padding-top:5px;">
+                            <div class="table-row">Waiting for data...</div>
+                        </div>
+                    </div>
+                </div> <!-- END LOGISTICS APP MODULE -->
 
             </div> <!-- END APP PANELS WRAPPER -->
 

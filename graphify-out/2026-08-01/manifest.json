@@ -93,5 +93,110 @@
     "mtime": 1784870584.9100947,
     "ast_hash": "6b881986831b129904757fc6a6442957",
     "semantic_hash": ""
+  },
+  "extension/assets/DiscordIcon.png": {
+    "mtime": 1785103770.5081985,
+    "ast_hash": "328ab3cd65ad5c0882e9cd49e928be44",
+    "semantic_hash": ""
+  },
+  "extension/assets/clay_small.png": {
+    "mtime": 1785218221.8453965,
+    "ast_hash": "0e73660ab3e3a709ea4ac74c8568d432",
+    "semantic_hash": ""
+  },
+  "extension/assets/crop_small.png": {
+    "mtime": 1785218225.6219223,
+    "ast_hash": "70a815ea1861a7ce9b1f50ef168bad6b",
+    "semantic_hash": ""
+  },
+  "extension/assets/egyptian_medium.png": {
+    "mtime": 1785218186.5011165,
+    "ast_hash": "e5aff453bcfce24dbd1dc6dd9496a7fa",
+    "semantic_hash": ""
+  },
+  "extension/assets/egyptian_small.png": {
+    "mtime": 1785218022.407718,
+    "ast_hash": "b7df839a899b2acf873be830b3528391",
+    "semantic_hash": ""
+  },
+  "extension/assets/freeCrop_small.png": {
+    "mtime": 1785218231.4070766,
+    "ast_hash": "1ec2a04368cbb333fea78e6b38b28b84",
+    "semantic_hash": ""
+  },
+  "extension/assets/gaul_medium.png": {
+    "mtime": 1785218193.137536,
+    "ast_hash": "414c14a6e51aafeeeede4b7139c8dd0c",
+    "semantic_hash": ""
+  },
+  "extension/assets/gaul_small.png": {
+    "mtime": 1772355842.1080465,
+    "ast_hash": "e59553687b91647c254e747627e714c4",
+    "semantic_hash": ""
+  },
+  "extension/assets/hero.png": {
+    "mtime": 1772355852.7358012,
+    "ast_hash": "6522152bee00330cb420778a9ef01b54",
+    "semantic_hash": ""
+  },
+  "extension/assets/hun_medium.png": {
+    "mtime": 1785218196.9460192,
+    "ast_hash": "de8498f73aa45a2fff48130c04cfd7f3",
+    "semantic_hash": ""
+  },
+  "extension/assets/hun_small.png": {
+    "mtime": 1785218104.5304654,
+    "ast_hash": "c764d5c6695179687aaee037db5969a4",
+    "semantic_hash": ""
+  },
+  "extension/assets/icon128.png": {
+    "mtime": 1770953126.2676303,
+    "ast_hash": "f00fc01e8a0153b0f1ebbf95e7ff1521",
+    "semantic_hash": ""
+  },
+  "extension/assets/iron_small.png": {
+    "mtime": 1785218234.6394608,
+    "ast_hash": "5e0ace1db44cd4c751a821c33675af09",
+    "semantic_hash": ""
+  },
+  "extension/assets/lumber_small.png": {
+    "mtime": 1785218238.2299256,
+    "ast_hash": "b7e322b452c84dacc74f396822d616fb",
+    "semantic_hash": ""
+  },
+  "extension/assets/nature_small.png": {
+    "mtime": 1785218008.76565,
+    "ast_hash": "66129dc41d98f49ea0e8b3dfb1227dc5",
+    "semantic_hash": ""
+  },
+  "extension/assets/roman_medium.png": {
+    "mtime": 1785218201.3431735,
+    "ast_hash": "0cb97f0c838efb47a1bdce96d7a65e49",
+    "semantic_hash": ""
+  },
+  "extension/assets/roman_small.png": {
+    "mtime": 1772355773.8151865,
+    "ast_hash": "a4352e4c0ab58798bb7f1acdba7a0d5f",
+    "semantic_hash": ""
+  },
+  "extension/assets/spartan_medium.png": {
+    "mtime": 1785218206.6303444,
+    "ast_hash": "25da6e730c1b582581a1a5992c62a71a",
+    "semantic_hash": ""
+  },
+  "extension/assets/spartan_small.png": {
+    "mtime": 1785218509.2463336,
+    "ast_hash": "fc90092b669e8ee788fb23106be9ad38",
+    "semantic_hash": ""
+  },
+  "extension/assets/teuton_medium.png": {
+    "mtime": 1785218210.4749136,
+    "ast_hash": "94dfe3f170f0745fe74d9d2255a11d83",
+    "semantic_hash": ""
+  },
+  "extension/assets/teuton_small.png": {
+    "mtime": 1772355830.9956315,
+    "ast_hash": "481b336272184e4c2e9c386e0da387fe",
+    "semantic_hash": ""
   }
 }

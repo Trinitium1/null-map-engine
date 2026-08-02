@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NULL Map Engine",
-  "version": "1.6",
+  "version": "1.7.0",
   "description": "Passive Map Sniffer for NULL System Gamification",
   "permissions": [
     "storage",
@@ -60,6 +60,10 @@
       "resources": [
         "troopsAnalyzer.html",
         "troopsAnalyzer.js",
+        "aegisTerminal.html",
+        "aegisTerminal.js",
+        "logisticsTerminal.html",
+        "logisticsTerminal.js",
         "assets/*.png"
       ],
       "matches": [

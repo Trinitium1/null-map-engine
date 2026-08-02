@@ -9,6 +9,28 @@ body {
     overflow-x: hidden;
 }
 
+.travian-player-link {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(255, 255, 255, 0.4);
+    transition: color 0.2s ease;
+}
+.travian-player-link:hover {
+    color: #f39c12 !important;
+}
+
+.travian-ally-link {
+    color: #a4b0be;
+    margin-right: 4px;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(164, 176, 190, 0.4);
+    transition: color 0.2s ease;
+}
+.travian-ally-link:hover {
+    color: #2ed573 !important;
+}
+
 h1,
 h2,
 h3 {

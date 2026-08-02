@@ -23,23 +23,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .then(serversConfig => {
                 const webhookUrl = serversConfig[message.hostname];
                 if (!webhookUrl) {
-                    console.error(`[FETCH_GAS] No webhook URL for hostname: ${message.hostname}`);
+                    console.warn(`[FETCH_GAS] No webhook URL configured for hostname: ${message.hostname}`);
                     sendResponse(null);
                     return;
                 }
                 
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    credentials: 'omit',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(message.payload)
-                })
-                .then(r => r.text())
-                .then(sendResponse)
-                .catch(err => {
-                    console.error("FETCH_GAS error:", err);
-                    sendResponse(null);
-                });
+                const executeFetch = (attempt = 1) => {
+                    fetch(webhookUrl, {
+                        method: 'POST',
+                        redirect: 'follow',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify(message.payload)
+                    })
+                    .then(r => r.text())
+                    .then(sendResponse)
+                    .catch(err => {
+                        if (attempt === 1) {
+                            console.warn("[FETCH_GAS] First attempt failed, retrying in 500ms...", err);
+                            setTimeout(() => executeFetch(2), 500);
+                        } else {
+                            console.error("[FETCH_GAS] Final attempt failed:", err);
+                            sendResponse(null);
+                        }
+                    });
+                };
+
+                executeFetch(1);
             })
             .catch(err => {
                 console.error("Error loading servers.json:", err);
@@ -54,10 +63,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const baseUrl = serversConfig[message.hostname];
                 if (!baseUrl) { sendResponse(null); return; }
                 const params = new URLSearchParams(message.params || {});
-                fetch(`${baseUrl}?${params.toString()}`, { method: 'GET', credentials: 'omit' })
+
+                const executeGetFetch = (attempt = 1) => {
+                    fetch(`${baseUrl}?${params.toString()}`, { 
+                        method: 'GET',
+                        redirect: 'follow'
+                    })
                     .then(r => r.text())
                     .then(sendResponse)
-                    .catch(err => { console.error("FETCH_GAS_GET error:", err); sendResponse(null); });
+                    .catch(err => {
+                        if (attempt === 1) {
+                            console.warn("[FETCH_GAS_GET] First attempt failed, retrying in 500ms...", err);
+                            setTimeout(() => executeGetFetch(2), 500);
+                        } else {
+                            console.error("[FETCH_GAS_GET] Final attempt failed:", err);
+                            sendResponse(null);
+                        }
+                    });
+                };
+
+                executeGetFetch(1);
             })
             .catch(err => { console.error("Error loading servers.json:", err); sendResponse(null); });
         return true;

@@ -149,6 +149,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const appBtnLogistics = document.getElementById('app-btn-logistics');
+    const logisticsModules = document.getElementById('logistics-modules-container');
+    const btnLogisticsBack = document.getElementById('btn-logistics-back');
+    const btnRefreshLogistics = document.getElementById('btn-refresh-logistics');
+    const btnOpenLogistics = document.getElementById('btn-open-logistics');
+
+    if (appBtnLogistics) {
+        appBtnLogistics.addEventListener('click', () => {
+            appGridContainer.classList.add('hidden');
+            if (logisticsModules) logisticsModules.classList.remove('hidden');
+            loadLogisticsPanel();
+        });
+    }
+
+    if (btnLogisticsBack) {
+        btnLogisticsBack.addEventListener('click', () => {
+            if (logisticsModules) logisticsModules.classList.add('hidden');
+            appGridContainer.classList.remove('hidden');
+        });
+    }
+
+    if (btnRefreshLogistics) {
+        btnRefreshLogistics.addEventListener('click', () => {
+            refreshPanel('logistics');
+        });
+    }
+
+    if (btnOpenLogistics) {
+        btnOpenLogistics.addEventListener('click', () => {
+            let url = chrome.runtime.getURL('logisticsTerminal.html');
+            chrome.tabs.create({ url: url });
+        });
+    }
+
     const btnDefBack = document.getElementById('btn-def-back');
     if (btnDefBack) {
         btnDefBack.addEventListener('click', () => {
@@ -161,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnBackHome.addEventListener('click', () => {
             mapModules.classList.add('hidden');
             defModules.classList.add('hidden');
+            if (logisticsModules) logisticsModules.classList.add('hidden');
             btnBackHome.classList.add('hidden');
             appGridContainer.classList.remove('hidden');
             
@@ -170,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Load background notification badges for Logistics on start
+    fetchLogisticsData();
 
     // Map Tabs Logic
     const mapTabBtns = document.querySelectorAll('.map-tab-btn');
@@ -673,10 +711,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Unified refresh entry-point used by MAP and DEF headers
+    // Unified refresh entry-point used by MAP, DEF, and LOGISTICS headers
     function refreshPanel(panel) {
-        const btn = document.getElementById(panel === 'aegis' ? 'btn-refresh-aegis' : 'btn-refresh-map');
-        const el = document.getElementById(panel === 'aegis' ? 'aegis-last-updated' : 'map-last-updated');
+        let btn, el;
+        if (panel === 'aegis') {
+            btn = document.getElementById('btn-refresh-aegis');
+            el = document.getElementById('aegis-last-updated');
+        } else if (panel === 'logistics') {
+            btn = document.getElementById('btn-refresh-logistics');
+            el = document.getElementById('logistics-last-updated');
+        } else {
+            btn = document.getElementById('btn-refresh-map');
+            el = document.getElementById('map-last-updated');
+        }
+
         setRefreshBusy(btn, true);
         if (el) el.innerHTML = `Fetching...`;
 
@@ -686,6 +734,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (panel === 'aegis') {
             fetchAegisTop10(true);
+        } else if (panel === 'logistics') {
+            fetchLogisticsData(true);
         } else {
             fetchMapStats(true);
             fetchWorldEvents();
@@ -1763,12 +1813,255 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const eventsRadiusSlider = document.getElementById('chronos-events-radius');
-    const eventsRadiusVal = document.getElementById('events-radius-val');
-    if (eventsRadiusSlider && eventsRadiusVal) {
-        eventsRadiusSlider.addEventListener('input', (e) => {
-            eventsRadiusVal.textContent = e.target.value;
+    function getActiveServerHostname(callback) {
+        chrome.tabs.query({ url: ["*://*.travian.com/*", "*://*.international.travian.com/*"] }, (tabs) => {
+            if (tabs && tabs.length > 0) {
+                try {
+                    const url = new URL(tabs[0].url);
+                    if (url.hostname) {
+                        callback(url.hostname);
+                        return;
+                    }
+                } catch(e) {}
+            }
+            chrome.storage.local.get(['serverData'], (res) => {
+                if (res.serverData && Object.keys(res.serverData).length > 0) {
+                    callback(Object.keys(res.serverData)[0]);
+                } else {
+                    callback(null);
+                }
+            });
         });
     }
+
+    // Mirror of loadMapStats() & loadAegisPanel(): restore cached Logistics UI + refresh timestamp on panel open
+    function loadLogisticsPanel() {
+        const lastUpdatedEl = document.getElementById('logistics-last-updated');
+        const btnRefreshLogistics = document.getElementById('btn-refresh-logistics');
+        chrome.storage.local.get(['logisticsDataCache', 'logisticsLastRefresh', 'logisticsUtcOffset', 'serverData'], (result) => {
+            if (result.serverData) currentServerData = result.serverData;
+            if (result.logisticsLastRefresh) {
+                applyRefreshTimestamp(lastUpdatedEl, btnRefreshLogistics, result.logisticsLastRefresh, result.logisticsUtcOffset || "+01:00");
+            } else if (lastUpdatedEl) {
+                lastUpdatedEl.innerHTML = ``;
+                if (btnRefreshLogistics) {
+                    btnRefreshLogistics.style.background = 'rgba(231, 76, 60, 0.2)';
+                    btnRefreshLogistics.style.color = '#e74c3c';
+                }
+            }
+
+            if (result.logisticsDataCache && result.logisticsDataCache.hostname) {
+                const cache = result.logisticsDataCache;
+                renderLogisticsTitans(cache.titans || [], cache.hostname);
+                renderLogisticsRequested(cache.requested || [], cache.hostname);
+                renderLogisticsDebtors(cache.debtors || [], cache.hostname);
+                updateLogisticsBubbles(cache.pushRequests || [], cache.activePushes || [], cache.role);
+            } else {
+                fetchLogisticsData();
+            }
+        });
+    }
+
+    // LOGISTICS MODULE SUB-PANEL & BADGES DATA ENGINE
+    function fetchLogisticsData(fromRefresh) {
+        const btn = document.getElementById('btn-refresh-logistics');
+        const el = document.getElementById('logistics-last-updated');
+        if (fromRefresh) {
+            setRefreshBusy(btn, true);
+            if (el) el.innerHTML = `Fetching...`;
+        }
+
+        getActiveServerHostname((hostname) => {
+            if (!hostname) {
+                markRefreshError(btn, el);
+                return;
+            }
+            chrome.storage.local.get(['discordId'], (res) => {
+                if (!res.discordId) {
+                    markRefreshError(btn, el);
+                    return;
+                }
+                let payload = [{ action: "logistics_get_data", extVersion: chrome.runtime.getManifest().version, discordId: res.discordId }];
+                chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: hostname, payload: payload }, (rawText) => {
+                    if (!rawText) {
+                        markRefreshError(btn, el);
+                        return;
+                    }
+                    try {
+                        let data = JSON.parse(rawText);
+                        if (data.status === "ok") {
+                            const now = Date.now();
+                            const utcOffset = data.utcOffset || "+01:00";
+
+                            chrome.storage.local.set({
+                                logisticsDataCache: { ...data, hostname: hostname },
+                                logisticsLastRefresh: now,
+                                logisticsUtcOffset: utcOffset
+                            });
+
+                            applyRefreshTimestamp(el, btn, now, utcOffset);
+
+                            renderLogisticsTitans(data.titans || [], hostname);
+                            renderLogisticsRequested(data.requested || [], hostname);
+                            renderLogisticsDebtors(data.debtors || [], hostname);
+                            updateLogisticsBubbles(data.pushRequests || [], data.activePushes || [], data.role);
+                        } else {
+                            markRefreshError(btn, el);
+                        }
+                    } catch(e) {
+                        console.error("Logistics parse error:", e);
+                        markRefreshError(btn, el);
+                    }
+                });
+            });
+        });
+    }
+
+    function updateLogisticsBubbles(pushRequests, activePushes, role) {
+        const reqBubble = document.getElementById('log-bubble-req');
+        const actBubble = document.getElementById('log-bubble-act');
+
+        const activeCount = (activePushes || []).length;
+        const pendingCount = (pushRequests || []).length;
+
+        // Orange Badge (Right): Active Pushes (visible to all)
+        if (actBubble) {
+            if (activeCount > 0) {
+                actBubble.textContent = activeCount;
+                actBubble.style.display = 'flex';
+            } else {
+                actBubble.style.display = 'none';
+            }
+        }
+
+        // Red Badge (Left): Pending Requests (VISIBLE ONLY TO LEADERS)
+        if (reqBubble) {
+            if (role === "LEADER" && pendingCount > 0) {
+                reqBubble.textContent = pendingCount;
+                reqBubble.style.display = 'flex';
+            } else {
+                reqBubble.style.display = 'none';
+            }
+        }
+    }
+
+    function getTribeIconHtml(tribeStr) {
+        if (!tribeStr) return '';
+        let t = String(tribeStr).toLowerCase();
+        let path = '';
+        if (t.includes('roman')) path = 'assets/roman_medium.png';
+        else if (t.includes('gaul')) path = 'assets/gaul_medium.png';
+        else if (t.includes('teuton')) path = 'assets/teuton_medium.png';
+        else if (t.includes('egyptian')) path = 'assets/egyptian_medium.png';
+        else if (t.includes('hun')) path = 'assets/hun_medium.png';
+        else if (t.includes('spartan')) path = 'assets/spartan_medium.png';
+        if (!path) return '';
+        return `<img src="${path}" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" title="${tribeStr}">`;
+    }
+
+    function getPlayerProfileLink(ign, uid, hostname) {
+        if (!ign) return '';
+        let host = hostname || (logisticsDataCache && logisticsDataCache.hostname) || (currentServerData && Object.keys(currentServerData)[0]);
+        let url = '#';
+        if (host) {
+            url = (uid && uid !== "0") ? `https://${host}/spieler.php?uid=${uid}` : `https://${host}/spieler.php?name=${encodeURIComponent(ign)}`;
+        }
+        return `<a href="${url}" target="_blank" class="travian-player-link">${ign}</a>`;
+    }
+
+    function getAllianceProfileLink(ally, aid, hostname) {
+        if (!ally || ally === "UNK") return `<span style="color:#a4b0be; margin-right:4px;">[${ally || "UNK"}]</span>`;
+        let host = hostname || (logisticsDataCache && logisticsDataCache.hostname) || (currentServerData && Object.keys(currentServerData)[0]);
+        let url = '#';
+        if (host) {
+            url = (aid && aid !== "0") ? `https://${host}/allianz.php?aid=${aid}` : `https://${host}/allianz.php?tag=${encodeURIComponent(ally)}`;
+        }
+        return `<a href="${url}" target="_blank" class="travian-ally-link">[${ally}]</a>`;
+    }
+
+    function renderLogisticsTitans(titans, hostname) {
+        const container = document.getElementById('logistics-titans-container');
+        if (!container) return;
+        if (titans.length === 0) {
+            container.innerHTML = `<div style="font-size: 11px; color: #a4b0be; padding: 8px; text-align: center;">No donations recorded yet.</div>`;
+            return;
+        }
+        let html = '';
+        titans.forEach(t => {
+            let rankEmoji = t.rank === 1 ? '🥇' : (t.rank === 2 ? '🥈' : (t.rank === 3 ? '🥉' : `#${t.rank}`));
+            let tribeHtml = getTribeIconHtml(t.tribe);
+            let playerLink = getPlayerProfileLink(t.ign, t.uid, hostname);
+            let allyLink = getAllianceProfileLink(t.ally, t.aid, hostname);
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
+                <div style="display:flex; align-items:center;">
+                    <span style="font-weight:bold; color:#f1c40f; margin-right:6px; min-width:18px;">${rankEmoji}</span>
+                    ${tribeHtml}
+                    ${allyLink}
+                    ${playerLink}
+                </div>
+                <div style="color:#2ed573; font-weight:bold;">${t.donated.toLocaleString()} 📦</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderLogisticsRequested(requested, hostname) {
+        const container = document.getElementById('logistics-requested-container');
+        if (!container) return;
+        if (requested.length === 0) {
+            container.innerHTML = `<div style="font-size: 11px; color: #a4b0be; padding: 8px; text-align: center;">No push requests fulfilled yet.</div>`;
+            return;
+        }
+        let html = '';
+        requested.forEach(r => {
+            let tribeHtml = getTribeIconHtml(r.tribe);
+            let playerLink = getPlayerProfileLink(r.ign, r.uid, hostname);
+            let allyLink = getAllianceProfileLink(r.ally, r.aid, hostname);
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
+                <div style="display:flex; align-items:center;">
+                    <span style="color:#3498db; font-weight:bold; margin-right:6px; min-width:18px;">#${r.rank}</span>
+                    ${tribeHtml}
+                    ${allyLink}
+                    ${playerLink}
+                </div>
+                <div style="color:#a4b0be;">
+                    <span style="color:#2ed573; font-weight:bold;">${r.received.toLocaleString()}</span> / <span style="color:#e67e22;">${r.requested.toLocaleString()}</span> 📦
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderLogisticsDebtors(debtors, hostname) {
+        const container = document.getElementById('logistics-debtors-container');
+        if (!container) return;
+        if (debtors.length === 0) {
+            container.innerHTML = `<div style="font-size: 11px; color: #2ed573; padding: 8px; text-align: center;">🟢 All active quotas are currently fulfilled.</div>`;
+            return;
+        }
+        let html = '';
+        debtors.forEach(d => {
+            let skull = d.rank <= 3 ? '💀 ' : '';
+            let tribeHtml = getTribeIconHtml(d.tribe);
+            let playerLink = getPlayerProfileLink(d.ign, d.uid, hostname);
+            let allyLink = getAllianceProfileLink(d.ally, d.aid, hostname);
+            html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px;">
+                <div style="display:flex; align-items:center;">
+                    <span style="color:#ff4757; font-weight:bold; margin-right:6px; min-width:18px;">${skull}#${d.rank}</span>
+                    ${tribeHtml}
+                    ${allyLink}
+                    ${playerLink}
+                </div>
+                <div style="color:#ff4757; font-weight:bold;">-${d.pending.toLocaleString()} 📦</div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ⏱️ PERIODIC BACKGROUND AUTO-REFRESH FOR DEF & LOGISTICS BADGE NOTIFICATIONS (Every 30 seconds)
+    setInterval(() => {
+        fetchLogisticsData(false);
+        if (typeof fetchAegisTop10 === 'function') fetchAegisTop10(false);
+    }, 30000);
 
 });
