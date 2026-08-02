@@ -1,7 +1,7 @@
 # Graph Report - null-map-engine  (2026-08-02)
 
 ## Corpus Check
-- 14 files · ~35,615 words
+- 14 files · ~35,682 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3defafcd`
+- Built from commit: `d0297ed6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
