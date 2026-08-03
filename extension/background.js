@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const webhookUrl = serversConfig[message.hostname];
                 if (!webhookUrl) {
                     relayLog(`⚠️ [FETCH_GAS] No webhook URL configured for ${message.hostname}`, 'warn');
-                    console.warn(`[FETCH_GAS] No webhook URL configured for hostname: ${message.hostname}`);
+                    console.log(`[FETCH_GAS] No webhook URL configured for hostname: ${message.hostname}`);
                     sendResponse(null);
                     return;
                 }
@@ -50,11 +50,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     .catch(err => {
                         if (attempt === 1) {
                             relayLog(`⚠️ [FETCH_GAS] Attempt 1 failed for ${message.hostname}, retrying in 500ms...`, 'warn');
-                            console.warn("[FETCH_GAS] First attempt failed, retrying in 500ms...", err);
+                            console.log("[FETCH_GAS] First attempt failed, retrying in 500ms...", err);
                             setTimeout(() => executeFetch(2), 500);
                         } else {
                             relayLog(`🔴 [FETCH_GAS] Connection failed for ${message.hostname}: ${err.message || err}`, 'error');
-                            console.error("[FETCH_GAS] Final attempt failed:", err);
+                            console.log("[FETCH_GAS] Final attempt failed:", err);
                             sendResponse(null);
                         }
                     });
@@ -64,7 +64,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
             .catch(err => {
                 relayLog(`🔴 Error loading servers.json: ${err.message || err}`, 'error');
-                console.error("Error loading servers.json:", err);
+                console.log("Error loading servers.json:", err);
                 sendResponse(null);
             });
         return true; // async
@@ -95,11 +95,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     .catch(err => {
                         if (attempt === 1) {
                             relayLog(`⚠️ [FETCH_GAS_GET] Attempt 1 failed for ${message.hostname}, retrying in 500ms...`, 'warn');
-                            console.warn("[FETCH_GAS_GET] First attempt failed, retrying in 500ms...", err);
+                            console.log("[FETCH_GAS_GET] First attempt failed, retrying in 500ms...", err);
                             setTimeout(() => executeGetFetch(2), 500);
                         } else {
                             relayLog(`🔴 [FETCH_GAS_GET] Connection failed for ${message.hostname}: ${err.message || err}`, 'error');
-                            console.error("[FETCH_GAS_GET] Final attempt failed:", err);
+                            console.log("[FETCH_GAS_GET] Final attempt failed:", err);
                             sendResponse(null);
                         }
                     });
@@ -107,7 +107,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
                 executeGetFetch(1);
             })
-            .catch(err => { console.error("Error loading servers.json:", err); sendResponse(null); });
+            .catch(err => { console.log("Error loading servers.json:", err); sendResponse(null); });
         return true;
     } else if (message.type === 'UPDATE_BADGE') {
         updateBadgeState();
@@ -279,7 +279,7 @@ async function runVerificationSweep(discordId) {
                         break; // Valid non-HTML response received
                     }
                     if (attempt === 1) {
-                        console.warn(`[Verification] Host ${hostname} returned HTML redirect on attempt 1, retrying...`);
+                        relayLog(`[Verification] Host ${hostname} returned HTML redirect on attempt 1, retrying...`, 'info');
                         await new Promise(r => setTimeout(r, 600));
                     }
                 } catch (fetchErr) {
@@ -293,7 +293,7 @@ async function runVerificationSweep(discordId) {
             try {
                 data = JSON.parse(rawText);
             } catch (jsonErr) {
-                console.warn(`[Verification] Non-JSON response received from ${hostname}:`, rawText.substring(0, 100));
+                relayLog(`[Verification] Non-JSON response received from ${hostname}: ${rawText.substring(0, 100)}`, 'info');
                 continue; // Skip this server gracefully without cluttering Extension Errors
             }
             
@@ -325,7 +325,7 @@ async function runVerificationSweep(discordId) {
                 return { status: data.status, msg: data.msg || data.status, hostname: hostname, serverData, verifiedServers };
             }
         } catch (e) {
-            console.warn(`Verification network warning for ${hostname}:`, e);
+            relayLog(`Verification network warning for ${hostname}: ${e}`, 'info');
         }
     }
 
@@ -471,7 +471,7 @@ function flushCache(hostname) {
         .then(serversConfig => {
             const webhookUrl = serversConfig[hostname];
             if (!webhookUrl) {
-                console.warn(`[NULL Map Engine] Unsupported server: ${hostname}`);
+                relayLog(`[NULL Map Engine] Unsupported server: ${hostname}`, 'info');
                 return;
             }
 
@@ -503,9 +503,9 @@ function flushCache(hostname) {
                             chrome.storage.local.set({ killSwitch: true });
                             chrome.runtime.sendMessage({ action: "killSwitchTriggered" }).catch(() => {});
                         } else if (data.status === "UNREGISTERED") {
-                            console.warn("Unregistered discord ID mapping for: ", discordId);
+                            relayLog(`Unregistered discord ID mapping for: ${discordId}`, 'warn');
                         } else if (data.status && data.status.toLowerCase() === "ok") {
-                            console.log(`[NULL Map Engine] Flushed successfully. Status: ${data.status}`);
+                            relayLog(`[NULL Map Engine] Flushed successfully. Status: ${data.status}`, 'info');
                             // Update leaderboards automatically after sending new map data!
                             runVerificationSweep(discordId).then((result) => {
                                 if (result && result.serverData) {
@@ -513,17 +513,17 @@ function flushCache(hostname) {
                                 }
                             });
                         } else {
-                            console.log(`[NULL Map Engine] Flushed with unknown status: ${data.status}`);
+                            relayLog(`[NULL Map Engine] Flushed with unknown status: ${data.status}`, 'info');
                         }
                     } catch (jsonErr) {
-                        console.warn(`[NULL Map Engine] Flush response from ${hostname} was not JSON:`, rawText.substring(0, 100));
+                        relayLog(`[NULL Map Engine] Flush response from ${hostname} was not JSON: ${rawText.substring(0, 100)}`, 'info');
                     }
         })
-        .catch(err => console.warn("Error sending to GAS:", err));
+        .catch(err => relayLog(`Error sending to GAS: ${err}`, 'info'));
     });
 })
 .catch(err => {
-    console.error("[NULL Map Engine] Failed to load servers.json", err);
+    relayLog(`[NULL Map Engine] Failed to load servers.json: ${err}`, 'info');
 });
 }
 

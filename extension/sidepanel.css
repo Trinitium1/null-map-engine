@@ -1005,3 +1005,140 @@ input:checked+.slider:before {
     color: #00f2fe !important;
     text-decoration: underline;
 }
+
+/* ==========================================================================
+   UIVERSE BACK NAVIGATION BUTTON DESIGN (REVERSE ARROW & HOVER TEXT SLIDE)
+   ========================================================================== */
+button.btn-back-uiverse {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  border: 0;
+  vertical-align: middle;
+  text-decoration: none;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  height: 2.5rem;
+  width: fit-content;
+  max-width: 200px;
+  overflow: hidden;
+  border-radius: 1.625rem;
+  flex-shrink: 0;
+}
+
+button.btn-back-uiverse .circle {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  width: 2.4rem;
+  height: 2.4rem;
+  background: #282936;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.625rem;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+button.btn-back-uiverse .circle .icon {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  background: #fff;
+}
+
+button.btn-back-uiverse .circle .icon.arrow {
+  transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  right: 0.6rem;
+  width: 0.95rem;
+  height: 0.125rem;
+  background: #fff;
+}
+
+/* Arrow head pointing LEFT (Right to Left animation) */
+button.btn-back-uiverse .circle .icon.arrow::before {
+  position: absolute;
+  content: "";
+  top: -0.25rem;
+  left: 0.05rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-left: 0.125rem solid #fff;
+  border-bottom: 0.125rem solid #fff;
+  transform: rotate(45deg);
+}
+
+button.btn-back-uiverse .button-text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 1.4rem;
+  overflow: hidden;
+  margin-left: 2.5rem;
+  padding: 0 0.75rem 0 0.35rem;
+  line-height: 1.4rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+button.btn-back-uiverse .button-text .text-default,
+button.btn-back-uiverse .button-text .text-hover {
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.65, 0, 0.076, 1), opacity 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+  white-space: nowrap;
+}
+
+button.btn-back-uiverse .button-text .text-default {
+  color: #f1f2f6;
+  opacity: 1;
+  transform: translateY(0%);
+}
+
+button.btn-back-uiverse .button-text .text-hover {
+  color: #00f2fe;
+  opacity: 0;
+  transform: translateY(100%);
+  position: absolute;
+  top: 0;
+  left: 0.35rem;
+}
+
+/* Hover States: Circle expands compactly behind text inside button bounds & Arrow glides RIGHT to LEFT */
+button.btn-back-uiverse:hover .circle {
+  width: 100%;
+  background: #282936;
+  border-color: rgba(0, 242, 254, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+button.btn-back-uiverse:hover .circle .icon.arrow {
+  background: #00f2fe;
+  transform: translate(-0.45rem, 0);
+}
+
+button.btn-back-uiverse:hover .circle .icon.arrow::before {
+  border-color: #00f2fe;
+}
+
+button.btn-back-uiverse:hover .button-text .text-default {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
+button.btn-back-uiverse:hover .button-text .text-hover {
+  opacity: 1;
+  transform: translateY(0%);
+}
+

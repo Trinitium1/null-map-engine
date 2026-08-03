@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NULL Map Engine",
-  "version": "1.8",
+  "version": "1.9",
   "description": "Passive Map Sniffer for NULL System Gamification",
   "permissions": [
     "storage",
@@ -68,6 +68,7 @@
         "sitterTerminal.js",
         "statsTerminal.html",
         "statsTerminal.js",
+        "apexcharts.min.js",
         "assets/*.png",
         "assets/*.svg"
       ],

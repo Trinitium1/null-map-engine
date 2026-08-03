@@ -75,11 +75,16 @@ function formatLastUpdated(serverTime, utcOffsetStr) {
 // --- INIT ---
 function init() {
     bindEvents();
-    fetchAegisData();
+    fetchAegisData(false);
+
+    // Silent background auto-polling every 120 seconds (never wipes UI or overlays screen)
+    setInterval(() => {
+        fetchAegisData(true);
+    }, 120000);
 }
 
 function bindEvents() {
-    btnRefresh.addEventListener('click', fetchAegisData);
+    btnRefresh.addEventListener('click', () => fetchAegisData(false));
     
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -102,8 +107,14 @@ function bindEvents() {
 }
 
 // --- DATA FETCHING ---
-function fetchAegisData() {
-    showLoading("Connecting to Aegis Mainframe...");
+function fetchAegisData(silent = false) {
+    const isColdStart = !aegisData || (!aegisData.incomings.length && !aegisData.standing.length && !aegisData.stats.length);
+    
+    if (!silent && isColdStart) {
+        showLoading("Connecting to Aegis Mainframe...");
+    } else if (btnRefresh) {
+        btnRefresh.classList.add('spinning');
+    }
     
     // Determine active server
     chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
@@ -111,16 +122,22 @@ function fetchAegisData() {
             const url = new URL(tabs[0].url);
             currentHostname = url.hostname;
             chrome.storage.local.get(['discordId'], (res) => {
-                if(!res.discordId) {
+                if (!res.discordId) {
                     hideLoading();
-                    alert("Discord ID not linked. Please connect Discord in the Map Engine.");
+                    if (btnRefresh) btnRefresh.classList.remove('spinning');
+                    if (!silent) alert("Discord ID not linked. Please connect Discord in the Map Engine.");
                     return;
                 }
                 
                 let payload = [{ action: "aegis_get_data", extVersion: chrome.runtime.getManifest().version, discordId: res.discordId }];
                 chrome.runtime.sendMessage({ type: 'FETCH_GAS', hostname: url.hostname, payload: payload }, (rawText) => {
                     hideLoading();
-                    if (!rawText) { alert("Network error."); return; }
+                    if (btnRefresh) btnRefresh.classList.remove('spinning');
+                    
+                    if (!rawText) { 
+                        if (!silent) alert("Network error."); 
+                        return; 
+                    }
                     try {
                         let data = JSON.parse(rawText);
                         if (data.status === "ok") {
@@ -132,18 +149,19 @@ function fetchAegisData() {
                             
                             renderRadar();
                             renderStanding();
-                        } else {
+                        } else if (!silent) {
                             alert("Error: " + data.status);
                         }
                     } catch (e) {
                         console.error("Aegis Parse/Render Error:", e);
-                        alert("Server or render error. Check console.");
+                        if (!silent) alert("Server or render error. Check console.");
                     }
                 });
             });
         } else {
             hideLoading();
-            alert("Please navigate to a supported Travian server first.");
+            if (btnRefresh) btnRefresh.classList.remove('spinning');
+            if (!silent) alert("Please navigate to a supported Travian server first.");
         }
     });
 }

@@ -201,15 +201,17 @@
                 
                 <!-- MAP MODULES VIEW -->
                 <div id="map-modules-container" class="app-panel hidden">
-                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
-                        <div id="btn-back-home" class="icon-btn hidden" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </div>
-                        <h2 style="flex-grow: 1;">MAP TERMINAL</h2>
-                        <div id="map-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px; align-items: center;">
+                        <button class="btn-back-uiverse" id="btn-back-home" title="Back to Home">
+                          <span class="circle" aria-hidden="true">
+                            <span class="icon arrow"></span>
+                          </span>
+                          <span class="button-text">
+                            <span class="text-default">MAP TERMINAL</span>
+                            <span class="text-hover">BACK TO HOME</span>
+                          </span>
+                        </button>
+                        <div id="map-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-left: auto; margin-right: 8px;"></div>
                         <div id="btn-refresh-map" class="icon-btn" title="Refresh Map Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="23 4 23 10 17 10"></polyline>
@@ -502,14 +504,16 @@
 
                     <!-- PVP SUB PANEL CONTAINER -->
                     <div id="pvp-sub-panel" class="hidden">
-                        <div class="side-header" style="margin-top: 0px; justify-content: flex-start; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
-                            <div id="btn-pvp-sub-back" class="icon-btn" title="Back" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="19" y1="12" x2="5" y2="12"></line>
-                                    <polyline points="12 19 5 12 12 5"></polyline>
-                                </svg>
-                            </div>
-                            <h3 id="pvp-sub-title" style="margin:0; font-size: 14px; text-transform: uppercase;">MODULE NAME</h3>
+                        <div class="side-header" style="margin-top: 0px; justify-content: flex-start; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; align-items: center;">
+                            <button class="btn-back-uiverse" id="btn-pvp-sub-back" title="Back">
+                              <span class="circle" aria-hidden="true">
+                                <span class="icon arrow"></span>
+                              </span>
+                              <span class="button-text">
+                                <span class="text-default" id="pvp-sub-title">MODULE NAME</span>
+                                <span class="text-hover">BACK TO HOME</span>
+                              </span>
+                            </button>
                         </div>
                         
                         <div id="pvp-sub-content">
@@ -521,15 +525,17 @@
 
                 <!-- DEF APP MODULE -->
                 <div id="def-modules-container" class="app-panel hidden">
-                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
-                        <div id="btn-def-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </div>
-                        <h2 style="flex-grow: 1;">AEGIS TERMINAL</h2>
-                        <div id="aegis-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px; align-items: center;">
+                        <button class="btn-back-uiverse" id="btn-def-back" title="Back to Home">
+                          <span class="circle" aria-hidden="true">
+                            <span class="icon arrow"></span>
+                          </span>
+                          <span class="button-text">
+                            <span class="text-default">AEGIS TERMINAL</span>
+                            <span class="text-hover">BACK TO HOME</span>
+                          </span>
+                        </button>
+                        <div id="aegis-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-left: auto; margin-right: 8px;"></div>
                         <div id="btn-refresh-aegis" class="icon-btn" title="Refresh Aegis Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="23 4 23 10 17 10"></polyline>
@@ -578,15 +584,17 @@
 
                 <!-- LOGISTICS APP MODULE -->
                 <div id="logistics-modules-container" class="app-panel hidden">
-                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
-                        <div id="btn-logistics-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </div>
-                        <h2 style="flex-grow: 1;">LOGISTICS TERMINAL</h2>
-                        <div id="logistics-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px; align-items: center;">
+                        <button class="btn-back-uiverse" id="btn-logistics-back" title="Back to Home">
+                          <span class="circle" aria-hidden="true">
+                            <span class="icon arrow"></span>
+                          </span>
+                          <span class="button-text">
+                            <span class="text-default">LOGISTICS TERMINAL</span>
+                            <span class="text-hover">BACK TO HOME</span>
+                          </span>
+                        </button>
+                        <div id="logistics-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-left: auto; margin-right: 8px;"></div>
                         <div id="btn-refresh-logistics" class="icon-btn" title="Refresh Logistics Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(231, 76, 60, 0.2); color: #e74c3c;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="23 4 23 10 17 10"></polyline>
@@ -637,15 +645,17 @@
 
                 <!-- SITTERS APP MODULE -->
                 <div id="sitters-modules-container" class="app-panel hidden">
-                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
-                        <div id="btn-sitters-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </div>
-                        <h2 style="flex-grow: 1;">SITTERS TERMINAL</h2>
-                        <div id="sitters-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px; align-items: center;">
+                        <button class="btn-back-uiverse" id="btn-sitters-back" title="Back to Home">
+                          <span class="circle" aria-hidden="true">
+                            <span class="icon arrow"></span>
+                          </span>
+                          <span class="button-text">
+                            <span class="text-default">SITTERS TERMINAL</span>
+                            <span class="text-hover">BACK TO HOME</span>
+                          </span>
+                        </button>
+                        <div id="sitters-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-left: auto; margin-right: 8px;"></div>
                         <div id="btn-refresh-sitters" class="icon-btn" title="Refresh Sitter Intelligence" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(52, 152, 219, 0.2); color: #3498db;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="23 4 23 10 17 10"></polyline>
@@ -700,15 +710,17 @@
 
                 <!-- STATISTICS APP MODULE -->
                 <div id="stats-modules-container" class="app-panel hidden">
-                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px;">
-                        <div id="btn-stats-back" class="icon-btn" title="Back to Home" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(255, 255, 255, 0.05);">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </div>
-                        <h2 style="flex-grow: 1;">STATISTICS & METRICS</h2>
-                        <div id="stats-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-right: 8px;"></div>
+                    <div class="side-header" style="margin-top: 10px; justify-content: flex-start; gap: 10px; align-items: center;">
+                        <button class="btn-back-uiverse" id="btn-stats-back" title="Back to Home">
+                          <span class="circle" aria-hidden="true">
+                            <span class="icon arrow"></span>
+                          </span>
+                          <span class="button-text">
+                            <span class="text-default">STATISTICS & METRICS</span>
+                            <span class="text-hover">BACK TO HOME</span>
+                          </span>
+                        </button>
+                        <div id="stats-last-updated" style="font-size: 10px; color: #a4b0be; text-align: right; margin-left: auto; margin-right: 8px;"></div>
                         <div id="btn-refresh-stats" class="icon-btn" title="Refresh Statistics" style="cursor: pointer; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: rgba(155, 89, 182, 0.2); color: #9b59b6;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="23 4 23 10 17 10"></polyline>

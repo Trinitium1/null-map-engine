@@ -1,16 +1,16 @@
 # Graph Report - null-map-engine  (2026-08-02)
 
 ## Corpus Check
-- 17 files · ~44,107 words
+- 17 files · ~48,479 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 316 nodes · 526 edges · 16 communities (13 shown, 3 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 16 edges (avg confidence: 0.5)
+- 326 nodes · 550 edges · 16 communities (13 shown, 3 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 15 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9b447a59`
+- Built from commit: `f030d4c2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -73,8 +73,8 @@ Cohesion: 0.11
 Nodes (31): aegisData, bindDelegatedCardClicks(), bindEvents(), btnRefresh, closeModal(), currentModalPayload, fetchAegisData(), formatLastUpdated() (+23 more)
 
 ### Community 5 - "background.js"
-Cohesion: 0.16
-Nodes (20): cachedTiles, drawCustomBadge(), evaluateTabForBadge(), extractAnimals(), extractBonuses(), extractOasisType(), extractRegionData(), extractStatus() (+12 more)
+Cohesion: 0.17
+Nodes (21): cachedTiles, drawCustomBadge(), evaluateTabForBadge(), extractAnimals(), extractBonuses(), extractOasisType(), extractRegionData(), extractStatus() (+13 more)
 
 ### Community 6 - "pvpAnalyzer.js"
 Cohesion: 0.19
@@ -101,8 +101,8 @@ Cohesion: 0.20
 Nodes (9): 1. Interactive Sitters Command Terminal, 2. Standardized Leaderboards & Direct Alliance Links (`/alliance/AID`), 3. Manifest V3 CSP Compliance & UI Hover Styling, 4. Real-Time Debug Logger & Network Status Relay, 5. Extension-Wide JSON Hardening (`safeParseJSON`), 🛠️ Internal Code Changes, 🌐 NULL Map Engine Extension — Release v1.8.0, 📦 Release Overview (+1 more)
 
 ### Community 15 - "statsTerminal.js"
-Cohesion: 0.42
-Nodes (9): fetchStatsData(), fetchStatsDataForHost(), getAllianceProfileLink(), loadStatsData(), renderAll(), renderConfedOverview(), renderFactionBreakdown(), renderTop10Comparison() (+1 more)
+Cohesion: 0.22
+Nodes (18): applyRefreshTimestamp(), fetchAdvancedStats(), formatKMB(), formatPlayerRowName(), getTribeIconHtml(), hideLoadingOverlay(), loadDashboardData(), openKpiModal() (+10 more)
 
 ## Knowledge Gaps
 - **114 isolated node(s):** `aegisData`, `loadingOverlay`, `loadingText`, `btnRefresh`, `tabBtns` (+109 more)

@@ -143,21 +143,17 @@ function safeParseJSON(text) {
     };
     
     console.error = function(...args) {
-        originalError.apply(console, args);
         logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'error', args.length > 1 ? args : args[0]);
     };
     
     console.warn = function(...args) {
-        originalWarn.apply(console, args);
         logToUI(args.map(a => typeof a === 'object' ? JSON.stringify(a) : a).join(' '), 'warn', args.length > 1 ? args : args[0]);
     };
 
-    // Relay debug logs from background service worker
+    // Relay debug logs from background service worker directly to logToUI (bypassing console.warn/error to prevent extension error page flags)
     chrome.runtime.onMessage.addListener((message) => {
         if (message && message.type === 'DEBUG_LOG') {
-            if (message.level === 'error') console.error(`[BG] ${message.msg}`);
-            else if (message.level === 'warn') console.warn(`[BG] ${message.msg}`);
-            else console.log(`[BG] ${message.msg}`);
+            logToUI(`[BG] ${message.msg}`, message.level || 'info');
         }
     });
 
@@ -1356,9 +1352,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (lastUpdatedEl) lastUpdatedEl.innerHTML = `Fetching...`;
         }
         if (!elContainer) return;
-        elContainer.innerHTML = "<div class='table-row'>Fetching Aegis intelligence...</div>";
-        if (incContainer) incContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Fetching...</div>';
-        if (stdContainer) stdContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Fetching...</div>';
+        // Only set fetching text on cold start when container is empty to prevent UI wiping/flicker
+        if (!elContainer.children || elContainer.children.length === 0) {
+            elContainer.innerHTML = "<div class='table-row'>Fetching Aegis intelligence...</div>";
+        }
+        if (incContainer && (!incContainer.children || incContainer.children.length === 0)) {
+            incContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Fetching...</div>';
+        }
+        if (stdContainer && (!stdContainer.children || stdContainer.children.length === 0)) {
+            stdContainer.innerHTML = '<div style="font-size: 12px; color: #a4b0be; padding: 10px; text-align: center;">Fetching...</div>';
+        }
 
         chrome.tabs.query({url: "*://*.travian.com/*"}, (tabs) => {
             if (tabs && tabs.length > 0) {
