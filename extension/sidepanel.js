@@ -398,6 +398,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const appBtnInmersive = document.getElementById('app-btn-inmersive');
+    if (appBtnInmersive) {
+        appBtnInmersive.addEventListener('click', () => {
+            let url = chrome.runtime.getURL('3dmap.html');
+            chrome.tabs.create({ url: url });
+        });
+    }
+
     const appBtnStats = document.getElementById('app-btn-stats');
     const statsModules = document.getElementById('stats-modules-container');
     const btnStatsBack = document.getElementById('btn-stats-back');

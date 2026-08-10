@@ -1,0 +1,29 @@
+{
+  "name": "extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "aegisTerminal.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:3d": "esbuild 3dmap.jsx --bundle --outfile=3dmap.bundle.js --loader:.js=jsx"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.7.0",
+    "@react-three/postprocessing": "^3.0.5",
+    "framer-motion": "^12.43.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.185.1",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.4",
+    "esbuild": "^0.28.1"
+  }
+}

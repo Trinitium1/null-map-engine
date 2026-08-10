@@ -26,6 +26,9 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -70,7 +73,11 @@
         "statsTerminal.js",
         "apexcharts.min.js",
         "assets/*.png",
-        "assets/*.svg"
+        "assets/*.svg",
+        "3dmapengine/assets/Villages/*.glb",
+        "3dmapengine/assets/Villages/*.png",
+        "3dmapengine/assets/models/*.glb",
+        "3dmapengine/assets/draco/gltf/*"
       ],
       "matches": [
         "<all_urls>"
