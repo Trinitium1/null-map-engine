@@ -20,7 +20,7 @@ export default function TacticalFilters() {
       top: '50%',
       transform: 'translateY(-50%)',
       zIndex: isFront ? 9999 : 1000,
-      background: 'rgba(40, 41, 54, 0.9)',
+      background: 'rgba(40, 41, 54, 0.6)',
       border: '1px solid #00f2fe',
       borderRadius: '8px',
       padding: '20px',

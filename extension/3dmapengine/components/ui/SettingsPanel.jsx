@@ -8,6 +8,12 @@ export default function SettingsPanel() {
   const shadowsEnabled = useMapStore(state => state.shadowsEnabled);
   const environmentEnabled = useMapStore(state => state.environmentEnabled);
   const setCustomGraphicOption = useMapStore(state => state.setCustomGraphicOption);
+  const engineConfig = useMapStore(state => state.engineConfig);
+  const setEngineConfig = useMapStore(state => state.setEngineConfig);
+
+  const handleOverride = (updates) => {
+    setEngineConfig(updates);
+  };
 
   return (
     <>
@@ -69,18 +75,15 @@ export default function SettingsPanel() {
           </h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-            {['low', 'mid', 'high', 'custom'].map(level => (
-              <label key={level} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: level === 'custom' ? 'default' : 'pointer', fontSize: '13px', color: '#e0e0e0', opacity: level === 'custom' && graphicsQuality !== 'custom' ? 0.5 : 1 }}>
+            {['low', 'mid', 'high'].map(level => (
+              <label key={level} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: '#e0e0e0' }}>
                 <input 
                   type="radio" 
                   name="graphicsQuality" 
                   value={level}
                   checked={graphicsQuality === level}
-                  onChange={() => {
-                    if (level !== 'custom') setGraphicsQuality(level);
-                  }}
-                  disabled={level === 'custom'}
-                  style={{ cursor: level === 'custom' ? 'default' : 'pointer' }}
+                  onChange={() => setGraphicsQuality(level)}
+                  style={{ cursor: 'pointer' }}
                 />
                 {level.charAt(0).toUpperCase() + level.slice(1)}
               </label>
@@ -88,22 +91,48 @@ export default function SettingsPanel() {
           </div>
 
           <div style={{ height: '1px', background: '#4a4b5d', width: '100%', marginBottom: '8px' }} />
-
           <h3 style={{ margin: 0, fontSize: '12px', fontWeight: 500, color: '#a0a0b0', textTransform: 'uppercase' }}>
-            Advanced Options
+            Custom Overrides
           </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2 text-sm text-[#e0e0e0]">
-                <input 
-                  type="checkbox" 
-                  checked={shadowsEnabled}
-                  onChange={(e) => setShadowsEnabled(e.target.checked)}
-                  className="rounded bg-[#2a2d36] border-[#4a4d56] text-[#00aaff]"
-                />
-                Dynamic Shadows
-              </label>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#e0e0e0' }}>
+              <input type="checkbox" checked={engineConfig.enableZoomAnimation} onChange={(e) => handleOverride({ enableZoomAnimation: e.target.checked })} />
+              Zoom Animation
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#e0e0e0' }}>
+              <input type="checkbox" checked={engineConfig.enableBloom} onChange={(e) => handleOverride({ enableBloom: e.target.checked })} />
+              Bloom (Neon Glow)
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#e0e0e0' }}>
+              <input type="checkbox" checked={engineConfig.enableVignette} onChange={(e) => handleOverride({ enableVignette: e.target.checked })} />
+              Vignette Effect
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#e0e0e0' }}>
+              <input type="checkbox" checked={engineConfig.enablePostProcessing} onChange={(e) => handleOverride({ enablePostProcessing: e.target.checked })} />
+              Post-Processing Pipeline
+            </label>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#e0e0e0' }}>
+              <input type="checkbox" checked={engineConfig.enableNear} onChange={(e) => handleOverride({ enableNear: e.target.checked })} />
+              Near Sun (Shadows)
+            </label>
+            {engineConfig.enableNear && (
+              <select value={engineConfig.shadowMapSize} onChange={(e) => handleOverride({ shadowMapSize: parseInt(e.target.value) })} style={{ background: '#2a2d36', color: '#fff', fontSize: '11px', padding: '2px', border: '1px solid #4a4b5d', marginLeft: '24px' }}>
+                <option value="512">Low (512)</option>
+                <option value="1024">Mid (1024)</option>
+                <option value="2048">High (2048)</option>
+                <option value="4096">Ultra (4096)</option>
+              </select>
+            )}
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#e0e0e0' }}>
+              <input type="checkbox" checked={engineConfig.enableFar} onChange={(e) => handleOverride({ enableFar: e.target.checked })} />
+              Far Sun (Global Light)
+            </label>
           </div>
         </div>
       )}

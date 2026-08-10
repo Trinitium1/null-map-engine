@@ -16,7 +16,14 @@ import NotificationBell from './components/ui/NotificationBell';
 import TacticalFilters from './components/ui/TacticalFilters';
 import SettingsPanel from './components/ui/SettingsPanel';
 import OwnerPanel from './components/ui/OwnerPanel';
+import ZoomSpeedLines from './components/ui/ZoomSpeedLines';
+import TileInfoPanel from './components/ui/TileInfoPanel';
 import { useMapStore } from './store/mapStore';
+
+const CAMERA_CONFIG = { position: [100, 100, 100], zoom: 45, near: -1000, far: 1000 };
+const SHADOW_CONFIG = { type: THREE.PCFShadowMap };
+const GL_CONFIG = { powerPreference: "high-performance", antialias: false };
+const DPR_CONFIG = [1, 1.5];
 
 export default function MapEngineApp() {
   const hydrateData = useMapStore(state => state.hydrateData);
@@ -27,6 +34,8 @@ export default function MapEngineApp() {
   const graphicsQuality = useMapStore(state => state.graphicsQuality);
   const shadowsEnabled = useMapStore(state => state.shadowsEnabled);
   const environmentEnabled = useMapStore(state => state.environmentEnabled);
+  const currentCenterCoords = useMapStore(state => state.currentCenterCoords);
+  const zoomLabel = useMapStore(state => state.zoomLabel);
 
   useEffect(() => {
     // Phase 13: One-time Initial Load from DB_World & DB_MAP
@@ -78,6 +87,10 @@ export default function MapEngineApp() {
       {/* Tactical Context Menu Overlay */}
       <ContextMenu />
       
+      {/* Phase 22: Zoom Speed Lines Overlay */}
+      <ZoomSpeedLines />
+      <TileInfoPanel />
+      
       {/* Configuration Panels */}
       <div className="absolute top-4 right-4 flex flex-col gap-4 items-end z-50 pointer-events-none">
         <div className="pointer-events-auto">
@@ -94,49 +107,83 @@ export default function MapEngineApp() {
       {/* Phase 8: Tactical Filters UI */}
       <TacticalFilters />
 
-      {/* Phase 7: Camera Mode Toggle UI */}
-      <button 
-        onClick={toggleCameraMode}
-        style={{
-          position: 'absolute',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 100,
-          background: 'rgba(40, 41, 54, 0.8)',
-          border: '1px solid #00f2fe',
-          borderRadius: '8px',
-          padding: '12px 24px',
-          color: '#fff',
-          fontFamily: 'Inter, sans-serif',
-          fontWeight: 'bold',
-          cursor: 'pointer',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+      {/* UI Footer Overlay */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '48px',
+        background: 'rgba(21, 24, 30, 0.95)',
+        borderTop: '1px solid #2a2d36',
+        zIndex: 100,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        padding: '0 24px',
+        gap: '24px',
+        backdropFilter: 'blur(10px)',
+        boxShadow: '0 -4px 12px rgba(0,0,0,0.3)',
+      }}>
+        {/* Coordinate Display */}
+        <div style={{
           display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          transition: 'all 0.3s ease'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 242, 254, 0.2)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(40, 41, 54, 0.8)'}
-      >
-        {cameraMode === 'isometric' ? '🗺️ 2D Tactical' : '🌐 3D View'}
-      </button>
+          gap: '16px',
+          fontFamily: 'monospace',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          color: '#00f2fe',
+          background: 'rgba(0, 242, 254, 0.1)',
+          padding: '6px 16px',
+          borderRadius: '4px',
+          border: '1px solid rgba(0, 242, 254, 0.3)'
+        }}>
+          <span>🔍 {zoomLabel}</span>
+          <span style={{ borderLeft: '1px solid rgba(0, 242, 254, 0.3)', paddingLeft: '16px' }}>X: {currentCenterCoords.x}</span>
+          <span>Y: {currentCenterCoords.y}</span>
+        </div>
+
+        {/* Phase 7: Camera Mode Toggle UI */}
+        <button 
+          onClick={toggleCameraMode}
+          style={{
+            background: 'rgba(40, 41, 54, 0.8)',
+            border: '1px solid #00f2fe',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            color: '#fff',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0, 242, 254, 0.2)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(40, 41, 54, 0.8)'}
+        >
+          {cameraMode === 'isometric' ? '🗺️ 2D Tactical' : '🌐 3D View'}
+        </button>
+      </div>
       
       <Canvas 
-        shadows={{ type: THREE.PCFShadowMap }}
-        gl={{ powerPreference: "high-performance", antialias: false }}
-        dpr={[1, 1.5]}
+        orthographic
+        camera={CAMERA_CONFIG}
+        shadows={SHADOW_CONFIG}
+        gl={GL_CONFIG}
+        dpr={DPR_CONFIG}
       >
         {/* Phase 7: Dynamic Camera Transitions */}
         <CameraController />
         
-        <OrthographicCamera makeDefault position={[100, 100, 100]} zoom={25} near={-1000} far={1000} />
         <OrbitControls 
           makeDefault
           enableRotate={false} 
-          enableZoom={true} 
+          enableZoom={false} 
           enablePan={true} 
+          enableDamping={false}
+          screenSpacePanning={false}
         />
         
         <ambientLight intensity={0.15} />

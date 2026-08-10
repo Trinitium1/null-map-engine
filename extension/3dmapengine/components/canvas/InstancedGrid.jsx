@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import { prng } from '../../utils/prng';
 import { useMapStore } from '../../store/mapStore';
+import { getBaseColor } from '../../utils/colorUtils';
 
 const GRID_SIZE = 400;
 const INSTANCE_COUNT = GRID_SIZE * GRID_SIZE;
@@ -86,68 +86,11 @@ export default function InstancedGrid() {
   const prevHoveredId = useRef(null);
   
   const selectedTile = useMapStore(state => state.selectedTile);
-  const animatingOutTile = useMapStore(state => state.animatingOutTile);
+  const animatingOutTiles = useMapStore(state => state.animatingOutTiles);
   const setSelectedTile = useMapStore(state => state.setSelectedTile);
   const openContextMenu = useMapStore(state => state.openContextMenu);
   const mapData = useMapStore(state => state.mapData);
   const filters = useMapStore(state => state.filters); // Phase 8
-
-  const getBaseColor = (worldX, worldZ, tileData) => {
-    const tileY = -worldZ;
-    // Base Procedural Grass Color
-    const rand = prng(worldX, tileY);
-    let r = 0.15 + (rand * 0.05);
-    let g = 0.65 + (rand * 0.20);
-    let b = 0.30 + (rand * 0.15);
-
-    // FOW (Age of Empires Style): Unexplored tiles are the same terrain, just unlit/darkened
-    if (!tileData) {
-      return { r: r * 0.1, g: g * 0.1, b: b * 0.1 };
-    }
-
-    // Phase 8: Dynamic Highlighting (Overrides all other colors)
-    if (filters.highlightAlliance && tileData.allianceName) {
-      if (tileData.allianceName.toUpperCase() === filters.highlightAlliance.toUpperCase()) {
-        return { r: 1.0, g: 0.0, b: 0.33 }; // #ff0055 Neon Red
-      }
-    }
-    if (filters.showOnly15Croppers) {
-      // Mock logic for 15-croppers: in this fakeData we will highlight Crop Oasis for now
-      // Real logic would check tileData.fieldTypes or similar
-      if (tileData.isOasis && tileData.oasisType && tileData.oasisType.toLowerCase().includes('crop')) {
-        return { r: 0.98, g: 1.0, b: 0.0 }; // #fbff00 Neon Yellow
-      }
-    }
-    
-
-    // Tactical & Terrain Overrides
-    if (tileData.isOasis || tileData.oasisType) {
-      // Oasis (Yellowish/Brownish tints depending on type, simplified)
-      const type = (tileData.oasisType || "").toLowerCase();
-      if (type.includes("wood")) { r += 0.2; g -= 0.1; b -= 0.2; } // Brownish
-      else if (type.includes("crop") || type.includes("wheat")) { r += 0.3; g += 0.3; b -= 0.1; } // Yellowish
-      else if (type.includes("iron")) { r += 0.1; g -= 0.2; b += 0.1; } // Darker
-      else if (type.includes("clay")) { r += 0.3; g += 0.1; b -= 0.1; } // Orangeish
-      else { r += 0.1; g += 0.1; b += 0.2; } // Water/Generic Oasis
-    } else if (tileData.villageId || tileData.playerId) {
-      // Village Tactical Borders (Placeholder implementation)
-      const alliance = (tileData.allianceName || "").toUpperCase();
-      if (alliance === "NULL" || alliance === "TRINITIUM") { // Assume confederation
-        r = 0.1; g = 0.3; b = 0.9; // Blue for allies
-      } else if (alliance !== "") {
-        r = 0.9; g = 0.2; b = 0.2; // Red for enemies/others
-      } else {
-        r = 0.5; g = 0.5; b = 0.5; // Grey for no-alliance/abandoned
-      }
-    }
-
-    // Clamp values
-    return {
-      r: Math.min(1, Math.max(0, r)),
-      g: Math.min(1, Math.max(0, g)),
-      b: Math.min(1, Math.max(0, b))
-    };
-  };
 
   // Coords logic moved to top level
 
@@ -165,7 +108,7 @@ export default function InstancedGrid() {
     meshRef.current.setMatrixAt(id, tempObject.matrix);
     
     // Color
-    const c = getBaseColor(worldX, worldZ, tileData);
+    const c = getBaseColor(worldX, worldZ, tileData, filters);
     tempColor.setRGB(c.r, c.g, c.b);
     if (highlight) {
        tempColor.lerp(hoverColor, 0.5);
@@ -205,7 +148,9 @@ export default function InstancedGrid() {
     
     const currentHiddenIds = new Set();
     if (selectedTile) currentHiddenIds.add(selectedTile.instanceId);
-    if (animatingOutTile) currentHiddenIds.add(animatingOutTile.instanceId);
+    if (animatingOutTiles && animatingOutTiles.length > 0) {
+      animatingOutTiles.forEach(t => currentHiddenIds.add(t.instanceId));
+    }
     
     // Restore tiles that are no longer hidden
     prevHiddenIds.current.forEach(id => {
@@ -222,7 +167,7 @@ export default function InstancedGrid() {
     prevHiddenIds.current = currentHiddenIds;
     meshRef.current.instanceMatrix.needsUpdate = true;
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
-  }, [selectedTile, animatingOutTile]);
+  }, [selectedTile, animatingOutTiles]);
 
   // Handle Hover Tinting
   useEffect(() => {
@@ -259,14 +204,26 @@ export default function InstancedGrid() {
         onClick={(e) => {
           e.stopPropagation();
           if (e.instanceId !== undefined) {
-            if (selectedTile && selectedTile.instanceId === e.instanceId) {
-               setSelectedTile(null); // Toggle off if clicked again
-               return;
-            }
             const { worldX, worldZ } = getCoordsFromId(e.instanceId);
             const tileY = -worldZ;
+            
+            // Jump Camera to the clicked tile
+            useMapStore.setState({ cameraJumpTarget: { x: worldX, y: tileY } });
+            
+            // Phase 22 UX Updates
+            const graphicsQuality = useMapStore.getState().graphicsQuality;
+            if (graphicsQuality === 'high' || graphicsQuality === 'low') {
+               // The jump will change currentCenterCoords, updating the InfoPanel.
+               // We DO NOT set selectedTile here for High/Low because High auto-selects the center tile
+               // during the jump, and Low does not raise tiles.
+               return;
+            }
+
+            if (selectedTile && selectedTile.instanceId === e.instanceId) {
+               return; // Do nothing if clicking the already selected tile
+            }
             const tileData = mapData[`${worldX},${tileY}`];
-            const c = getBaseColor(worldX, worldZ, tileData);
+            const c = getBaseColor(worldX, worldZ, tileData, filters);
             setSelectedTile({
               instanceId: e.instanceId,
               x: worldX,
@@ -282,13 +239,14 @@ export default function InstancedGrid() {
           if (e.nativeEvent && e.nativeEvent.preventDefault) {
             e.nativeEvent.preventDefault();
           }
+          if (useMapStore.getState().isDraggingMap) return;
+          
           if (e.instanceId !== undefined) {
             const { worldX, worldZ } = getCoordsFromId(e.instanceId);
             const tileY = -worldZ;
             openContextMenu(e.clientX, e.clientY, [worldX, tileY]);
           }
         }}
-        onPointerMissed={() => setSelectedTile(null)}
       >
         <boxGeometry args={[1, 0.2, 1]} />
         <meshBasicMaterial />

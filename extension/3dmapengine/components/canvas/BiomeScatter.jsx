@@ -3,12 +3,15 @@ import * as THREE from 'three';
 import { useMapStore } from '../../store/mapStore';
 import { useThree, useFrame } from '@react-three/fiber';
 import { safeLoadGeometry } from '../../utils/AssetManager';
+import { prng } from '../../utils/prng';
 
 const MAX_INSTANCES = 15000;
 
 export default function BiomeScatter() {
   const mapData = useMapStore(state => state.mapData);
   const graphicsQuality = useMapStore(state => state.graphicsQuality);
+  const selectedTile = useMapStore(state => state.selectedTile);
+  const animatingOutTile = useMapStore(state => state.animatingOutTile);
 
   const woodRef = useRef();
   const cropRef = useRef();
@@ -72,6 +75,11 @@ export default function BiomeScatter() {
         return;
       }
 
+      // Hide if extracted
+      const isSelected = useMapStore.getState().selectedTile?.x === tile.x && useMapStore.getState().selectedTile?.y === tile.y;
+      const isAnimatingOut = useMapStore.getState().animatingOutTile?.x === tile.x && useMapStore.getState().animatingOutTile?.y === tile.y;
+      if (isSelected || isAnimatingOut) return;
+
       // We only scatter biomes on special tiles (e.g., Oases) for now
       if (tile.isOasis && tile.oasisType) {
         
@@ -87,8 +95,8 @@ export default function BiomeScatter() {
           if (graphicsQuality !== 'low' && i > 0) {
             // Phase 17: Organic Scatter Offset (Biome Overlap)
             let scatterRadius = graphicsQuality === 'high' ? 1.3 : 0.7; // 1.3 gives an offset between -0.65 and 0.65
-            offsetX = (Math.random() - 0.5) * scatterRadius;
-            offsetZ = (Math.random() - 0.5) * scatterRadius;
+            offsetX = (prng(tile.x, tile.y + i) - 0.5) * scatterRadius;
+            offsetZ = (prng(tile.x + 1, tile.y + i) - 0.5) * scatterRadius;
           }
 
           // Position slightly above the grass based on scale
@@ -96,9 +104,9 @@ export default function BiomeScatter() {
           tempObj.scale.set(scale, scale, scale);
           
           // Phase 17: Random Y-axis rotation and tilt
-          tempObj.rotation.y = Math.random() * Math.PI * 2;
-          tempObj.rotation.x = (Math.random() - 0.5) * 0.2;
-          tempObj.rotation.z = (Math.random() - 0.5) * 0.2;
+          tempObj.rotation.y = prng(tile.x + 2, tile.y + i) * Math.PI * 2;
+          tempObj.rotation.x = (prng(tile.x + 3, tile.y + i) - 0.5) * 0.2;
+          tempObj.rotation.z = (prng(tile.x + 4, tile.y + i) - 0.5) * 0.2;
           
           tempObj.updateMatrix();
 
@@ -143,7 +151,7 @@ export default function BiomeScatter() {
       lastCenter.current = { x: cx, y: cy };
       renderBiomes(cx, cy);
     }
-  }, [mapData, controls, graphicsQuality, renderBiomes]);
+  }, [mapData, controls, graphicsQuality, renderBiomes, selectedTile, animatingOutTile]);
 
   // Dynamic window rendering on panning
   useFrame(() => {

@@ -1,14 +1,31 @@
 import { create } from 'zustand';
+import { subscribeWithSelector } from 'zustand/middleware';
+import { PRESETS } from './scene-presets';
 
-export const useMapStore = create((set, get) => ({
+const ZOOM_STEPS = [3, 6, 10, 20, 30, 45, 60];
+
+const getZoomProps = (level) => {
+  const screenWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+  const tilesToFit = ZOOM_STEPS[level - 1];
+  // An isometric tile diagonal is approx 1.414 units.
+  return {
+    zoom: screenWidth / (tilesToFit * 1.414),
+    label: `Zoom: X${8 - level}`
+  };
+};
+
+export const useMapStore = create(subscribeWithSelector((set, get) => ({
   filters: {},
   alarmList: [],
   unreadAlarms: 0,
   panTarget: null,
+  currentCenterCoords: { x: 0, y: 0 },
+  isDraggingMap: false,
   
   // Phase 3: Selection & Extraction State
   selectedTile: null, // { instanceId, x, z, color }
-  animatingOutTile: null, // The tile that is returning to the ground
+  animatingOutTiles: [], // Array of tiles animating down
+  showIntelPanel: false,
   
   // Phase 4: Tactical Context Menu
   contextMenu: { isOpen: false, x: 0, y: 0, tileCoords: null },
@@ -18,6 +35,12 @@ export const useMapStore = create((set, get) => ({
   
   // Phase 7: Camera Modes (isometric | top-down)
   cameraMode: 'isometric',
+  
+  // Phase 22: Stepped Zoom System
+  zoomLevel: 3,
+  targetZoom: getZoomProps(3).zoom,
+  zoomLabel: getZoomProps(3).label,
+  isZooming: false,
   
   // Phase 9: Tactical Vector Overlays
   tacticalRoutes: [],
@@ -46,11 +69,13 @@ export const useMapStore = create((set, get) => ({
     enableColorGrading: true,
     brightness: 0.0, contrast: 0.1, hue: 0.0, saturation: 0.1,
     enableBloom: true,
-    bloomIntensity: 0.5, bloomLuminanceThreshold: 0.8,
+    bloomIntensity: 1.5, bloomLuminanceThreshold: 0.1,
     enableVignette: true,
     vignetteOffset: 0.3, vignetteDarkness: 0.5,
-    
-    presetName: 'Escenario_1_Noon'
+    shadowMapSize: 4096,
+    presetName: 'Scenario_1_Noon',
+    enableZoomAnimation: true,
+    ...PRESETS['Scenario_1_Noon']
   },
   environmentEnabled: true,
   
@@ -62,29 +87,82 @@ export const useMapStore = create((set, get) => ({
   activeUI: null,
   
   // Actions
+  setZoomLevel: (delta) => set((state) => {
+    let nextLevel = state.zoomLevel + delta;
+    if (nextLevel < 1) nextLevel = 1;
+    if (nextLevel > 7) nextLevel = 7;
+    
+    const props = getZoomProps(nextLevel);
+    
+    return {
+      zoomLevel: nextLevel,
+      targetZoom: props.zoom,
+      zoomLabel: props.label
+    };
+  }),
+  setIsZooming: (isZooming) => set({ isZooming }),
   bringToFront: (uiId) => set({ activeUI: uiId }),
   toggleCameraMode: () => set((state) => ({ 
     cameraMode: state.cameraMode === 'isometric' ? 'top-down' : 'isometric' 
   })),
   toggleTerritories: () => set((state) => ({ showTerritories: !state.showTerritories })),
   setGraphicsQuality: (level) => {
-    let settings = { graphicsQuality: level };
-    if (level === 'low') {
-      settings.shadowsEnabled = false;
-      settings.environmentEnabled = false;
-    } else if (level === 'mid') {
-      settings.shadowsEnabled = true;
-      settings.environmentEnabled = false;
-    } else if (level === 'high') {
-      settings.shadowsEnabled = true;
-      settings.environmentEnabled = true;
-    }
-    set(settings);
+    set((state) => {
+      let settings = { graphicsQuality: level };
+      let newConfig = { ...state.engineConfig };
+      
+      if (level === 'low') {
+        settings.cameraMode = 'isometric';
+        settings.shadowsEnabled = false;
+        settings.environmentEnabled = false;
+        newConfig.enablePostProcessing = false;
+        newConfig.enableNear = false;
+        newConfig.enableFar = false;
+        newConfig.shadowMapSize = 512;
+        newConfig.enableZoomAnimation = false;
+        
+        // Phase 23: Cleanup active tiles when switching to Low
+        const currentSelected = get().selectedTile;
+        if (currentSelected) {
+           const outList = [...get().animatingOutTiles, currentSelected].slice(-15);
+           set({ animatingOutTiles: outList, selectedTile: null });
+        }
+      } else if (level === 'mid') {
+        settings.cameraMode = 'isometric';
+        settings.shadowsEnabled = true;
+        settings.environmentEnabled = false;
+        newConfig.enablePostProcessing = false;
+        newConfig.enableNear = true;
+        newConfig.nearMapSize = 2048;
+        newConfig.enableFar = false;
+        newConfig.enableBloom = false;
+        newConfig.enableVignette = true;
+        newConfig.shadowMapSize = 1024;
+        newConfig.enableZoomAnimation = false;
+      } else if (level === 'high') {
+        settings.cameraMode = 'isometric';
+        settings.shadowsEnabled = true;
+        settings.environmentEnabled = true;
+        newConfig.enableNear = true;
+        newConfig.nearMapSize = 4096;
+        newConfig.enableFar = true;
+        newConfig.farMapSize = 1024;
+        newConfig.enableBloom = true;
+        newConfig.enableVignette = true;
+        newConfig.enablePostProcessing = true;
+        newConfig.shadowMapSize = 4096;
+        newConfig.enableZoomAnimation = true;
+      } else if (level === 'custom') {
+        settings.graphicsQuality = 'custom';
+      }
+      settings.engineConfig = newConfig;
+      return settings;
+    });
   },
-  setCustomGraphicOption: (key, value) => set({
-    graphicsQuality: 'custom',
-    [key]: value
-  }),
+  setCustomGraphicOption: (key, value) => set(state => ({
+    engineConfig: { ...state.engineConfig, [key]: value },
+    graphicsQuality: 'custom'
+  })),
   setTacticalRoutes: (routes) => set({ tacticalRoutes: routes }),
   setShowTacticalFilters: (show) => set({ showTacticalFilters: show }),
   setEngineConfig: (newConfig) => set((state) => ({ engineConfig: { ...state.engineConfig, ...newConfig } })),
@@ -97,7 +175,9 @@ export const useMapStore = create((set, get) => ({
   setFilter: (key, value) => set((state) => ({
     filters: { ...state.filters, [key]: value }
   })),
+  setIsDraggingMap: (isDragging) => set({ isDraggingMap: isDragging }),
   setPanTarget: (coords) => set({ panTarget: coords }),
+  setCurrentCenterCoords: (coords) => set({ currentCenterCoords: coords }),
   markAlarmRead: (id) => set((state) => {
     let readAlarms = [];
     try { readAlarms = JSON.parse(localStorage.getItem('readAlarms') || '[]'); } catch(e) {}
@@ -365,12 +445,17 @@ export const useMapStore = create((set, get) => ({
   
   setSelectedTile: (tile) => {
     const current = get().selectedTile;
-    // If we click a new tile (or null), move the current to animatingOut
     if (current && (!tile || current.instanceId !== tile.instanceId)) {
-      set({ animatingOutTile: current, selectedTile: tile });
+      // Filter out the new tile from outList to prevent infinite loop
+      const filteredOuts = get().animatingOutTiles.filter(t => !tile || t.instanceId !== tile.instanceId);
+      const outList = [...filteredOuts, current].slice(-15); 
+      set({ animatingOutTiles: outList, selectedTile: tile });
     } else {
       set({ selectedTile: tile });
     }
+  },
+  removeAnimatingOutTile: (instanceId) => {
+    set({ animatingOutTiles: get().animatingOutTiles.filter(t => t.instanceId !== instanceId) });
   },
   
   finishAnimationOut: () => set({ animatingOutTile: null }),
@@ -381,4 +466,4 @@ export const useMapStore = create((set, get) => ({
   closeContextMenu: () => set((state) => ({ 
     contextMenu: { ...state.contextMenu, isOpen: false } 
   }))
-}));
+})));

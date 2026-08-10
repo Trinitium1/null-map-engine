@@ -64988,11 +64988,11 @@ void main() {
               "The result of getSnapshot should be cached to avoid an infinite loop"
             ), didWarnUncachedGetSnapshot = true);
           }
-          cachedValue = useState14({
+          cachedValue = useState15({
             inst: { value, getSnapshot }
           });
           var inst = cachedValue[0].inst, forceUpdate = cachedValue[1];
-          useLayoutEffect9(
+          useLayoutEffect7(
             function() {
               inst.value = value;
               inst.getSnapshot = getSnapshot;
@@ -65026,7 +65026,7 @@ void main() {
           return getSnapshot();
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React28 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useState14 = React28.useState, useEffect14 = React28.useEffect, useLayoutEffect9 = React28.useLayoutEffect, useDebugValue = React28.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+        var React28 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useState15 = React28.useState, useEffect14 = React28.useEffect, useLayoutEffect7 = React28.useLayoutEffect, useDebugValue = React28.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
         exports.useSyncExternalStore = void 0 !== React28.useSyncExternalStore ? React28.useSyncExternalStore : shim;
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
       })();
@@ -65054,9 +65054,9 @@ void main() {
           return x2 === y && (0 !== x2 || 1 / x2 === 1 / y) || x2 !== x2 && y !== y;
         }
         "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-        var React28 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore = shim.useSyncExternalStore, useRef13 = React28.useRef, useEffect14 = React28.useEffect, useMemo13 = React28.useMemo, useDebugValue = React28.useDebugValue;
+        var React28 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore = shim.useSyncExternalStore, useRef11 = React28.useRef, useEffect14 = React28.useEffect, useMemo13 = React28.useMemo, useDebugValue = React28.useDebugValue;
         exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-          var instRef = useRef13(null);
+          var instRef = useRef11(null);
           if (null === instRef.current) {
             var inst = { hasValue: false, value: null };
             instRef.current = inst;
@@ -76124,6 +76124,37 @@ No matching component was found for:
     }
   });
 
+  // node_modules/zustand/esm/middleware.mjs
+  var subscribeWithSelectorImpl, subscribeWithSelector;
+  var init_middleware = __esm({
+    "node_modules/zustand/esm/middleware.mjs"() {
+      subscribeWithSelectorImpl = (fn) => (set, get, api) => {
+        const origSubscribe = api.subscribe;
+        api.subscribe = ((selector, optListener, options) => {
+          let listener = selector;
+          if (optListener) {
+            const equalityFn = (options == null ? void 0 : options.equalityFn) || Object.is;
+            let currentSlice = selector(api.getState());
+            listener = (state2) => {
+              const nextSlice = selector(state2);
+              if (!equalityFn(currentSlice, nextSlice)) {
+                const previousSlice = currentSlice;
+                optListener(currentSlice = nextSlice, previousSlice);
+              }
+            };
+            if (options == null ? void 0 : options.fireImmediately) {
+              optListener(currentSlice, currentSlice);
+            }
+          }
+          return origSubscribe(listener);
+        });
+        const initialState = fn(set, get, api);
+        return initialState;
+      };
+      subscribeWithSelector = subscribeWithSelectorImpl;
+    }
+  });
+
   // node_modules/three-stdlib/_polyfill/constants.js
   var version;
   var init_constants = __esm({
@@ -81572,138 +81603,15 @@ No matching component was found for:
     }
   });
 
-  // node_modules/@react-three/drei/core/Fbo.js
-  function useFBO(width, height, settings) {
-    const size = useThree((state2) => state2.size);
-    const viewport = useThree((state2) => state2.viewport);
-    const _width = typeof width === "number" ? width : size.width * viewport.dpr;
-    const _height = typeof height === "number" ? height : size.height * viewport.dpr;
-    const _settings = (typeof width === "number" ? settings : width) || {};
-    const {
-      samples = 0,
-      depth,
-      ...targetSettings
-    } = _settings;
-    const depthBuffer = depth !== null && depth !== void 0 ? depth : _settings.depthBuffer;
-    const target = React10.useMemo(() => {
-      const target2 = new WebGLRenderTarget(_width, _height, {
-        minFilter: LinearFilter,
-        magFilter: LinearFilter,
-        type: HalfFloatType,
-        ...targetSettings
-      });
-      if (depthBuffer) {
-        target2.depthTexture = new DepthTexture(_width, _height, FloatType);
-      }
-      target2.samples = samples;
-      return target2;
-    }, []);
-    React10.useLayoutEffect(() => {
-      target.setSize(_width, _height);
-      if (samples) target.samples = samples;
-    }, [samples, target, _width, _height]);
-    React10.useEffect(() => {
-      return () => target.dispose();
-    }, []);
-    return target;
-  }
-  var React10, import_react6;
-  var init_Fbo = __esm({
-    "node_modules/@react-three/drei/core/Fbo.js"() {
-      React10 = __toESM(require_react());
-      import_react6 = __toESM(require_react());
-      init_three_module();
-      init_react_three_fiber_esm();
-    }
-  });
-
-  // node_modules/@react-three/drei/core/OrthographicCamera.js
-  var React11, isFunction, OrthographicCamera2;
-  var init_OrthographicCamera = __esm({
-    "node_modules/@react-three/drei/core/OrthographicCamera.js"() {
-      init_extends();
-      React11 = __toESM(require_react());
-      init_react_three_fiber_esm();
-      init_Fbo();
-      isFunction = (node) => typeof node === "function";
-      OrthographicCamera2 = /* @__PURE__ */ React11.forwardRef(({
-        envMap,
-        resolution = 256,
-        frames = Infinity,
-        children,
-        makeDefault,
-        ...props
-      }, ref) => {
-        const set = useThree(({
-          set: set2
-        }) => set2);
-        const camera = useThree(({
-          camera: camera2
-        }) => camera2);
-        const size = useThree(({
-          size: size2
-        }) => size2);
-        const cameraRef = React11.useRef(null);
-        React11.useImperativeHandle(ref, () => cameraRef.current, []);
-        const groupRef = React11.useRef(null);
-        const fbo = useFBO(resolution);
-        React11.useLayoutEffect(() => {
-          if (!props.manual) {
-            cameraRef.current.updateProjectionMatrix();
-          }
-        }, [size, props]);
-        React11.useLayoutEffect(() => {
-          cameraRef.current.updateProjectionMatrix();
-        });
-        React11.useLayoutEffect(() => {
-          if (makeDefault) {
-            const oldCam = camera;
-            set(() => ({
-              camera: cameraRef.current
-            }));
-            return () => set(() => ({
-              camera: oldCam
-            }));
-          }
-        }, [cameraRef, makeDefault, set]);
-        let count = 0;
-        let oldEnvMap = null;
-        const functional = isFunction(children);
-        useFrame((state2) => {
-          if (functional && (frames === Infinity || count < frames)) {
-            groupRef.current.visible = false;
-            state2.gl.setRenderTarget(fbo);
-            oldEnvMap = state2.scene.background;
-            if (envMap) state2.scene.background = envMap;
-            state2.gl.render(state2.scene, cameraRef.current);
-            state2.scene.background = oldEnvMap;
-            state2.gl.setRenderTarget(null);
-            groupRef.current.visible = true;
-            count++;
-          }
-        });
-        return /* @__PURE__ */ React11.createElement(React11.Fragment, null, /* @__PURE__ */ React11.createElement("orthographicCamera", _extends({
-          left: size.width / -2,
-          right: size.width / 2,
-          top: size.height / 2,
-          bottom: size.height / -2,
-          ref: cameraRef
-        }, props), !functional && children), /* @__PURE__ */ React11.createElement("group", {
-          ref: groupRef
-        }, functional && children(fbo.texture)));
-      });
-    }
-  });
-
   // node_modules/@react-three/drei/core/OrbitControls.js
-  var React12, OrbitControls2;
+  var React10, OrbitControls2;
   var init_OrbitControls2 = __esm({
     "node_modules/@react-three/drei/core/OrbitControls.js"() {
       init_extends();
       init_react_three_fiber_esm();
-      React12 = __toESM(require_react());
+      React10 = __toESM(require_react());
       init_three_stdlib();
-      OrbitControls2 = /* @__PURE__ */ React12.forwardRef(({
+      OrbitControls2 = /* @__PURE__ */ React10.forwardRef(({
         makeDefault,
         camera,
         regress,
@@ -81725,18 +81633,18 @@ No matching component was found for:
         const performance2 = useThree((state2) => state2.performance);
         const explCamera = camera || defaultCamera;
         const explDomElement = domElement || events.connected || gl.domElement;
-        const controls = React12.useMemo(() => new OrbitControls(explCamera), [explCamera]);
+        const controls = React10.useMemo(() => new OrbitControls(explCamera), [explCamera]);
         useFrame(() => {
           if (controls.enabled) controls.update();
         }, -1);
-        React12.useEffect(() => {
+        React10.useEffect(() => {
           if (keyEvents) {
             controls.connect(keyEvents === true ? explDomElement : keyEvents);
           }
           controls.connect(explDomElement);
           return () => void controls.dispose();
         }, [keyEvents, explDomElement, regress, controls, invalidate2]);
-        React12.useEffect(() => {
+        React10.useEffect(() => {
           const callback = (e2) => {
             invalidate2();
             if (regress) performance2.regress();
@@ -81757,7 +81665,7 @@ No matching component was found for:
             controls.removeEventListener("change", callback);
           };
         }, [onChange, onStart, onEnd, controls, invalidate2, setEvents]);
-        React12.useEffect(() => {
+        React10.useEffect(() => {
           if (makeDefault) {
             const old = get().controls;
             set({
@@ -81768,7 +81676,7 @@ No matching component was found for:
             });
           }
         }, [makeDefault, controls]);
-        return /* @__PURE__ */ React12.createElement("primitive", _extends({
+        return /* @__PURE__ */ React10.createElement("primitive", _extends({
           ref,
           object: controls,
           enableDamping
@@ -81818,39 +81726,93 @@ No matching component was found for:
       init_Html();
       init_QuadraticBezierLine();
       init_Gltf();
-      init_OrthographicCamera();
       init_OrbitControls2();
       init_camera_controls_module();
       init_Texture();
     }
   });
 
-  // 3dmapengine/utils/prng.js
-  function prng(x2, y) {
-    const dot = x2 * 12.9898 + y * 78.233;
-    const sin = Math.sin(dot) * 43758.5453;
-    return sin - Math.floor(sin);
-  }
-  var init_prng = __esm({
-    "3dmapengine/utils/prng.js"() {
+  // 3dmapengine/store/scene-presets/Scenario_1_Noon_Preset.json
+  var Scenario_1_Noon_Preset_default;
+  var init_Scenario_1_Noon_Preset = __esm({
+    "3dmapengine/store/scene-presets/Scenario_1_Noon_Preset.json"() {
+      Scenario_1_Noon_Preset_default = {
+        enableNear: true,
+        enableFar: true,
+        lightDirX: -2.67,
+        lightDirY: -2.82,
+        lightDirZ: 1.98,
+        intensity: 2.12,
+        nearMargin: 133,
+        nearSize: 10,
+        nearNear: 9.11,
+        nearFar: 320,
+        nearMapSize: 4096,
+        nearBias: -1e-4,
+        farMargin: 400,
+        farSize: 100,
+        farNear: 109,
+        farFar: 1270,
+        farMapSize: 1024,
+        farBias: -8e-4,
+        displayHelper: false,
+        enablePostProcessing: true,
+        enableColorGrading: true,
+        brightness: 0,
+        contrast: 0,
+        hue: 0,
+        saturation: 0.12,
+        enableBloom: true,
+        bloomIntensity: 0.5,
+        bloomLuminanceThreshold: 0.8,
+        enableVignette: true,
+        vignetteOffset: 0.5,
+        vignetteDarkness: 0.48,
+        presetName: "Scenario_1_Noon"
+      };
+    }
+  });
+
+  // 3dmapengine/store/scene-presets/index.js
+  var PRESETS;
+  var init_scene_presets = __esm({
+    "3dmapengine/store/scene-presets/index.js"() {
+      init_Scenario_1_Noon_Preset();
+      PRESETS = {
+        "Scenario_1_Noon": Scenario_1_Noon_Preset_default
+      };
     }
   });
 
   // 3dmapengine/store/mapStore.js
-  var useMapStore;
+  var ZOOM_STEPS, getZoomProps, useMapStore;
   var init_mapStore = __esm({
     "3dmapengine/store/mapStore.js"() {
       init_esm();
-      useMapStore = create((set, get) => ({
+      init_middleware();
+      init_scene_presets();
+      ZOOM_STEPS = [3, 6, 10, 20, 30, 45, 60];
+      getZoomProps = (level) => {
+        const screenWidth = typeof window !== "undefined" ? window.innerWidth : 1920;
+        const tilesToFit = ZOOM_STEPS[level - 1];
+        return {
+          zoom: screenWidth / (tilesToFit * 1.414),
+          label: `Zoom: X${8 - level}`
+        };
+      };
+      useMapStore = create(subscribeWithSelector((set, get) => ({
         filters: {},
         alarmList: [],
         unreadAlarms: 0,
         panTarget: null,
+        currentCenterCoords: { x: 0, y: 0 },
+        isDraggingMap: false,
         // Phase 3: Selection & Extraction State
         selectedTile: null,
         // { instanceId, x, z, color }
-        animatingOutTile: null,
-        // The tile that is returning to the ground
+        animatingOutTiles: [],
+        // Array of tiles animating down
+        showIntelPanel: false,
         // Phase 4: Tactical Context Menu
         contextMenu: { isOpen: false, x: 0, y: 0, tileCoords: null },
         // Phase 6: Data Hydration & Fog of War
@@ -81858,6 +81820,11 @@ No matching component was found for:
         // O(1) lookup dictionary by "x,z"
         // Phase 7: Camera Modes (isometric | top-down)
         cameraMode: "isometric",
+        // Phase 22: Stepped Zoom System
+        zoomLevel: 3,
+        targetZoom: getZoomProps(3).zoom,
+        zoomLabel: getZoomProps(3).label,
+        isZooming: false,
         // Phase 9: Tactical Vector Overlays
         tacticalRoutes: [],
         showTacticalFilters: true,
@@ -81897,12 +81864,15 @@ No matching component was found for:
           hue: 0,
           saturation: 0.1,
           enableBloom: true,
-          bloomIntensity: 0.5,
-          bloomLuminanceThreshold: 0.8,
+          bloomIntensity: 1.5,
+          bloomLuminanceThreshold: 0.1,
           enableVignette: true,
           vignetteOffset: 0.3,
           vignetteDarkness: 0.5,
-          presetName: "Escenario_1_Noon"
+          shadowMapSize: 4096,
+          presetName: "Scenario_1_Noon",
+          enableZoomAnimation: true,
+          ...PRESETS["Scenario_1_Noon"]
         },
         environmentEnabled: true,
         // Phase 15: Tactical Outlines
@@ -81911,29 +81881,77 @@ No matching component was found for:
         // Phase 16: UI Container Layering
         activeUI: null,
         // Actions
+        setZoomLevel: (delta) => set((state2) => {
+          let nextLevel = state2.zoomLevel + delta;
+          if (nextLevel < 1) nextLevel = 1;
+          if (nextLevel > 7) nextLevel = 7;
+          const props = getZoomProps(nextLevel);
+          return {
+            zoomLevel: nextLevel,
+            targetZoom: props.zoom,
+            zoomLabel: props.label
+          };
+        }),
+        setIsZooming: (isZooming) => set({ isZooming }),
         bringToFront: (uiId) => set({ activeUI: uiId }),
         toggleCameraMode: () => set((state2) => ({
           cameraMode: state2.cameraMode === "isometric" ? "top-down" : "isometric"
         })),
         toggleTerritories: () => set((state2) => ({ showTerritories: !state2.showTerritories })),
         setGraphicsQuality: (level) => {
-          let settings = { graphicsQuality: level };
-          if (level === "low") {
-            settings.shadowsEnabled = false;
-            settings.environmentEnabled = false;
-          } else if (level === "mid") {
-            settings.shadowsEnabled = true;
-            settings.environmentEnabled = false;
-          } else if (level === "high") {
-            settings.shadowsEnabled = true;
-            settings.environmentEnabled = true;
-          }
-          set(settings);
+          set((state2) => {
+            let settings = { graphicsQuality: level };
+            let newConfig = { ...state2.engineConfig };
+            if (level === "low") {
+              settings.cameraMode = "isometric";
+              settings.shadowsEnabled = false;
+              settings.environmentEnabled = false;
+              newConfig.enablePostProcessing = false;
+              newConfig.enableNear = false;
+              newConfig.enableFar = false;
+              newConfig.shadowMapSize = 512;
+              newConfig.enableZoomAnimation = false;
+              const currentSelected = get().selectedTile;
+              if (currentSelected) {
+                const outList = [...get().animatingOutTiles, currentSelected].slice(-15);
+                set({ animatingOutTiles: outList, selectedTile: null });
+              }
+            } else if (level === "mid") {
+              settings.cameraMode = "isometric";
+              settings.shadowsEnabled = true;
+              settings.environmentEnabled = false;
+              newConfig.enablePostProcessing = false;
+              newConfig.enableNear = true;
+              newConfig.nearMapSize = 2048;
+              newConfig.enableFar = false;
+              newConfig.enableBloom = false;
+              newConfig.enableVignette = true;
+              newConfig.shadowMapSize = 1024;
+              newConfig.enableZoomAnimation = false;
+            } else if (level === "high") {
+              settings.cameraMode = "isometric";
+              settings.shadowsEnabled = true;
+              settings.environmentEnabled = true;
+              newConfig.enableNear = true;
+              newConfig.nearMapSize = 4096;
+              newConfig.enableFar = true;
+              newConfig.farMapSize = 1024;
+              newConfig.enableBloom = true;
+              newConfig.enableVignette = true;
+              newConfig.enablePostProcessing = true;
+              newConfig.shadowMapSize = 4096;
+              newConfig.enableZoomAnimation = true;
+            } else if (level === "custom") {
+              settings.graphicsQuality = "custom";
+            }
+            settings.engineConfig = newConfig;
+            return settings;
+          });
         },
-        setCustomGraphicOption: (key, value) => set({
-          graphicsQuality: "custom",
-          [key]: value
-        }),
+        setCustomGraphicOption: (key, value) => set((state2) => ({
+          engineConfig: { ...state2.engineConfig, [key]: value },
+          graphicsQuality: "custom"
+        })),
         setTacticalRoutes: (routes) => set({ tacticalRoutes: routes }),
         setShowTacticalFilters: (show) => set({ showTacticalFilters: show }),
         setEngineConfig: (newConfig) => set((state2) => ({ engineConfig: { ...state2.engineConfig, ...newConfig } })),
@@ -81946,7 +81964,9 @@ No matching component was found for:
         setFilter: (key, value) => set((state2) => ({
           filters: { ...state2.filters, [key]: value }
         })),
+        setIsDraggingMap: (isDragging) => set({ isDraggingMap: isDragging }),
         setPanTarget: (coords) => set({ panTarget: coords }),
+        setCurrentCenterCoords: (coords) => set({ currentCenterCoords: coords }),
         markAlarmRead: (id) => set((state2) => {
           let readAlarms = [];
           try {
@@ -82182,10 +82202,15 @@ No matching component was found for:
         setSelectedTile: (tile) => {
           const current = get().selectedTile;
           if (current && (!tile || current.instanceId !== tile.instanceId)) {
-            set({ animatingOutTile: current, selectedTile: tile });
+            const filteredOuts = get().animatingOutTiles.filter((t2) => !tile || t2.instanceId !== tile.instanceId);
+            const outList = [...filteredOuts, current].slice(-15);
+            set({ animatingOutTiles: outList, selectedTile: tile });
           } else {
             set({ selectedTile: tile });
           }
+        },
+        removeAnimatingOutTile: (instanceId) => {
+          set({ animatingOutTiles: get().animatingOutTiles.filter((t2) => t2.instanceId !== instanceId) });
         },
         finishAnimationOut: () => set({ animatingOutTile: null }),
         openContextMenu: (x2, y, tileCoords) => set({
@@ -82194,85 +82219,104 @@ No matching component was found for:
         closeContextMenu: () => set((state2) => ({
           contextMenu: { ...state2.contextMenu, isOpen: false }
         }))
-      }));
+      })));
+    }
+  });
+
+  // 3dmapengine/utils/prng.js
+  function prng(x2, y) {
+    const dot = x2 * 12.9898 + y * 78.233;
+    const sin = Math.sin(dot) * 43758.5453;
+    return sin - Math.floor(sin);
+  }
+  var init_prng = __esm({
+    "3dmapengine/utils/prng.js"() {
+    }
+  });
+
+  // 3dmapengine/utils/colorUtils.js
+  var getBaseColor;
+  var init_colorUtils = __esm({
+    "3dmapengine/utils/colorUtils.js"() {
+      init_prng();
+      getBaseColor = (worldX, worldZ, tileData, filters) => {
+        const tileY = -worldZ;
+        const rand = prng(worldX, tileY);
+        let r2 = 0.15 + rand * 0.05;
+        let g2 = 0.65 + rand * 0.2;
+        let b2 = 0.3 + rand * 0.15;
+        if (!tileData) {
+          return { r: r2 * 0.1, g: g2 * 0.1, b: b2 * 0.1 };
+        }
+        if (filters && filters.highlightAlliance && tileData.allianceName) {
+          if (tileData.allianceName.toUpperCase() === filters.highlightAlliance.toUpperCase()) {
+            return { r: 1, g: 0, b: 0.33 };
+          }
+        }
+        if (filters && filters.showOnly15Croppers) {
+          if (tileData.isOasis && tileData.oasisType && tileData.oasisType.toLowerCase().includes("crop")) {
+            return { r: 0.98, g: 1, b: 0 };
+          }
+        }
+        if (tileData.isOasis || tileData.oasisType) {
+          const type = (tileData.oasisType || "").toLowerCase();
+          if (type.includes("wood")) {
+            r2 += 0.2;
+            g2 -= 0.1;
+            b2 -= 0.2;
+          } else if (type.includes("crop") || type.includes("wheat")) {
+            r2 += 0.3;
+            g2 += 0.3;
+            b2 -= 0.1;
+          } else if (type.includes("iron")) {
+            r2 += 0.1;
+            g2 -= 0.2;
+            b2 += 0.1;
+          } else if (type.includes("clay")) {
+            r2 += 0.3;
+            g2 += 0.1;
+            b2 -= 0.1;
+          } else {
+            r2 += 0.1;
+            g2 += 0.1;
+            b2 += 0.2;
+          }
+        } else if (tileData.villageId || tileData.playerId) {
+          const alliance = (tileData.allianceName || "").toUpperCase();
+          if (alliance === "NULL" || alliance === "TRINITIUM") {
+            r2 = 0.1;
+            g2 = 0.3;
+            b2 = 0.9;
+          } else if (alliance !== "") {
+            r2 = 0.9;
+            g2 = 0.2;
+            b2 = 0.2;
+          } else {
+            r2 = 0.5;
+            g2 = 0.5;
+            b2 = 0.5;
+          }
+        }
+        return {
+          r: Math.min(1, Math.max(0, r2)),
+          g: Math.min(1, Math.max(0, g2)),
+          b: Math.min(1, Math.max(0, b2))
+        };
+      };
     }
   });
 
   // 3dmapengine/components/canvas/InstancedGrid.jsx
   function InstancedGrid() {
-    const meshRef = (0, import_react7.useRef)();
-    const [hoveredId, setHoveredId] = (0, import_react7.useState)(null);
-    const prevHoveredId = (0, import_react7.useRef)(null);
+    const meshRef = (0, import_react6.useRef)();
+    const [hoveredId, setHoveredId] = (0, import_react6.useState)(null);
+    const prevHoveredId = (0, import_react6.useRef)(null);
     const selectedTile = useMapStore((state2) => state2.selectedTile);
-    const animatingOutTile = useMapStore((state2) => state2.animatingOutTile);
+    const animatingOutTiles = useMapStore((state2) => state2.animatingOutTiles);
     const setSelectedTile = useMapStore((state2) => state2.setSelectedTile);
     const openContextMenu = useMapStore((state2) => state2.openContextMenu);
     const mapData = useMapStore((state2) => state2.mapData);
     const filters = useMapStore((state2) => state2.filters);
-    const getBaseColor = (worldX, worldZ, tileData) => {
-      const tileY = -worldZ;
-      const rand = prng(worldX, tileY);
-      let r2 = 0.15 + rand * 0.05;
-      let g2 = 0.65 + rand * 0.2;
-      let b2 = 0.3 + rand * 0.15;
-      if (!tileData) {
-        return { r: r2 * 0.1, g: g2 * 0.1, b: b2 * 0.1 };
-      }
-      if (filters.highlightAlliance && tileData.allianceName) {
-        if (tileData.allianceName.toUpperCase() === filters.highlightAlliance.toUpperCase()) {
-          return { r: 1, g: 0, b: 0.33 };
-        }
-      }
-      if (filters.showOnly15Croppers) {
-        if (tileData.isOasis && tileData.oasisType && tileData.oasisType.toLowerCase().includes("crop")) {
-          return { r: 0.98, g: 1, b: 0 };
-        }
-      }
-      if (tileData.isOasis || tileData.oasisType) {
-        const type = (tileData.oasisType || "").toLowerCase();
-        if (type.includes("wood")) {
-          r2 += 0.2;
-          g2 -= 0.1;
-          b2 -= 0.2;
-        } else if (type.includes("crop") || type.includes("wheat")) {
-          r2 += 0.3;
-          g2 += 0.3;
-          b2 -= 0.1;
-        } else if (type.includes("iron")) {
-          r2 += 0.1;
-          g2 -= 0.2;
-          b2 += 0.1;
-        } else if (type.includes("clay")) {
-          r2 += 0.3;
-          g2 += 0.1;
-          b2 -= 0.1;
-        } else {
-          r2 += 0.1;
-          g2 += 0.1;
-          b2 += 0.2;
-        }
-      } else if (tileData.villageId || tileData.playerId) {
-        const alliance = (tileData.allianceName || "").toUpperCase();
-        if (alliance === "NULL" || alliance === "TRINITIUM") {
-          r2 = 0.1;
-          g2 = 0.3;
-          b2 = 0.9;
-        } else if (alliance !== "") {
-          r2 = 0.9;
-          g2 = 0.2;
-          b2 = 0.2;
-        } else {
-          r2 = 0.5;
-          g2 = 0.5;
-          b2 = 0.5;
-        }
-      }
-      return {
-        r: Math.min(1, Math.max(0, r2)),
-        g: Math.min(1, Math.max(0, g2)),
-        b: Math.min(1, Math.max(0, b2))
-      };
-    };
     const updateInstance = (id, scale, highlight = false) => {
       if (!meshRef.current || id === void 0 || id === null) return;
       const { worldX, worldZ } = getCoordsFromId(id);
@@ -82282,14 +82326,14 @@ No matching component was found for:
       tempObject.scale.set(scale, scale, scale);
       tempObject.updateMatrix();
       meshRef.current.setMatrixAt(id, tempObject.matrix);
-      const c2 = getBaseColor(worldX, worldZ, tileData);
+      const c2 = getBaseColor(worldX, worldZ, tileData, filters);
       tempColor.setRGB(c2.r, c2.g, c2.b);
       if (highlight) {
         tempColor.lerp(hoverColor, 0.5);
       }
       meshRef.current.setColorAt(id, tempColor);
     };
-    (0, import_react7.useEffect)(() => {
+    (0, import_react6.useEffect)(() => {
       if (!meshRef.current) return;
       for (let i3 = 0; i3 < INSTANCE_COUNT; i3++) {
         updateInstance(i3, 1, false);
@@ -82298,7 +82342,7 @@ No matching component was found for:
       meshRef.current.instanceColor.needsUpdate = true;
       meshRef.current.computeBoundingSphere();
     }, []);
-    (0, import_react7.useEffect)(() => {
+    (0, import_react6.useEffect)(() => {
       if (!meshRef.current) return;
       for (let i3 = 0; i3 < INSTANCE_COUNT; i3++) {
         const isHidden = prevHiddenIds.current.has(i3);
@@ -82306,12 +82350,14 @@ No matching component was found for:
       }
       meshRef.current.instanceColor.needsUpdate = true;
     }, [mapData, filters]);
-    const prevHiddenIds = (0, import_react7.useRef)(/* @__PURE__ */ new Set());
-    (0, import_react7.useEffect)(() => {
+    const prevHiddenIds = (0, import_react6.useRef)(/* @__PURE__ */ new Set());
+    (0, import_react6.useEffect)(() => {
       if (!meshRef.current) return;
       const currentHiddenIds = /* @__PURE__ */ new Set();
       if (selectedTile) currentHiddenIds.add(selectedTile.instanceId);
-      if (animatingOutTile) currentHiddenIds.add(animatingOutTile.instanceId);
+      if (animatingOutTiles && animatingOutTiles.length > 0) {
+        animatingOutTiles.forEach((t2) => currentHiddenIds.add(t2.instanceId));
+      }
       prevHiddenIds.current.forEach((id) => {
         if (!currentHiddenIds.has(id)) {
           updateInstance(id, 1, hoveredId === id);
@@ -82323,8 +82369,8 @@ No matching component was found for:
       prevHiddenIds.current = currentHiddenIds;
       meshRef.current.instanceMatrix.needsUpdate = true;
       if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
-    }, [selectedTile, animatingOutTile]);
-    (0, import_react7.useEffect)(() => {
+    }, [selectedTile, animatingOutTiles]);
+    (0, import_react6.useEffect)(() => {
       if (!meshRef.current) return;
       if (prevHoveredId.current !== null && prevHoveredId.current !== hoveredId) {
         const id = prevHoveredId.current;
@@ -82339,7 +82385,7 @@ No matching component was found for:
       meshRef.current.instanceMatrix.needsUpdate = true;
       if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
     }, [hoveredId]);
-    return /* @__PURE__ */ import_react7.default.createElement("group", null, /* @__PURE__ */ import_react7.default.createElement(
+    return /* @__PURE__ */ import_react6.default.createElement("group", null, /* @__PURE__ */ import_react6.default.createElement(
       "instancedMesh",
       {
         ref: meshRef,
@@ -82354,14 +82400,18 @@ No matching component was found for:
         onClick: (e2) => {
           e2.stopPropagation();
           if (e2.instanceId !== void 0) {
-            if (selectedTile && selectedTile.instanceId === e2.instanceId) {
-              setSelectedTile(null);
-              return;
-            }
             const { worldX, worldZ } = getCoordsFromId(e2.instanceId);
             const tileY = -worldZ;
+            useMapStore.setState({ cameraJumpTarget: { x: worldX, y: tileY } });
+            const graphicsQuality = useMapStore.getState().graphicsQuality;
+            if (graphicsQuality === "high" || graphicsQuality === "low") {
+              return;
+            }
+            if (selectedTile && selectedTile.instanceId === e2.instanceId) {
+              return;
+            }
             const tileData = mapData[`${worldX},${tileY}`];
-            const c2 = getBaseColor(worldX, worldZ, tileData);
+            const c2 = getBaseColor(worldX, worldZ, tileData, filters);
             setSelectedTile({
               instanceId: e2.instanceId,
               x: worldX,
@@ -82376,25 +82426,25 @@ No matching component was found for:
           if (e2.nativeEvent && e2.nativeEvent.preventDefault) {
             e2.nativeEvent.preventDefault();
           }
+          if (useMapStore.getState().isDraggingMap) return;
           if (e2.instanceId !== void 0) {
             const { worldX, worldZ } = getCoordsFromId(e2.instanceId);
             const tileY = -worldZ;
             openContextMenu(e2.clientX, e2.clientY, [worldX, tileY]);
           }
-        },
-        onPointerMissed: () => setSelectedTile(null)
+        }
       },
-      /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [1, 0.2, 1] }),
-      /* @__PURE__ */ import_react7.default.createElement("meshBasicMaterial", null)
-    ), /* @__PURE__ */ import_react7.default.createElement(TerritoryBorders, null));
+      /* @__PURE__ */ import_react6.default.createElement("boxGeometry", { args: [1, 0.2, 1] }),
+      /* @__PURE__ */ import_react6.default.createElement("meshBasicMaterial", null)
+    ), /* @__PURE__ */ import_react6.default.createElement(TerritoryBorders, null));
   }
-  var import_react7, GRID_SIZE, INSTANCE_COUNT, tempObject, tempColor, hoverColor, getCoordsFromId, TerritoryBorders;
+  var import_react6, GRID_SIZE, INSTANCE_COUNT, tempObject, tempColor, hoverColor, getCoordsFromId, TerritoryBorders;
   var init_InstancedGrid = __esm({
     "3dmapengine/components/canvas/InstancedGrid.jsx"() {
-      import_react7 = __toESM(require_react());
+      import_react6 = __toESM(require_react());
       init_three_module();
-      init_prng();
       init_mapStore();
+      init_colorUtils();
       GRID_SIZE = 400;
       INSTANCE_COUNT = GRID_SIZE * GRID_SIZE;
       tempObject = new Object3D();
@@ -82407,11 +82457,11 @@ No matching component was found for:
         return { worldX: x2 - offset, worldZ: z - offset };
       };
       TerritoryBorders = () => {
-        const meshRef = (0, import_react7.useRef)();
+        const meshRef = (0, import_react6.useRef)();
         const mapData = useMapStore((state2) => state2.mapData);
         const showTerritories = useMapStore((state2) => state2.showTerritories);
         const confederacyTags = useMapStore((state2) => state2.confederacyTags) || [];
-        (0, import_react7.useEffect)(() => {
+        (0, import_react6.useEffect)(() => {
           if (!meshRef.current) return;
           for (let i3 = 0; i3 < INSTANCE_COUNT; i3++) {
             let scale = 0;
@@ -82453,104 +82503,318 @@ No matching component was found for:
           meshRef.current.instanceMatrix.needsUpdate = true;
           meshRef.current.instanceColor.needsUpdate = true;
         }, [mapData, showTerritories]);
-        return /* @__PURE__ */ import_react7.default.createElement("instancedMesh", { ref: meshRef, args: [null, null, INSTANCE_COUNT], receiveShadow: true }, /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [1, 0.2, 1] }), /* @__PURE__ */ import_react7.default.createElement("meshBasicMaterial", { wireframe: true, transparent: true, opacity: 0.8, depthWrite: false, toneMapped: false }));
+        return /* @__PURE__ */ import_react6.default.createElement("instancedMesh", { ref: meshRef, args: [null, null, INSTANCE_COUNT], receiveShadow: true }, /* @__PURE__ */ import_react6.default.createElement("boxGeometry", { args: [1, 0.2, 1] }), /* @__PURE__ */ import_react6.default.createElement("meshBasicMaterial", { wireframe: true, transparent: true, opacity: 0.8, depthWrite: false, toneMapped: false }));
+      };
+    }
+  });
+
+  // 3dmapengine/utils/AssetManager.js
+  var getExtensionUrl, gltfLoader, dracoLoader2, safeLoadGeometry;
+  var init_AssetManager = __esm({
+    "3dmapengine/utils/AssetManager.js"() {
+      init_three_stdlib();
+      getExtensionUrl = (path) => {
+        if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL) {
+          return chrome.runtime.getURL(path.startsWith("/") ? path.slice(1) : path);
+        }
+        return path;
+      };
+      gltfLoader = new GLTFLoader();
+      dracoLoader2 = new DRACOLoader();
+      dracoLoader2.setDecoderPath(getExtensionUrl("3dmapengine/assets/draco/gltf/"));
+      gltfLoader.setDRACOLoader(dracoLoader2);
+      safeLoadGeometry = (url) => {
+        const resolvedUrl = getExtensionUrl(url);
+        return new Promise((resolve2) => {
+          gltfLoader.load(
+            resolvedUrl,
+            // onSuccess
+            (gltf) => {
+              let geometry2 = null;
+              gltf.scene.traverse((child) => {
+                if (child.isMesh && !geometry2) {
+                  geometry2 = child.geometry;
+                }
+              });
+              if (geometry2) {
+                console.log(`[AssetManager] Loaded geometry from ${url}`);
+                resolve2(geometry2);
+              } else {
+                console.warn(`[AssetManager] No mesh found in ${url}`);
+                resolve2(null);
+              }
+            },
+            // onProgress
+            void 0,
+            // onError (File not found, parse error, etc.)
+            (err) => {
+              console.log(`[AssetManager] Safe fallback triggered. Could not load ${url}. Reason:`, err.message || "404 Not Found");
+              resolve2(null);
+            }
+          );
+        });
       };
     }
   });
 
   // 3dmapengine/components/canvas/ExtractedTile.jsx
-  function AnimatedTile({ tile, isExiting }) {
-    const meshRef = (0, import_react8.useRef)();
-    const finishAnimationOut = useMapStore((state2) => state2.finishAnimationOut);
-    const mapData = useMapStore((state2) => state2.mapData);
-    const activeUI = useMapStore((state2) => state2.activeUI);
-    const tileData = mapData[`${tile.x},${tile.y}`];
+  function VillageModel({ tileData }) {
+    const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
+    const dracoPath = getExtensionUrl("/3dmapengine/assets/draco/gltf/");
+    const { nodes: rNodesS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_S.glb"), dracoPath);
+    const { nodes: rNodesM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_M.glb"), dracoPath);
+    const { nodes: rNodesL } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_L.glb"), dracoPath);
+    const rTexS = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_S.png"));
+    const rTexM = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_M.png"));
+    const rTexL = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_L.png"));
+    const { nodes: gNodesS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Gauls/Village_Gauls_S.glb"), dracoPath);
+    const { nodes: gNodesM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Gauls/Village_Gauls_M.glb"), dracoPath);
+    const { nodes: gNodesL } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Gauls/Village_Gauls_L.glb"), dracoPath);
+    const gTexS = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Gauls/Village_Gauls_S.png"));
+    const gTexM = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Gauls/Village_Gauls_M.png"));
+    const gTexL = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Gauls/Village_Gauls_L.png"));
+    const { nodes: tNodesS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_S.glb"), dracoPath);
+    const { nodes: tNodesM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_M.glb"), dracoPath);
+    const { nodes: tNodesL } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_L.glb"), dracoPath);
+    const tTexS = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_S.png"));
+    const tTexM = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_M.png"));
+    const tTexL = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_L.png"));
+    const { nodes: hNodesS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_S.glb"), dracoPath);
+    const { nodes: hNodesM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_M.glb"), dracoPath);
+    const { nodes: hNodesL } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_L.glb"), dracoPath);
+    const hTexS = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_S.png"));
+    const hTexM = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_M.png"));
+    const hTexL = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_L.png"));
+    if (!tileData || !tileData.villageId || tileData.isOasis) return null;
+    const tribe = (tileData.tribe || "").toLowerCase();
+    const pop = parseInt(tileData.population) || 0;
+    let isS = pop < 250;
+    let isM = pop >= 250 && pop < 500;
+    let isL = pop >= 500;
+    let isRoman = tribe.includes("roman") || tribe === "";
+    let isGaul = tribe.includes("gaul");
+    let isTeuton = tribe.includes("teuton");
+    let isHun = tribe.includes("hun");
+    if (graphicsQuality === "low") {
+      let tex;
+      if (isRoman) tex = isS ? rTexS : isM ? rTexM : rTexL;
+      else if (isGaul) tex = isS ? gTexS : isM ? gTexM : gTexL;
+      else if (isTeuton) tex = isS ? tTexS : isM ? tTexM : tTexL;
+      else if (isHun) tex = isS ? hTexS : isM ? hTexM : hTexL;
+      if (!tex) return null;
+      let targetSize = isS ? 0.85 : isM ? 0.9 : 0.95;
+      let planeScale = targetSize / 1.5;
+      return /* @__PURE__ */ import_react7.default.createElement("mesh", { raycast: () => null, rotation: [-Math.PI / 2, 0, Math.PI / 4], position: [0, 0.11, 0], scale: [planeScale, planeScale * 1.73205, planeScale] }, /* @__PURE__ */ import_react7.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react7.default.createElement("meshBasicMaterial", { map: tex, transparent: true, alphaTest: 0.5, side: DoubleSide }));
+    }
+    const rMeshS = Object.values(rNodesS).find((n) => n.isMesh);
+    const rMeshM = Object.values(rNodesM).find((n) => n.isMesh);
+    const rMeshL = Object.values(rNodesL).find((n) => n.isMesh);
+    const gMeshS = Object.values(gNodesS).find((n) => n.isMesh);
+    const gMeshM = Object.values(gNodesM).find((n) => n.isMesh);
+    const gMeshL = Object.values(gNodesL).find((n) => n.isMesh);
+    const tMeshS = Object.values(tNodesS).find((n) => n.isMesh);
+    const tMeshM = Object.values(tNodesM).find((n) => n.isMesh);
+    const tMeshL = Object.values(tNodesL).find((n) => n.isMesh);
+    const hMeshS = Object.values(hNodesS).find((n) => n.isMesh);
+    const hMeshM = Object.values(hNodesM).find((n) => n.isMesh);
+    const hMeshL = Object.values(hNodesL).find((n) => n.isMesh);
+    if (!isRoman && !isGaul && !isTeuton && !isHun) {
+      return /* @__PURE__ */ import_react7.default.createElement("mesh", { raycast: () => null, position: [0, 0.3, 0], scale: [0.6, 0.6, 0.6], castShadow: true, receiveShadow: true }, /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [0.5, 0.5, 0.5] }), /* @__PURE__ */ import_react7.default.createElement("meshStandardMaterial", { color: "#7f8fa6", roughness: 0.8 }));
+    }
+    let mesh;
+    if (isRoman) mesh = isS ? rMeshS : isM ? rMeshM : rMeshL;
+    else if (isGaul) mesh = isS ? gMeshS : isM ? gMeshM : gMeshL;
+    else if (isTeuton) mesh = isS ? tMeshS : isM ? tMeshM : tMeshL;
+    else if (isHun) mesh = isS ? hMeshS : isM ? hMeshM : hMeshL;
+    let targetCoverage = isS ? 0.85 : isM ? 0.9 : 0.95;
+    if (!mesh) return null;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const box = mesh.geometry.boundingBox;
+    const width = box.max.x - box.min.x;
+    const depth = box.max.z - box.min.z;
+    const maxDim = Math.max(width, depth);
+    const scale = targetCoverage / maxDim;
+    const offset = -(box.min.y * scale) + 0.1;
+    return /* @__PURE__ */ import_react7.default.createElement("group", { position: [0, offset, 0], scale: [scale, scale, scale] }, /* @__PURE__ */ import_react7.default.createElement("mesh", { raycast: () => null, geometry: mesh.geometry, material: mesh.material, castShadow: true, receiveShadow: true }));
+  }
+  function BiomeModel({ tileData }) {
+    const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
+    const [loadedGeoms, setLoadedGeoms] = import_react7.default.useState({ wood: null, crop: null, iron: null, clay: null });
+    import_react7.default.useEffect(() => {
+      let isMounted = true;
+      const loadAssets = async () => {
+        const [wood, crop, iron, clay] = await Promise.all([
+          safeLoadGeometry("/3dmapengine/assets/models/wood.glb"),
+          safeLoadGeometry("/3dmapengine/assets/models/crop.glb"),
+          safeLoadGeometry("/3dmapengine/assets/models/iron.glb"),
+          safeLoadGeometry("/3dmapengine/assets/models/clay.glb")
+        ]);
+        if (isMounted) setLoadedGeoms({ wood, crop, iron, clay });
+      };
+      loadAssets();
+      return () => {
+        isMounted = false;
+      };
+    }, []);
+    if (!tileData || !tileData.isOasis || !tileData.oasisType) return null;
+    let instancesToPlace = 1;
+    if (graphicsQuality === "mid") instancesToPlace = 2;
+    if (graphicsQuality === "high") instancesToPlace = 4;
+    const type = tileData.oasisType.toLowerCase();
+    let geom = null;
+    let color2 = "#fff";
+    if (type.includes("wood")) {
+      geom = loadedGeoms.wood;
+      color2 = "#2e7d32";
+    } else if (type.includes("crop")) {
+      geom = loadedGeoms.crop;
+      color2 = "#fbc02d";
+    } else if (type.includes("iron")) {
+      geom = loadedGeoms.iron;
+      color2 = "#9e9e9e";
+    } else if (type.includes("clay")) {
+      geom = loadedGeoms.clay;
+      color2 = "#d84315";
+    }
+    const instances = [];
+    for (let i3 = 0; i3 < instancesToPlace; i3++) {
+      let offsetX = 0;
+      let offsetZ = 0;
+      let scale = 0.6 + prng(tileData.x + 5, tileData.y + i3) * 0.8;
+      if (graphicsQuality !== "low" && i3 > 0) {
+        let scatterRadius = graphicsQuality === "high" ? 1.3 : 0.7;
+        offsetX = (prng(tileData.x, tileData.y + i3) - 0.5) * scatterRadius;
+        offsetZ = (prng(tileData.x + 1, tileData.y + i3) - 0.5) * scatterRadius;
+      }
+      instances.push(
+        /* @__PURE__ */ import_react7.default.createElement(
+          "mesh",
+          {
+            key: i3,
+            raycast: () => null,
+            geometry: geom,
+            position: [offsetX, 0.4 * scale, offsetZ],
+            rotation: [
+              (prng(tileData.x + 3, tileData.y + i3) - 0.5) * 0.2,
+              prng(tileData.x + 2, tileData.y + i3) * Math.PI * 2,
+              (prng(tileData.x + 4, tileData.y + i3) - 0.5) * 0.2
+            ],
+            scale: [scale, scale, scale],
+            castShadow: true,
+            receiveShadow: true
+          },
+          !geom && type.includes("wood") && /* @__PURE__ */ import_react7.default.createElement("coneGeometry", { args: [0.3, 0.8, 4] }),
+          !geom && type.includes("crop") && /* @__PURE__ */ import_react7.default.createElement("cylinderGeometry", { args: [0.2, 0.2, 0.6, 6] }),
+          !geom && type.includes("iron") && /* @__PURE__ */ import_react7.default.createElement("tetrahedronGeometry", { args: [0.5] }),
+          !geom && type.includes("clay") && /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [0.4, 0.4, 0.4] }),
+          /* @__PURE__ */ import_react7.default.createElement("meshStandardMaterial", { color: color2, roughness: 0.8 })
+        )
+      );
+    }
+    return /* @__PURE__ */ import_react7.default.createElement("group", { position: [0, 0.2, 0] }, instances);
+  }
+  function TileParticles({ color: color2, isExiting }) {
+    const count = 15;
+    const meshRef = import_react7.default.useRef();
+    const dummy = import_react7.default.useMemo(() => new Object3D(), []);
+    const particles = import_react7.default.useMemo(() => {
+      return Array.from({ length: count }, () => ({
+        x: (Math.random() - 0.5) * 0.8,
+        z: (Math.random() - 0.5) * 0.8,
+        y: -0.1 - Math.random() * 0.4,
+        speed: 0.2 + Math.random() * 0.5,
+        scale: Math.random() * 0.05 + 0.01,
+        rotSpeed: Math.random() * 5
+      }));
+    }, []);
     useFrame((state2, delta) => {
-      if (!meshRef.current) return;
-      if (isExiting) {
-        meshRef.current.position.y = MathUtils.lerp(meshRef.current.position.y, 0, delta * 12);
-        if (meshRef.current.position.y < 0.05) {
-          finishAnimationOut();
+      if (!meshRef.current || isExiting) return;
+      const safeDelta = Math.min(delta, 0.1);
+      particles.forEach((p4, i3) => {
+        p4.y -= safeDelta * p4.speed;
+        if (p4.y < -4) {
+          p4.y = -0.1 - Math.random() * 0.2;
+          p4.x = (Math.random() - 0.5) * 0.8;
+          p4.z = (Math.random() - 0.5) * 0.8;
         }
-      } else {
-        meshRef.current.position.y = MathUtils.lerp(meshRef.current.position.y, 2, delta * 12);
+        dummy.position.set(p4.x, p4.y, p4.z);
+        dummy.rotation.x += p4.rotSpeed * safeDelta;
+        dummy.rotation.y += p4.rotSpeed * safeDelta;
+        const s = Math.min(0.03, Math.max(1e-3, p4.scale * ((p4.y + 4) * 0.6)));
+        dummy.scale.set(s, s, s);
+        dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i3, dummy.matrix);
+      });
+      meshRef.current.instanceMatrix.needsUpdate = true;
+    });
+    if (isExiting) return null;
+    return /* @__PURE__ */ import_react7.default.createElement("instancedMesh", { raycast: () => null, ref: meshRef, args: [null, null, count], position: [0, -0.1, 0] }, /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [1, 1, 1] }), /* @__PURE__ */ import_react7.default.createElement("meshBasicMaterial", { color: new Color(...color2), transparent: true, opacity: 0.7, blending: AdditiveBlending, depthWrite: false }));
+  }
+  function AnimatedTile({ tile, isExiting }) {
+    const meshRef = import_react7.default.useRef();
+    const mapData = useMapStore((state2) => state2.mapData);
+    const tileData = mapData[`${tile.x},${tile.y}`];
+    const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
+    const glowRef = import_react7.default.useRef();
+    useFrame((state2, delta) => {
+      const safeDelta = Math.min(delta, 0.1);
+      if (meshRef.current) {
+        if (isExiting) {
+          meshRef.current.position.y = MathUtils.lerp(meshRef.current.position.y, 0, safeDelta * 15);
+          if (meshRef.current.position.y <= 0.01) {
+            useMapStore.getState().removeAnimatingOutTile(tile.instanceId);
+          }
+        } else {
+          const floatOffset = Math.sin(state2.clock.elapsedTime * 2) * 0.03;
+          const targetY = 0.525 + floatOffset;
+          meshRef.current.position.y = MathUtils.lerp(meshRef.current.position.y, targetY, safeDelta * 10);
+        }
+      }
+      if (glowRef.current) {
+        const pulse = Math.sin(state2.clock.elapsedTime * 4) * 0.2 + 0.5;
+        glowRef.current.opacity = pulse;
       }
     });
-    let intelStatus = { text: "Unexplored Sector - No Intel", color: "#a4b0be" };
-    let intelDetails = null;
-    if (tileData) {
-      const isOccupied = tileData.villageId || tileData.playerId || tileData.playerName || tileData.allianceName;
-      const isOasis = tileData.isOasis || tileData.type && tileData.type.includes("oasis") || tileData.villageName && tileData.villageName.toLowerCase().includes("oasis");
-      if (isOasis) {
-        if (isOccupied) {
-          intelStatus = { text: `Occupied Oasis - ${tileData.oasisType || "wood"}`, color: "#ff4757" };
-        } else {
-          intelStatus = { text: `Free Oasis - ${tileData.oasisType || "wood"}`, color: "#2ed573" };
-        }
-        if (isOccupied) {
-          intelDetails = /* @__PURE__ */ import_react8.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#dfe4ea", marginBottom: "2px" } }, "\u{1F464} ", tileData.playerName || "Nature"), /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#00f2fe", marginBottom: "2px" } }, "\u{1F6E1}\uFE0F ", tileData.allianceName || "No Alliance"));
-        } else {
-          intelDetails = /* @__PURE__ */ import_react8.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#2ed573", marginBottom: "2px" } }, "\u{1F33F} ", tileData.bonus || "Unknown Bonus"));
-        }
-      } else if (isOccupied) {
-        intelStatus = { text: "Active Settlement", color: "#ff4757" };
-        intelDetails = /* @__PURE__ */ import_react8.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#dfe4ea", marginBottom: "2px" } }, "\u{1F464} ", tileData.playerName || "Unknown"), /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#00f2fe", marginBottom: "2px" } }, "\u{1F6E1}\uFE0F ", tileData.allianceName || "No Alliance"), /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#eccc68" } }, "\u{1F465} Pop: ", tileData.population || tileData.pop || "?"));
-      } else {
-        intelStatus = { text: "Empty Terrain", color: "#747d8c" };
-        if (tileData.terrain) {
-          intelDetails = /* @__PURE__ */ import_react8.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react8.default.createElement("div", { style: { color: "#747d8c", marginBottom: "2px" } }, "\u26F0\uFE0F Terrain: ", tileData.terrain));
-        }
-      }
-    }
-    return /* @__PURE__ */ import_react8.default.createElement(
+    return /* @__PURE__ */ import_react7.default.createElement(
       "mesh",
       {
         ref: meshRef,
-        position: [tile.x, isExiting ? 2 : 0, tile.z]
-      },
-      /* @__PURE__ */ import_react8.default.createElement("boxGeometry", { args: [1, 0.2, 1] }),
-      /* @__PURE__ */ import_react8.default.createElement("meshBasicMaterial", { color: new Color(...tile.color) }),
-      /* @__PURE__ */ import_react8.default.createElement("lineSegments", null, /* @__PURE__ */ import_react8.default.createElement("edgesGeometry", { args: [new BoxGeometry(1, 0.2, 1)] }), /* @__PURE__ */ import_react8.default.createElement("lineBasicMaterial", { color: new Color("#00f2fe"), opacity: 0.6, transparent: true })),
-      !isExiting && /* @__PURE__ */ import_react8.default.createElement(Html, { position: [0, 0.5, 0], center: true, zIndexRange: activeUI === "extractedTile" ? [9999, 0] : [1e3, 0] }, /* @__PURE__ */ import_react8.default.createElement(
-        "div",
-        {
-          onPointerDownCapture: () => useMapStore.getState().bringToFront("extractedTile"),
-          style: {
-            background: "rgba(15, 20, 30, 0.95)",
-            border: "1px solid #00f2fe",
-            boxShadow: "0 0 20px rgba(0, 242, 254, 0.2)",
-            borderRadius: "8px",
-            padding: "12px",
-            width: "200px",
-            color: "#fff",
-            fontFamily: "Inter, sans-serif",
-            pointerEvents: "auto",
-            userSelect: "none",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center"
+        position: [tile.x, isExiting ? 0.3 : 0, tile.z],
+        onClick: (e2) => e2.stopPropagation(),
+        onPointerDown: (e2) => e2.stopPropagation(),
+        onPointerUp: (e2) => e2.stopPropagation(),
+        onContextMenu: (e2) => {
+          e2.stopPropagation();
+          if (e2.nativeEvent && e2.nativeEvent.preventDefault) {
+            e2.nativeEvent.preventDefault();
           }
-        },
-        /* @__PURE__ */ import_react8.default.createElement("div", { style: { fontSize: "10px", color: "#00f2fe", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "4px" } }, "SECTOR COORDS"),
-        /* @__PURE__ */ import_react8.default.createElement("div", { style: { fontSize: "16px", fontWeight: "bold", color: "#fff", marginBottom: "8px" } }, "[", tile.x, ", ", tile.y, "]"),
-        /* @__PURE__ */ import_react8.default.createElement("div", { style: { fontSize: "12px", color: intelStatus.color, fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" } }, /* @__PURE__ */ import_react8.default.createElement("span", { style: { display: "inline-block", width: "8px", height: "8px", background: intelStatus.color, borderRadius: "50%", boxShadow: `0 0 8px ${intelStatus.color}` } }), intelStatus.text),
-        intelDetails
-      ))
+          if (useMapStore.getState().isDraggingMap) return;
+          useMapStore.getState().openContextMenu(e2.clientX, e2.clientY, [tile.x, tile.y]);
+        }
+      },
+      /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [1, 0.2, 1] }),
+      /* @__PURE__ */ import_react7.default.createElement("meshBasicMaterial", { color: new Color(...tile.color) }),
+      /* @__PURE__ */ import_react7.default.createElement("lineSegments", { raycast: () => null }, /* @__PURE__ */ import_react7.default.createElement("edgesGeometry", { args: [new BoxGeometry(1, 0.2, 1)] }), /* @__PURE__ */ import_react7.default.createElement("lineBasicMaterial", { ref: glowRef, color: new Color("#00f2fe"), opacity: 0.6, transparent: true })),
+      /* @__PURE__ */ import_react7.default.createElement(TileParticles, { color: tile.color, isExiting }),
+      (graphicsQuality === "mid" || graphicsQuality === "high") && /* @__PURE__ */ import_react7.default.createElement("mesh", { raycast: () => null, scale: [1.05, 1.2, 1.05] }, /* @__PURE__ */ import_react7.default.createElement("boxGeometry", { args: [1, 0.2, 1] }), /* @__PURE__ */ import_react7.default.createElement("meshBasicMaterial", { color: new Color("#ffd700"), transparent: true, opacity: 0.15, blending: AdditiveBlending, depthWrite: false })),
+      /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Suspense, { fallback: null }, /* @__PURE__ */ import_react7.default.createElement(VillageModel, { tileData }), /* @__PURE__ */ import_react7.default.createElement(BiomeModel, { tileData }))
     );
   }
   function ExtractedTile() {
     const selectedTile = useMapStore((state2) => state2.selectedTile);
-    const animatingOutTile = useMapStore((state2) => state2.animatingOutTile);
-    return /* @__PURE__ */ import_react8.default.createElement(import_react8.default.Fragment, null, selectedTile && /* @__PURE__ */ import_react8.default.createElement(AnimatedTile, { key: `sel-${selectedTile.instanceId}`, tile: selectedTile, isExiting: false }), animatingOutTile && /* @__PURE__ */ import_react8.default.createElement(AnimatedTile, { key: `out-${animatingOutTile.instanceId}`, tile: animatingOutTile, isExiting: true }));
+    const animatingOutTiles = useMapStore((state2) => state2.animatingOutTiles);
+    return /* @__PURE__ */ import_react7.default.createElement(import_react7.default.Fragment, null, selectedTile && /* @__PURE__ */ import_react7.default.createElement(AnimatedTile, { key: `sel-${selectedTile.instanceId}`, tile: selectedTile, isExiting: false }), animatingOutTiles && animatingOutTiles.map((t2) => /* @__PURE__ */ import_react7.default.createElement(AnimatedTile, { key: `out-${t2.instanceId}`, tile: t2, isExiting: true })));
   }
-  var import_react8;
+  var import_react7;
   var init_ExtractedTile = __esm({
     "3dmapengine/components/canvas/ExtractedTile.jsx"() {
-      import_react8 = __toESM(require_react());
+      import_react7 = __toESM(require_react());
       init_react_three_fiber_esm();
       init_drei();
       init_three_module();
       init_mapStore();
+      init_AssetManager();
+      init_prng();
     }
   });
 
@@ -82558,10 +82822,16 @@ No matching component was found for:
   function CameraController() {
     const cameraMode = useMapStore((state2) => state2.cameraMode);
     const panTarget = useMapStore((state2) => state2.panTarget);
+    const setCurrentCenterCoords = useMapStore((state2) => state2.setCurrentCenterCoords);
+    const setIsDraggingMap = useMapStore((state2) => state2.setIsDraggingMap);
+    const setZoomLevel = useMapStore((state2) => state2.setZoomLevel);
+    const targetZoom = useMapStore((state2) => state2.targetZoom);
+    const setIsZooming = useMapStore((state2) => state2.setIsZooming);
     const { camera, controls } = useThree();
-    const [targetSpherical, setTargetSpherical] = (0, import_react9.useState)(null);
-    const currentSpherical = (0, import_react9.useRef)(new Spherical());
-    (0, import_react9.useEffect)(() => {
+    const [targetSpherical, setTargetSpherical] = (0, import_react8.useState)(null);
+    const currentSpherical = (0, import_react8.useRef)(new Spherical());
+    const snapTarget = (0, import_react8.useRef)(null);
+    (0, import_react8.useEffect)(() => {
       if (!controls || !panTarget) return;
       const newTarget = new Vector3(panTarget.x, 0, -panTarget.y);
       controls.target.copy(newTarget);
@@ -82570,7 +82840,7 @@ No matching component was found for:
       currentSpherical.current.radius += 50;
       controls.enabled = false;
     }, [panTarget, controls, camera]);
-    (0, import_react9.useEffect)(() => {
+    (0, import_react8.useEffect)(() => {
       if (!controls) return;
       const offset = new Vector3().copy(camera.position).sub(controls.target);
       currentSpherical.current.setFromVector3(offset);
@@ -82592,20 +82862,175 @@ No matching component was found for:
       );
       setTargetSpherical(cameraMode === "isometric" ? isoS : topS);
     }, [cameraMode, controls]);
+    (0, import_react8.useEffect)(() => {
+      if (!controls) return;
+      let startPos = new Vector3();
+      let isMouseActive = false;
+      const handleChange = () => {
+        if (isMouseActive && controls.target.distanceTo(startPos) > 0.1) {
+          if (!useMapStore.getState().isDraggingMap) {
+            setIsDraggingMap(true);
+          }
+        }
+      };
+      const handleStart = (e2) => {
+        isMouseActive = true;
+        snapTarget.current = null;
+        startPos.copy(controls.target);
+      };
+      const handleEnd = () => {
+        isMouseActive = false;
+        setTimeout(() => setIsDraggingMap(false), 50);
+        snapTarget.current = new Vector3(
+          Math.round(controls.target.x),
+          0,
+          Math.round(controls.target.z)
+        );
+      };
+      controls.addEventListener("change", handleChange);
+      controls.addEventListener("start", handleStart);
+      controls.addEventListener("end", handleEnd);
+      const unsub = useMapStore.subscribe(
+        (state2) => state2.cameraJumpTarget,
+        (jumpT) => {
+          if (jumpT) {
+            snapTarget.current = new Vector3(jumpT.x, 0, -jumpT.y);
+            useMapStore.setState({ cameraJumpTarget: null });
+          }
+        }
+      );
+      return () => {
+        controls.removeEventListener("change", handleChange);
+        controls.removeEventListener("start", handleStart);
+        controls.removeEventListener("end", handleEnd);
+        unsub();
+      };
+    }, [controls, setCurrentCenterCoords, setIsDraggingMap]);
+    (0, import_react8.useEffect)(() => {
+      if (!controls) return;
+      const handleKeyDown = (e2) => {
+        if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+        let moved = false;
+        const step = 1;
+        const target = snapTarget.current ? snapTarget.current.clone() : controls.target.clone();
+        if (e2.key === "ArrowUp") {
+          target.z -= step;
+          moved = true;
+        } else if (e2.key === "ArrowDown") {
+          target.z += step;
+          moved = true;
+        } else if (e2.key === "ArrowLeft") {
+          target.x -= step;
+          moved = true;
+        } else if (e2.key === "ArrowRight") {
+          target.x += step;
+          moved = true;
+        }
+        if (moved) {
+          snapTarget.current = target;
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [controls, setCurrentCenterCoords]);
+    (0, import_react8.useEffect)(() => {
+      let wheelTimeout;
+      const handleWheel = (e2) => {
+        if (e2.target.closest && e2.target.closest(".no-zoom-scroll")) return;
+        if (e2.target.tagName === "CANVAS") {
+          e2.preventDefault();
+        }
+        if (wheelTimeout) return;
+        if (e2.deltaY > 0) {
+          setZoomLevel(1);
+        } else if (e2.deltaY < 0) {
+          setZoomLevel(-1);
+        }
+        wheelTimeout = setTimeout(() => {
+          wheelTimeout = null;
+        }, 100);
+      };
+      window.addEventListener("wheel", handleWheel, { passive: false });
+      return () => window.removeEventListener("wheel", handleWheel);
+    }, [setZoomLevel]);
     useFrame((state2, delta) => {
-      if (!targetSpherical || !controls) return;
-      if (controls.enabled) return;
+      if (!controls) return;
+      const currentZoom = camera.zoom;
+      if (Math.abs(currentZoom - targetZoom) > 0.01) {
+        if (useMapStore.getState().engineConfig.enableZoomAnimation) {
+          camera.zoom = MathUtils.damp(currentZoom, targetZoom, 12, delta);
+          camera.updateProjectionMatrix();
+          if (!useMapStore.getState().isZooming) {
+            setIsZooming(true);
+          }
+        } else {
+          camera.zoom = targetZoom;
+          camera.updateProjectionMatrix();
+        }
+      } else {
+        if (currentZoom !== targetZoom) {
+          camera.zoom = targetZoom;
+          camera.updateProjectionMatrix();
+        }
+        if (useMapStore.getState().isZooming) {
+          setIsZooming(false);
+        }
+      }
+      if (snapTarget.current && !useMapStore.getState().isDraggingMap) {
+        const dist = controls.target.distanceTo(snapTarget.current);
+        if (dist > 0.01) {
+          const lerpFactor = Math.min(delta * 15, 1);
+          controls.target.lerp(snapTarget.current, lerpFactor);
+        } else {
+          controls.target.copy(snapTarget.current);
+          snapTarget.current = null;
+        }
+        controls.update();
+      }
+      const cx = Math.round(controls.target.x);
+      const cy = Math.round(-controls.target.z);
+      const prevCoords = useMapStore.getState().currentCenterCoords;
+      if (!prevCoords || prevCoords.x !== cx || prevCoords.y !== cy) {
+        setCurrentCenterCoords({ x: cx, y: cy });
+        const graphicsQuality = useMapStore.getState().graphicsQuality;
+        if (graphicsQuality === "high" || graphicsQuality === "custom") {
+          const GRID_SIZE2 = 400;
+          const offset = Math.floor(GRID_SIZE2 / 2);
+          const id = (cx + offset) * GRID_SIZE2 + (-cy + offset);
+          const currentSelected = useMapStore.getState().selectedTile;
+          if (!currentSelected || currentSelected.instanceId !== id) {
+            const mapData = useMapStore.getState().mapData;
+            const filters = useMapStore.getState().filters;
+            const tileData = mapData[`${cx},${cy}`];
+            const c2 = getBaseColor(cx, -cy, tileData, filters);
+            useMapStore.getState().setSelectedTile({
+              instanceId: id,
+              x: cx,
+              y: cy,
+              z: -cy,
+              color: [c2.r, c2.g, c2.b]
+            });
+          }
+        }
+      }
+      if (!targetSpherical) return;
+      if (controls.enabled) {
+        const offset = new Vector3().setFromSpherical(targetSpherical);
+        camera.position.copy(controls.target).add(offset);
+        camera.lookAt(controls.target);
+        return;
+      }
       const dr = Math.abs(currentSpherical.current.radius - targetSpherical.radius);
       const dp = Math.abs(currentSpherical.current.phi - targetSpherical.phi);
       const dt = Math.abs(currentSpherical.current.theta - targetSpherical.theta);
       if (dr > 0.5 || dp > 0.01 || dt > 0.01) {
-        controls.enabled = false;
-        const speed = delta * 12;
+        const speed = Math.min(delta * 12, 1);
         currentSpherical.current.radius = MathUtils.lerp(currentSpherical.current.radius, targetSpherical.radius, speed);
         currentSpherical.current.phi = MathUtils.lerp(currentSpherical.current.phi, targetSpherical.phi, speed);
         currentSpherical.current.theta = MathUtils.lerp(currentSpherical.current.theta, targetSpherical.theta, speed);
         const offset = new Vector3().setFromSpherical(currentSpherical.current);
         camera.position.copy(controls.target).add(offset);
+        camera.lookAt(controls.target);
         controls.update();
       } else {
         if (!controls.enabled) {
@@ -82619,13 +83044,14 @@ No matching component was found for:
     });
     return null;
   }
-  var import_react9;
+  var import_react8;
   var init_CameraController = __esm({
     "3dmapengine/components/canvas/CameraController.jsx"() {
-      import_react9 = __toESM(require_react());
+      import_react8 = __toESM(require_react());
       init_react_three_fiber_esm();
       init_three_module();
       init_mapStore();
+      init_colorUtils();
     }
   });
 
@@ -82634,7 +83060,7 @@ No matching component was found for:
     const tacticalRoutes = useMapStore((state2) => state2.tacticalRoutes);
     const cameraMode = useMapStore((state2) => state2.cameraMode);
     if (!tacticalRoutes || tacticalRoutes.length === 0) return null;
-    return /* @__PURE__ */ import_react10.default.createElement("group", null, tacticalRoutes.map((route, index2) => {
+    return /* @__PURE__ */ import_react9.default.createElement("group", null, tacticalRoutes.map((route, index2) => {
       const start = new Vector3(route.start[0], 0.5, route.start[1]);
       const end = new Vector3(route.end[0], 0.5, route.end[1]);
       const distance = start.distanceTo(end);
@@ -82648,7 +83074,7 @@ No matching component was found for:
       if (route.type === "attack") color2 = "#ff0055";
       else if (route.type === "def") color2 = "#00f2fe";
       else if (route.type === "fake") color2 = "#fbff00";
-      return /* @__PURE__ */ import_react10.default.createElement(
+      return /* @__PURE__ */ import_react9.default.createElement(
         QuadraticBezierLine,
         {
           key: route.id || index2,
@@ -82668,10 +83094,10 @@ No matching component was found for:
       );
     }));
   }
-  var import_react10;
+  var import_react9;
   var init_VectorOverlays = __esm({
     "3dmapengine/components/canvas/VectorOverlays.jsx"() {
-      import_react10 = __toESM(require_react());
+      import_react9 = __toESM(require_react());
       init_three_module();
       init_drei();
       init_mapStore();
@@ -82681,14 +83107,14 @@ No matching component was found for:
   // 3dmapengine/components/canvas/RoleSprites.jsx
   function RoleSprites() {
     const mapData = useMapStore((state2) => state2.mapData);
-    const taggedTiles = (0, import_react11.useMemo)(() => {
+    const taggedTiles = (0, import_react10.useMemo)(() => {
       if (!mapData) return [];
       return Object.values(mapData).filter((tile) => tile.roles && tile.roles.length > 0);
     }, [mapData]);
     if (taggedTiles.length === 0) return null;
-    return /* @__PURE__ */ import_react11.default.createElement("group", null, taggedTiles.map((tile, idx) => {
+    return /* @__PURE__ */ import_react10.default.createElement("group", null, taggedTiles.map((tile, idx) => {
       const iconString = tile.roles.map((r2) => ICONS[r2.toLowerCase()] || "").join(" ");
-      return /* @__PURE__ */ import_react11.default.createElement(
+      return /* @__PURE__ */ import_react10.default.createElement(
         Html,
         {
           key: `role-${tile.villageId || idx}`,
@@ -82709,10 +83135,10 @@ No matching component was found for:
       );
     }));
   }
-  var import_react11, ICONS;
+  var import_react10, ICONS;
   var init_RoleSprites = __esm({
     "3dmapengine/components/canvas/RoleSprites.jsx"() {
-      import_react11 = __toESM(require_react());
+      import_react10 = __toESM(require_react());
       init_drei();
       init_mapStore();
       ICONS = {
@@ -82727,12 +83153,12 @@ No matching component was found for:
 
   // 3dmapengine/components/canvas/DynamicSun.jsx
   function DynamicSun() {
-    const lightNearRef = (0, import_react12.useRef)();
-    const targetNearRef = (0, import_react12.useRef)();
-    const helperNearRef = (0, import_react12.useRef)(null);
-    const lightFarRef = (0, import_react12.useRef)();
-    const targetFarRef = (0, import_react12.useRef)();
-    const helperFarRef = (0, import_react12.useRef)(null);
+    const lightNearRef = (0, import_react11.useRef)();
+    const targetNearRef = (0, import_react11.useRef)();
+    const helperNearRef = (0, import_react11.useRef)(null);
+    const lightFarRef = (0, import_react11.useRef)();
+    const targetFarRef = (0, import_react11.useRef)();
+    const helperFarRef = (0, import_react11.useRef)(null);
     const { camera, scene } = useThree();
     const shadowsEnabled = useMapStore((state2) => state2.shadowsEnabled);
     const cameraMode = useMapStore((state2) => state2.cameraMode);
@@ -82799,7 +83225,7 @@ No matching component was found for:
       }
     });
     if (!shadowsEnabled || cameraMode !== "isometric") return null;
-    return /* @__PURE__ */ import_react12.default.createElement(import_react12.default.Fragment, null, /* @__PURE__ */ import_react12.default.createElement("ambientLight", { intensity: 0.2 }), /* @__PURE__ */ import_react12.default.createElement("hemisphereLight", { skyColor: "#ffffff", groundColor: "#222222", intensity: 0.3 }), params.enableNear && /* @__PURE__ */ import_react12.default.createElement(import_react12.default.Fragment, null, /* @__PURE__ */ import_react12.default.createElement(
+    return /* @__PURE__ */ import_react11.default.createElement(import_react11.default.Fragment, null, /* @__PURE__ */ import_react11.default.createElement("ambientLight", { intensity: 0.2 }), /* @__PURE__ */ import_react11.default.createElement("hemisphereLight", { skyColor: "#ffffff", groundColor: "#222222", intensity: 0.3 }), params.enableNear && /* @__PURE__ */ import_react11.default.createElement(import_react11.default.Fragment, null, /* @__PURE__ */ import_react11.default.createElement(
       "directionalLight",
       {
         key: `near-${params.nearMapSize}`,
@@ -82816,7 +83242,7 @@ No matching component was found for:
         "shadow-bias": params.nearBias,
         "shadow-radius": 1
       }
-    ), /* @__PURE__ */ import_react12.default.createElement("object3D", { ref: targetNearRef })), params.enableFar && /* @__PURE__ */ import_react12.default.createElement(import_react12.default.Fragment, null, /* @__PURE__ */ import_react12.default.createElement(
+    ), /* @__PURE__ */ import_react11.default.createElement("object3D", { ref: targetNearRef })), params.enableFar && /* @__PURE__ */ import_react11.default.createElement(import_react11.default.Fragment, null, /* @__PURE__ */ import_react11.default.createElement(
       "directionalLight",
       {
         key: `far-${params.farMapSize}`,
@@ -82833,12 +83259,12 @@ No matching component was found for:
         "shadow-bias": params.farBias,
         "shadow-radius": 0
       }
-    ), /* @__PURE__ */ import_react12.default.createElement("object3D", { ref: targetFarRef })));
+    ), /* @__PURE__ */ import_react11.default.createElement("object3D", { ref: targetFarRef })));
   }
-  var import_react12, groundPlane, centerVec, mapCenterVec;
+  var import_react11, groundPlane, centerVec, mapCenterVec;
   var init_DynamicSun = __esm({
     "3dmapengine/components/canvas/DynamicSun.jsx"() {
-      import_react12 = __toESM(require_react());
+      import_react11 = __toESM(require_react());
       init_react_three_fiber_esm();
       init_three_module();
       init_mapStore();
@@ -89391,7 +89817,7 @@ ${indent})`;
         let t3 = `@react-three/postprocessing/${e2.name}-${Le++}`;
         extend({ [t3]: e2 }), Re.set(e2, c2 = t3);
       }
-      let l2 = useThree((e3) => e3.camera), u2 = (0, import_react13.useMemo)(() => [...t2?.args ?? [], ...s.args ?? [{
+      let l2 = useThree((e3) => e3.camera), u2 = (0, import_react12.useMemo)(() => [...t2?.args ?? [], ...s.args ?? [{
         ...t2,
         ...s
       }]], [He(s)]);
@@ -89405,23 +89831,23 @@ ${indent})`;
       });
     };
   }
-  var import_react13, import_jsx_runtime3, G, Oe, Ae, je, Ne, Le, Re, ze, Be, Ye, Xe, ot, Mt, Nt;
+  var import_react12, import_jsx_runtime3, G, Oe, Ae, je, Ne, Le, Re, ze, Be, Ye, Xe, ot, Mt, Nt;
   var init_dist3 = __esm({
     "node_modules/@react-three/postprocessing/dist/index.js"() {
       init_react_three_fiber_esm();
       init_build();
-      import_react13 = __toESM(require_react(), 1);
+      import_react12 = __toESM(require_react(), 1);
       init_three_module();
       import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
       init_maath_esm();
       init_N8AO();
-      G = /* @__PURE__ */ (0, import_react13.createContext)(null);
+      G = /* @__PURE__ */ (0, import_react12.createContext)(null);
       Oe = (e2) => (e2.getAttributes() & 2) == 2;
       Ae = /* @__PURE__ */ ke("autoClear");
       je = /* @__PURE__ */ ke("toneMapping");
-      Ne = /* @__PURE__ */ (0, import_react13.memo)(function({ children: e2, camera: t2, scene: n, resolutionScale: i3, enabled: o3 = true, renderPriority: s = 1, autoClear: c2 = true, depthBuffer: l2, enableNormalPass: u2, stencilBuffer: d, multisampling: p4 = 8, frameBufferType: m2 = HalfFloatType, ref: h2 }) {
-        let { gl: g2, scene: y, camera: b2, size: x2 } = useThree(), S = n || y, C2 = t2 || b2, [w, T3] = (0, import_react13.useState)(null);
-        (0, import_react13.useEffect)(() => {
+      Ne = /* @__PURE__ */ (0, import_react12.memo)(function({ children: e2, camera: t2, scene: n, resolutionScale: i3, enabled: o3 = true, renderPriority: s = 1, autoClear: c2 = true, depthBuffer: l2, enableNormalPass: u2, stencilBuffer: d, multisampling: p4 = 8, frameBufferType: m2 = HalfFloatType, ref: h2 }) {
+        let { gl: g2, scene: y, camera: b2, size: x2 } = useThree(), S = n || y, C2 = t2 || b2, [w, T3] = (0, import_react12.useState)(null);
+        (0, import_react12.useEffect)(() => {
           Ae.acquire(g2, false);
           let e3 = new EffectComposer(g2, {
             depthBuffer: l2,
@@ -89451,15 +89877,15 @@ ${indent})`;
           S,
           u2,
           i3
-        ]), (0, import_react13.useEffect)(() => {
+        ]), (0, import_react12.useEffect)(() => {
           w?.composer.setSize(x2.width, x2.height);
         }, [w, x2]), useFrame((e3, t3) => {
           if (!o3 || !w) return;
           let { composer: n2 } = w, r2 = g2.autoClear;
           g2.autoClear = c2, d && !c2 && g2.clearStencil(), n2.render(t3), g2.autoClear = r2;
         }, o3 ? s : 0);
-        let E2 = (0, import_react13.useRef)(null);
-        (0, import_react13.useLayoutEffect)(() => {
+        let E2 = (0, import_react12.useRef)(null);
+        (0, import_react12.useLayoutEffect)(() => {
           if (!w) return;
           let { composer: e3, normalPass: t3, downSamplingPass: n2 } = w, r2 = [], i4 = E2.current.__r3f;
           if (i4) {
@@ -89475,10 +89901,10 @@ ${indent})`;
           w,
           e2,
           C2
-        ]), (0, import_react13.useEffect)(() => (je.acquire(g2, NoToneMapping), g2.toneMapping = NoToneMapping, () => {
+        ]), (0, import_react12.useEffect)(() => (je.acquire(g2, NoToneMapping), g2.toneMapping = NoToneMapping, () => {
           je.release(g2);
         }), [g2]);
-        let D2 = (0, import_react13.useMemo)(() => w ? {
+        let D2 = (0, import_react12.useMemo)(() => w ? {
           composer: w.composer,
           normalPass: w.normalPass,
           downSamplingPass: w.downSamplingPass,
@@ -89491,7 +89917,7 @@ ${indent})`;
           C2,
           S
         ]);
-        return (0, import_react13.useImperativeHandle)(h2, () => w?.composer, [w]), D2 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(G.Provider, {
+        return (0, import_react12.useImperativeHandle)(h2, () => w?.composer, [w]), D2 ? /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(G.Provider, {
           value: D2,
           children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("group", {
             ref: E2,
@@ -89515,71 +89941,22 @@ ${indent})`;
   function PostProcessingManager() {
     const params = useMapStore((state2) => state2.engineConfig);
     if (!params.enablePostProcessing) return null;
-    return /* @__PURE__ */ import_react14.default.createElement(Ne, { disableNormalPass: true, multisampling: 4 }, /* @__PURE__ */ import_react14.default.createElement(Mt, { mode: ToneMappingMode.ACES_FILMIC }), params.enableColorGrading && /* @__PURE__ */ import_react14.default.createElement(import_react14.default.Fragment, null, /* @__PURE__ */ import_react14.default.createElement(Xe, { brightness: params.brightness, contrast: params.contrast }), /* @__PURE__ */ import_react14.default.createElement(ot, { hue: params.hue, saturation: params.saturation })), params.enableBloom && /* @__PURE__ */ import_react14.default.createElement(
+    return /* @__PURE__ */ import_react13.default.createElement(Ne, { disableNormalPass: true, multisampling: 4 }, /* @__PURE__ */ import_react13.default.createElement(Mt, { mode: ToneMappingMode.ACES_FILMIC }), params.enableColorGrading && /* @__PURE__ */ import_react13.default.createElement(import_react13.default.Fragment, null, /* @__PURE__ */ import_react13.default.createElement(Xe, { brightness: params.brightness, contrast: params.contrast }), /* @__PURE__ */ import_react13.default.createElement(ot, { hue: params.hue, saturation: params.saturation })), params.enableBloom && /* @__PURE__ */ import_react13.default.createElement(
       Ye,
       {
         intensity: params.bloomIntensity,
         luminanceThreshold: params.bloomLuminanceThreshold,
         luminanceSmoothing: 0.9
       }
-    ), params.enableVignette && /* @__PURE__ */ import_react14.default.createElement(Nt, { eskil: false, offset: params.vignetteOffset, darkness: params.vignetteDarkness }));
+    ), params.enableVignette && /* @__PURE__ */ import_react13.default.createElement(Nt, { eskil: false, offset: params.vignetteOffset, darkness: params.vignetteDarkness }));
   }
-  var import_react14;
+  var import_react13;
   var init_PostProcessingManager = __esm({
     "3dmapengine/components/canvas/PostProcessingManager.jsx"() {
-      import_react14 = __toESM(require_react());
+      import_react13 = __toESM(require_react());
       init_dist3();
       init_build();
       init_mapStore();
-    }
-  });
-
-  // 3dmapengine/utils/AssetManager.js
-  var getExtensionUrl, gltfLoader, dracoLoader2, safeLoadGeometry;
-  var init_AssetManager = __esm({
-    "3dmapengine/utils/AssetManager.js"() {
-      init_three_stdlib();
-      getExtensionUrl = (path) => {
-        if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.getURL) {
-          return chrome.runtime.getURL(path.startsWith("/") ? path.slice(1) : path);
-        }
-        return path;
-      };
-      gltfLoader = new GLTFLoader();
-      dracoLoader2 = new DRACOLoader();
-      dracoLoader2.setDecoderPath(getExtensionUrl("3dmapengine/assets/draco/gltf/"));
-      gltfLoader.setDRACOLoader(dracoLoader2);
-      safeLoadGeometry = (url) => {
-        const resolvedUrl = getExtensionUrl(url);
-        return new Promise((resolve2) => {
-          gltfLoader.load(
-            resolvedUrl,
-            // onSuccess
-            (gltf) => {
-              let geometry2 = null;
-              gltf.scene.traverse((child) => {
-                if (child.isMesh && !geometry2) {
-                  geometry2 = child.geometry;
-                }
-              });
-              if (geometry2) {
-                console.log(`[AssetManager] Loaded geometry from ${url}`);
-                resolve2(geometry2);
-              } else {
-                console.warn(`[AssetManager] No mesh found in ${url}`);
-                resolve2(null);
-              }
-            },
-            // onProgress
-            void 0,
-            // onError (File not found, parse error, etc.)
-            (err) => {
-              console.log(`[AssetManager] Safe fallback triggered. Could not load ${url}. Reason:`, err.message || "404 Not Found");
-              resolve2(null);
-            }
-          );
-        });
-      };
     }
   });
 
@@ -89587,18 +89964,20 @@ ${indent})`;
   function BiomeScatter() {
     const mapData = useMapStore((state2) => state2.mapData);
     const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
-    const woodRef = (0, import_react15.useRef)();
-    const cropRef = (0, import_react15.useRef)();
-    const ironRef = (0, import_react15.useRef)();
-    const clayRef = (0, import_react15.useRef)();
-    const tempObj = (0, import_react15.useMemo)(() => new Object3D(), []);
-    const [loadedGeoms, setLoadedGeoms] = (0, import_react15.useState)({
+    const selectedTile = useMapStore((state2) => state2.selectedTile);
+    const animatingOutTile = useMapStore((state2) => state2.animatingOutTile);
+    const woodRef = (0, import_react14.useRef)();
+    const cropRef = (0, import_react14.useRef)();
+    const ironRef = (0, import_react14.useRef)();
+    const clayRef = (0, import_react14.useRef)();
+    const tempObj = (0, import_react14.useMemo)(() => new Object3D(), []);
+    const [loadedGeoms, setLoadedGeoms] = (0, import_react14.useState)({
       wood: null,
       crop: null,
       iron: null,
       clay: null
     });
-    (0, import_react15.useEffect)(() => {
+    (0, import_react14.useEffect)(() => {
       let isMounted = true;
       const loadAssets = async () => {
         const [wood, crop, iron, clay] = await Promise.all([
@@ -89617,8 +89996,8 @@ ${indent})`;
       };
     }, []);
     const { controls } = useThree();
-    const lastCenter = (0, import_react15.useRef)({ x: null, y: null });
-    const renderBiomes = import_react15.default.useCallback((cx, cy) => {
+    const lastCenter = (0, import_react14.useRef)({ x: null, y: null });
+    const renderBiomes = import_react14.default.useCallback((cx, cy) => {
       if (!mapData || !woodRef.current || !cropRef.current || !ironRef.current || !clayRef.current) return;
       let woodCount = 0;
       let cropCount = 0;
@@ -89630,6 +90009,9 @@ ${indent})`;
         if (Math.abs(tile.x - cx) > WINDOW_RADIUS || Math.abs(tile.y - cy) > WINDOW_RADIUS) {
           return;
         }
+        const isSelected = useMapStore.getState().selectedTile?.x === tile.x && useMapStore.getState().selectedTile?.y === tile.y;
+        const isAnimatingOut = useMapStore.getState().animatingOutTile?.x === tile.x && useMapStore.getState().animatingOutTile?.y === tile.y;
+        if (isSelected || isAnimatingOut) return;
         if (tile.isOasis && tile.oasisType) {
           let instancesToPlace = 1;
           if (graphicsQuality === "mid") instancesToPlace = 2;
@@ -89640,14 +90022,14 @@ ${indent})`;
             let scale = 0.6 + Math.random() * 0.8;
             if (graphicsQuality !== "low" && i3 > 0) {
               let scatterRadius = graphicsQuality === "high" ? 1.3 : 0.7;
-              offsetX = (Math.random() - 0.5) * scatterRadius;
-              offsetZ = (Math.random() - 0.5) * scatterRadius;
+              offsetX = (prng(tile.x, tile.y + i3) - 0.5) * scatterRadius;
+              offsetZ = (prng(tile.x + 1, tile.y + i3) - 0.5) * scatterRadius;
             }
             tempObj.position.set(tile.x + offsetX, 0.4 * scale, -tile.y + offsetZ);
             tempObj.scale.set(scale, scale, scale);
-            tempObj.rotation.y = Math.random() * Math.PI * 2;
-            tempObj.rotation.x = (Math.random() - 0.5) * 0.2;
-            tempObj.rotation.z = (Math.random() - 0.5) * 0.2;
+            tempObj.rotation.y = prng(tile.x + 2, tile.y + i3) * Math.PI * 2;
+            tempObj.rotation.x = (prng(tile.x + 3, tile.y + i3) - 0.5) * 0.2;
+            tempObj.rotation.z = (prng(tile.x + 4, tile.y + i3) - 0.5) * 0.2;
             tempObj.updateMatrix();
             const type = tile.oasisType.toLowerCase();
             if (type.includes("wood") && woodCount < MAX_INSTANCES) {
@@ -89675,14 +90057,14 @@ ${indent})`;
       clayRef.current.count = clayCount;
       clayRef.current.instanceMatrix.needsUpdate = true;
     }, [mapData, graphicsQuality, tempObj]);
-    (0, import_react15.useEffect)(() => {
+    (0, import_react14.useEffect)(() => {
       if (controls && controls.target) {
         const cx = Math.round(controls.target.x);
         const cy = Math.round(-controls.target.z);
         lastCenter.current = { x: cx, y: cy };
         renderBiomes(cx, cy);
       }
-    }, [mapData, controls, graphicsQuality, renderBiomes]);
+    }, [mapData, controls, graphicsQuality, renderBiomes, selectedTile, animatingOutTile]);
     useFrame(() => {
       if (!controls) return;
       const cx = Math.round(controls.target.x);
@@ -89692,16 +90074,17 @@ ${indent})`;
         renderBiomes(cx, cy);
       }
     });
-    return /* @__PURE__ */ import_react15.default.createElement("group", { position: [0, 0.2, 0] }, /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: woodRef, args: [loadedGeoms.wood, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.wood && /* @__PURE__ */ import_react15.default.createElement("coneGeometry", { args: [0.3, 0.8, 4] }), /* @__PURE__ */ import_react15.default.createElement("meshStandardMaterial", { color: "#2e7d32", roughness: 0.9 })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: cropRef, args: [loadedGeoms.crop, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.crop && /* @__PURE__ */ import_react15.default.createElement("cylinderGeometry", { args: [0.2, 0.2, 0.6, 6] }), /* @__PURE__ */ import_react15.default.createElement("meshStandardMaterial", { color: "#fbc02d", roughness: 0.7 })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: ironRef, args: [loadedGeoms.iron, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.iron && /* @__PURE__ */ import_react15.default.createElement("tetrahedronGeometry", { args: [0.5] }), /* @__PURE__ */ import_react15.default.createElement("meshStandardMaterial", { color: "#9e9e9e", roughness: 0.4, metalness: 0.6 })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: clayRef, args: [loadedGeoms.clay, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.clay && /* @__PURE__ */ import_react15.default.createElement("boxGeometry", { args: [0.4, 0.4, 0.4] }), /* @__PURE__ */ import_react15.default.createElement("meshStandardMaterial", { color: "#d84315", roughness: 1 })));
+    return /* @__PURE__ */ import_react14.default.createElement("group", { position: [0, 0.2, 0] }, /* @__PURE__ */ import_react14.default.createElement("instancedMesh", { ref: woodRef, args: [loadedGeoms.wood, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.wood && /* @__PURE__ */ import_react14.default.createElement("coneGeometry", { args: [0.3, 0.8, 4] }), /* @__PURE__ */ import_react14.default.createElement("meshStandardMaterial", { color: "#2e7d32", roughness: 0.9 })), /* @__PURE__ */ import_react14.default.createElement("instancedMesh", { ref: cropRef, args: [loadedGeoms.crop, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.crop && /* @__PURE__ */ import_react14.default.createElement("cylinderGeometry", { args: [0.2, 0.2, 0.6, 6] }), /* @__PURE__ */ import_react14.default.createElement("meshStandardMaterial", { color: "#fbc02d", roughness: 0.7 })), /* @__PURE__ */ import_react14.default.createElement("instancedMesh", { ref: ironRef, args: [loadedGeoms.iron, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.iron && /* @__PURE__ */ import_react14.default.createElement("tetrahedronGeometry", { args: [0.5] }), /* @__PURE__ */ import_react14.default.createElement("meshStandardMaterial", { color: "#9e9e9e", roughness: 0.4, metalness: 0.6 })), /* @__PURE__ */ import_react14.default.createElement("instancedMesh", { ref: clayRef, args: [loadedGeoms.clay, null, MAX_INSTANCES], frustumCulled: false, castShadow: true, receiveShadow: true }, !loadedGeoms.clay && /* @__PURE__ */ import_react14.default.createElement("boxGeometry", { args: [0.4, 0.4, 0.4] }), /* @__PURE__ */ import_react14.default.createElement("meshStandardMaterial", { color: "#d84315", roughness: 1 })));
   }
-  var import_react15, MAX_INSTANCES;
+  var import_react14, MAX_INSTANCES;
   var init_BiomeScatter = __esm({
     "3dmapengine/components/canvas/BiomeScatter.jsx"() {
-      import_react15 = __toESM(require_react());
+      import_react14 = __toESM(require_react());
       init_three_module();
       init_mapStore();
       init_react_three_fiber_esm();
       init_AssetManager();
+      init_prng();
       MAX_INSTANCES = 15e3;
     }
   });
@@ -89710,14 +90093,22 @@ ${indent})`;
   function VillageScatter() {
     const mapData = useMapStore((state2) => state2.mapData);
     const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
-    const romanSRef = (0, import_react16.useRef)();
-    const romanMRef = (0, import_react16.useRef)();
-    const romanLRef = (0, import_react16.useRef)();
-    const gaulSRef = (0, import_react16.useRef)();
-    const gaulMRef = (0, import_react16.useRef)();
-    const gaulLRef = (0, import_react16.useRef)();
-    const fallbackRef = (0, import_react16.useRef)();
-    const tempObj = (0, import_react16.useMemo)(() => new Object3D(), []);
+    const selectedTile = useMapStore((state2) => state2.selectedTile);
+    const animatingOutTile = useMapStore((state2) => state2.animatingOutTile);
+    const romanSRef = (0, import_react15.useRef)();
+    const romanMRef = (0, import_react15.useRef)();
+    const romanLRef = (0, import_react15.useRef)();
+    const gaulSRef = (0, import_react15.useRef)();
+    const gaulMRef = (0, import_react15.useRef)();
+    const gaulLRef = (0, import_react15.useRef)();
+    const teutonSRef = (0, import_react15.useRef)();
+    const teutonMRef = (0, import_react15.useRef)();
+    const teutonLRef = (0, import_react15.useRef)();
+    const hunSRef = (0, import_react15.useRef)();
+    const hunMRef = (0, import_react15.useRef)();
+    const hunLRef = (0, import_react15.useRef)();
+    const fallbackRef = (0, import_react15.useRef)();
+    const tempObj = (0, import_react15.useMemo)(() => new Object3D(), []);
     const dracoPath = getExtensionUrl("/3dmapengine/assets/draco/gltf/");
     const { nodes: rNodesS, materials: rMatS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_S.glb"), dracoPath);
     const { nodes: rNodesM, materials: rMatM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Romans/Village_Romans_M.glb"), dracoPath);
@@ -89737,13 +90128,37 @@ ${indent})`;
     if (gTexS) gTexS.colorSpace = SRGBColorSpace;
     if (gTexM) gTexM.colorSpace = SRGBColorSpace;
     if (gTexL) gTexL.colorSpace = SRGBColorSpace;
-    const rMeshS = (0, import_react16.useMemo)(() => Object.values(rNodesS).find((n) => n.isMesh), [rNodesS]);
-    const rMeshM = (0, import_react16.useMemo)(() => Object.values(rNodesM).find((n) => n.isMesh), [rNodesM]);
-    const rMeshL = (0, import_react16.useMemo)(() => Object.values(rNodesL).find((n) => n.isMesh), [rNodesL]);
-    const gMeshS = (0, import_react16.useMemo)(() => Object.values(gNodesS).find((n) => n.isMesh), [gNodesS]);
-    const gMeshM = (0, import_react16.useMemo)(() => Object.values(gNodesM).find((n) => n.isMesh), [gNodesM]);
-    const gMeshL = (0, import_react16.useMemo)(() => Object.values(gNodesL).find((n) => n.isMesh), [gNodesL]);
-    (0, import_react16.useEffect)(() => {
+    const { nodes: tNodesS, materials: tMatS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_S.glb"), dracoPath);
+    const { nodes: tNodesM, materials: tMatM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_M.glb"), dracoPath);
+    const { nodes: tNodesL, materials: tMatL } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_L.glb"), dracoPath);
+    const tTexS = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_S.png"));
+    const tTexM = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_M.png"));
+    const tTexL = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Teutons/Village_Teutons_L.png"));
+    const { nodes: hNodesS, materials: hMatS } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_S.glb"), dracoPath);
+    const { nodes: hNodesM, materials: hMatM } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_M.glb"), dracoPath);
+    const { nodes: hNodesL, materials: hMatL } = useGLTF(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_L.glb"), dracoPath);
+    const hTexS = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_S.png"));
+    const hTexM = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_M.png"));
+    const hTexL = useTexture(getExtensionUrl("/3dmapengine/assets/Villages/Huns/Village_Huns_L.png"));
+    if (tTexS) tTexS.colorSpace = SRGBColorSpace;
+    if (tTexM) tTexM.colorSpace = SRGBColorSpace;
+    if (tTexL) tTexL.colorSpace = SRGBColorSpace;
+    if (hTexS) hTexS.colorSpace = SRGBColorSpace;
+    if (hTexM) hTexM.colorSpace = SRGBColorSpace;
+    if (hTexL) hTexL.colorSpace = SRGBColorSpace;
+    const rMeshS = (0, import_react15.useMemo)(() => Object.values(rNodesS).find((n) => n.isMesh), [rNodesS]);
+    const rMeshM = (0, import_react15.useMemo)(() => Object.values(rNodesM).find((n) => n.isMesh), [rNodesM]);
+    const rMeshL = (0, import_react15.useMemo)(() => Object.values(rNodesL).find((n) => n.isMesh), [rNodesL]);
+    const gMeshS = (0, import_react15.useMemo)(() => Object.values(gNodesS).find((n) => n.isMesh), [gNodesS]);
+    const gMeshM = (0, import_react15.useMemo)(() => Object.values(gNodesM).find((n) => n.isMesh), [gNodesM]);
+    const gMeshL = (0, import_react15.useMemo)(() => Object.values(gNodesL).find((n) => n.isMesh), [gNodesL]);
+    const tMeshS = (0, import_react15.useMemo)(() => Object.values(tNodesS).find((n) => n.isMesh), [tNodesS]);
+    const tMeshM = (0, import_react15.useMemo)(() => Object.values(tNodesM).find((n) => n.isMesh), [tNodesM]);
+    const tMeshL = (0, import_react15.useMemo)(() => Object.values(tNodesL).find((n) => n.isMesh), [tNodesL]);
+    const hMeshS = (0, import_react15.useMemo)(() => Object.values(hNodesS).find((n) => n.isMesh), [hNodesS]);
+    const hMeshM = (0, import_react15.useMemo)(() => Object.values(hNodesM).find((n) => n.isMesh), [hNodesM]);
+    const hMeshL = (0, import_react15.useMemo)(() => Object.values(hNodesL).find((n) => n.isMesh), [hNodesL]);
+    (0, import_react15.useEffect)(() => {
       const fixMaterial = (mesh) => {
         if (mesh && mesh.material) {
           mesh.material.metalness = 0.1;
@@ -89752,8 +90167,8 @@ ${indent})`;
           mesh.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 2e3);
         }
       };
-      [rMeshS, rMeshM, rMeshL, gMeshS, gMeshM, gMeshL].forEach(fixMaterial);
-    }, [rMeshS, rMeshM, rMeshL, gMeshS, gMeshM, gMeshL]);
+      [rMeshS, rMeshM, rMeshL, gMeshS, gMeshM, gMeshL, tMeshS, tMeshM, tMeshL, hMeshS, hMeshM, hMeshL].forEach(fixMaterial);
+    }, [rMeshS, rMeshM, rMeshL, gMeshS, gMeshM, gMeshL, tMeshS, tMeshM, tMeshL, hMeshS, hMeshM, hMeshL]);
     const calcMetrics = (mesh, targetCoverage) => {
       if (!mesh || !mesh.geometry) return { scale: 0.2, offset: 0.1 };
       if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
@@ -89766,24 +90181,35 @@ ${indent})`;
       const offset = -(box.min.y * scale) + 0.1;
       return { scale, offset };
     };
-    const metrics = (0, import_react16.useMemo)(() => ({
+    const metrics = (0, import_react15.useMemo)(() => ({
       rS: calcMetrics(rMeshS, 0.85),
       rM: calcMetrics(rMeshM, 0.9),
       rL: calcMetrics(rMeshL, 0.95),
       gS: calcMetrics(gMeshS, 0.85),
       gM: calcMetrics(gMeshM, 0.9),
-      gL: calcMetrics(gMeshL, 0.95)
-    }), [rMeshS, rMeshM, rMeshL, gMeshS, gMeshM, gMeshL]);
+      gL: calcMetrics(gMeshL, 0.95),
+      tS: calcMetrics(tMeshS, 0.85),
+      tM: calcMetrics(tMeshM, 0.9),
+      tL: calcMetrics(tMeshL, 0.95),
+      hS: calcMetrics(hMeshS, 0.85),
+      hM: calcMetrics(hMeshM, 0.9),
+      hL: calcMetrics(hMeshL, 0.95)
+    }), [rMeshS, rMeshM, rMeshL, gMeshS, gMeshM, gMeshL, tMeshS, tMeshM, tMeshL, hMeshS, hMeshM, hMeshL]);
     const { controls, camera } = useThree();
-    const lastCenter = (0, import_react16.useRef)({ x: null, y: null });
-    const renderVillages = import_react16.default.useCallback((cx, cy) => {
+    const lastCenter = (0, import_react15.useRef)({ x: null, y: null });
+    const renderVillages = import_react15.default.useCallback((cx, cy) => {
       if (!mapData || !romanSRef.current || !gaulSRef.current || !fallbackRef.current) return;
       let rSCount = 0, rMCount = 0, rLCount = 0;
       let gSCount = 0, gMCount = 0, gLCount = 0;
+      let tSCount = 0, tMCount = 0, tLCount = 0;
+      let hSCount = 0, hMCount = 0, hLCount = 0;
       let fCount = 0;
       const WINDOW_RADIUS = 15;
       Object.values(mapData).forEach((tile) => {
         if (Math.abs(tile.x - cx) > WINDOW_RADIUS || Math.abs(tile.y - cy) > WINDOW_RADIUS) return;
+        const isSelected = useMapStore.getState().selectedTile?.x === tile.x && useMapStore.getState().selectedTile?.y === tile.y;
+        const isAnimatingOut = useMapStore.getState().animatingOutTile?.x === tile.x && useMapStore.getState().animatingOutTile?.y === tile.y;
+        if (isSelected || isAnimatingOut) return;
         if (tile.villageId && !tile.isOasis) {
           const tribe = (tile.tribe || "").toLowerCase();
           const pop = parseInt(tile.population) || 0;
@@ -89792,6 +90218,8 @@ ${indent})`;
           let isL = pop >= 500;
           let isRoman = tribe.includes("roman") || tribe === "";
           let isGaul = tribe.includes("gaul");
+          let isTeuton = tribe.includes("teuton");
+          let isHun = tribe.includes("hun");
           if (graphicsQuality === "low") {
             tempObj.rotation.set(-Math.PI / 2, 0, Math.PI / 4);
             tempObj.position.set(tile.x, 0.11, -tile.y);
@@ -89807,6 +90235,14 @@ ${indent})`;
               if (isS && gSCount < MAX_VILLAGES) gaulSRef.current.setMatrixAt(gSCount++, tempObj.matrix);
               else if (isM && gMCount < MAX_VILLAGES) gaulMRef.current.setMatrixAt(gMCount++, tempObj.matrix);
               else if (isL && gLCount < MAX_VILLAGES) gaulLRef.current.setMatrixAt(gLCount++, tempObj.matrix);
+            } else if (isTeuton) {
+              if (isS && tSCount < MAX_VILLAGES) teutonSRef.current.setMatrixAt(tSCount++, tempObj.matrix);
+              else if (isM && tMCount < MAX_VILLAGES) teutonMRef.current.setMatrixAt(tMCount++, tempObj.matrix);
+              else if (isL && tLCount < MAX_VILLAGES) teutonLRef.current.setMatrixAt(tLCount++, tempObj.matrix);
+            } else if (isHun) {
+              if (isS && hSCount < MAX_VILLAGES) hunSRef.current.setMatrixAt(hSCount++, tempObj.matrix);
+              else if (isM && hMCount < MAX_VILLAGES) hunMRef.current.setMatrixAt(hMCount++, tempObj.matrix);
+              else if (isL && hLCount < MAX_VILLAGES) hunLRef.current.setMatrixAt(hLCount++, tempObj.matrix);
             }
           } else {
             tempObj.rotation.set(0, 0, 0);
@@ -89826,6 +90262,22 @@ ${indent})`;
               if (isS && gSCount < MAX_VILLAGES) gaulSRef.current.setMatrixAt(gSCount++, tempObj.matrix);
               else if (isM && gMCount < MAX_VILLAGES) gaulMRef.current.setMatrixAt(gMCount++, tempObj.matrix);
               else if (isL && gLCount < MAX_VILLAGES) gaulLRef.current.setMatrixAt(gLCount++, tempObj.matrix);
+            } else if (isTeuton) {
+              const m2 = isS ? metrics.tS : isM ? metrics.tM : metrics.tL;
+              tempObj.position.set(tile.x, m2.offset, -tile.y);
+              tempObj.scale.set(m2.scale, m2.scale, m2.scale);
+              tempObj.updateMatrix();
+              if (isS && tSCount < MAX_VILLAGES) teutonSRef.current.setMatrixAt(tSCount++, tempObj.matrix);
+              else if (isM && tMCount < MAX_VILLAGES) teutonMRef.current.setMatrixAt(tMCount++, tempObj.matrix);
+              else if (isL && tLCount < MAX_VILLAGES) teutonLRef.current.setMatrixAt(tLCount++, tempObj.matrix);
+            } else if (isHun) {
+              const m2 = isS ? metrics.hS : isM ? metrics.hM : metrics.hL;
+              tempObj.position.set(tile.x, m2.offset, -tile.y);
+              tempObj.scale.set(m2.scale, m2.scale, m2.scale);
+              tempObj.updateMatrix();
+              if (isS && hSCount < MAX_VILLAGES) hunSRef.current.setMatrixAt(hSCount++, tempObj.matrix);
+              else if (isM && hMCount < MAX_VILLAGES) hunMRef.current.setMatrixAt(hMCount++, tempObj.matrix);
+              else if (isL && hLCount < MAX_VILLAGES) hunLRef.current.setMatrixAt(hLCount++, tempObj.matrix);
             } else {
               if (fCount < MAX_VILLAGES) {
                 tempObj.rotation.set(0, 0, 0);
@@ -89838,29 +90290,67 @@ ${indent})`;
           }
         }
       });
-      romanSRef.current.count = rSCount;
-      romanSRef.current.instanceMatrix.needsUpdate = true;
-      romanMRef.current.count = rMCount;
-      romanMRef.current.instanceMatrix.needsUpdate = true;
-      romanLRef.current.count = rLCount;
-      romanLRef.current.instanceMatrix.needsUpdate = true;
-      gaulSRef.current.count = gSCount;
-      gaulSRef.current.instanceMatrix.needsUpdate = true;
-      gaulMRef.current.count = gMCount;
-      gaulMRef.current.instanceMatrix.needsUpdate = true;
-      gaulLRef.current.count = gLCount;
-      gaulLRef.current.instanceMatrix.needsUpdate = true;
-      fallbackRef.current.count = fCount;
-      fallbackRef.current.instanceMatrix.needsUpdate = true;
+      if (romanSRef.current) {
+        romanSRef.current.count = rSCount;
+        romanSRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (romanMRef.current) {
+        romanMRef.current.count = rMCount;
+        romanMRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (romanLRef.current) {
+        romanLRef.current.count = rLCount;
+        romanLRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (gaulSRef.current) {
+        gaulSRef.current.count = gSCount;
+        gaulSRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (gaulMRef.current) {
+        gaulMRef.current.count = gMCount;
+        gaulMRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (gaulLRef.current) {
+        gaulLRef.current.count = gLCount;
+        gaulLRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (teutonSRef.current) {
+        teutonSRef.current.count = tSCount;
+        teutonSRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (teutonMRef.current) {
+        teutonMRef.current.count = tMCount;
+        teutonMRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (teutonLRef.current) {
+        teutonLRef.current.count = tLCount;
+        teutonLRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (hunSRef.current) {
+        hunSRef.current.count = hSCount;
+        hunSRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (hunMRef.current) {
+        hunMRef.current.count = hMCount;
+        hunMRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (hunLRef.current) {
+        hunLRef.current.count = hLCount;
+        hunLRef.current.instanceMatrix.needsUpdate = true;
+      }
+      if (fallbackRef.current) {
+        fallbackRef.current.count = fCount;
+        fallbackRef.current.instanceMatrix.needsUpdate = true;
+      }
     }, [mapData, tempObj, graphicsQuality, metrics, camera]);
-    (0, import_react16.useEffect)(() => {
+    (0, import_react15.useEffect)(() => {
       if (controls && controls.target) {
         const cx = Math.round(controls.target.x);
         const cy = Math.round(-controls.target.z);
         lastCenter.current = { x: cx, y: cy };
         renderVillages(cx, cy);
       }
-    }, [mapData, controls, renderVillages, graphicsQuality]);
+    }, [mapData, controls, renderVillages, graphicsQuality, selectedTile, animatingOutTile]);
     useFrame(() => {
       if (!controls) return;
       const cx = Math.round(controls.target.x);
@@ -89870,12 +90360,12 @@ ${indent})`;
         renderVillages(cx, cy);
       }
     });
-    return /* @__PURE__ */ import_react16.default.createElement("group", { position: [0, 0, 0] }, graphicsQuality === "low" ? /* @__PURE__ */ import_react16.default.createElement(import_react16.default.Fragment, null, /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: romanSRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react16.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react16.default.createElement("meshBasicMaterial", { map: rTexS, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: romanMRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react16.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react16.default.createElement("meshBasicMaterial", { map: rTexM, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: romanLRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react16.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react16.default.createElement("meshBasicMaterial", { map: rTexL, transparent: true, alphaTest: 0.5, side: DoubleSide }))) : /* @__PURE__ */ import_react16.default.createElement(import_react16.default.Fragment, null, rMeshS && /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: romanSRef, args: [rMeshS.geometry, rMeshS.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), rMeshM && /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: romanMRef, args: [rMeshM.geometry, rMeshM.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), rMeshL && /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: romanLRef, args: [rMeshL.geometry, rMeshL.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true })), graphicsQuality === "low" ? /* @__PURE__ */ import_react16.default.createElement(import_react16.default.Fragment, null, /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: gaulSRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react16.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react16.default.createElement("meshBasicMaterial", { map: gTexS, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: gaulMRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react16.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react16.default.createElement("meshBasicMaterial", { map: gTexM, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: gaulLRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react16.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react16.default.createElement("meshBasicMaterial", { map: gTexL, transparent: true, alphaTest: 0.5, side: DoubleSide }))) : /* @__PURE__ */ import_react16.default.createElement(import_react16.default.Fragment, null, gMeshS && /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: gaulSRef, args: [gMeshS.geometry, gMeshS.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), gMeshM && /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: gaulMRef, args: [gMeshM.geometry, gMeshM.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), gMeshL && /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: gaulLRef, args: [gMeshL.geometry, gMeshL.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true })), /* @__PURE__ */ import_react16.default.createElement("instancedMesh", { ref: fallbackRef, args: [null, null, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }, /* @__PURE__ */ import_react16.default.createElement("boxGeometry", { args: [0.5, 0.5, 0.5] }), /* @__PURE__ */ import_react16.default.createElement("meshStandardMaterial", { color: "#7f8fa6", roughness: 0.8 })));
+    return /* @__PURE__ */ import_react15.default.createElement("group", { position: [0, 0, 0] }, graphicsQuality === "low" ? /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: romanSRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: rTexS, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: romanMRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: rTexM, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: romanLRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: rTexL, transparent: true, alphaTest: 0.5, side: DoubleSide }))) : /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, rMeshS && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: romanSRef, args: [rMeshS.geometry, rMeshS.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), rMeshM && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: romanMRef, args: [rMeshM.geometry, rMeshM.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), rMeshL && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: romanLRef, args: [rMeshL.geometry, rMeshL.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true })), graphicsQuality === "low" ? /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: gaulSRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: gTexS, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: gaulMRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: gTexM, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: gaulLRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: gTexL, transparent: true, alphaTest: 0.5, side: DoubleSide }))) : /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, gMeshS && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: gaulSRef, args: [gMeshS.geometry, gMeshS.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), gMeshM && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: gaulMRef, args: [gMeshM.geometry, gMeshM.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), gMeshL && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: gaulLRef, args: [gMeshL.geometry, gMeshL.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true })), graphicsQuality === "low" ? /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: teutonSRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: tTexS, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: teutonMRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: tTexM, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: teutonLRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: tTexL, transparent: true, alphaTest: 0.5, side: DoubleSide }))) : /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, tMeshS && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: teutonSRef, args: [tMeshS.geometry, tMeshS.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), tMeshM && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: teutonMRef, args: [tMeshM.geometry, tMeshM.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), tMeshL && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: teutonLRef, args: [tMeshL.geometry, tMeshL.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true })), graphicsQuality === "low" ? /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: hunSRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: hTexS, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: hunMRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: hTexM, transparent: true, alphaTest: 0.5, side: DoubleSide })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: hunLRef, args: [null, null, MAX_VILLAGES], frustumCulled: false }, /* @__PURE__ */ import_react15.default.createElement("planeGeometry", { args: [1.5, 1.5] }), /* @__PURE__ */ import_react15.default.createElement("meshBasicMaterial", { map: hTexL, transparent: true, alphaTest: 0.5, side: DoubleSide }))) : /* @__PURE__ */ import_react15.default.createElement(import_react15.default.Fragment, null, hMeshS && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: hunSRef, args: [hMeshS.geometry, hMeshS.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), hMeshM && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: hunMRef, args: [hMeshM.geometry, hMeshM.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }), hMeshL && /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: hunLRef, args: [hMeshL.geometry, hMeshL.material, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true })), /* @__PURE__ */ import_react15.default.createElement("instancedMesh", { ref: fallbackRef, args: [null, null, MAX_VILLAGES], frustumCulled: false, castShadow: true, receiveShadow: true }, /* @__PURE__ */ import_react15.default.createElement("boxGeometry", { args: [0.5, 0.5, 0.5] }), /* @__PURE__ */ import_react15.default.createElement("meshStandardMaterial", { color: "#7f8fa6", roughness: 0.8 })));
   }
-  var import_react16, MAX_VILLAGES;
+  var import_react15, MAX_VILLAGES;
   var init_VillageScatter = __esm({
     "3dmapengine/components/canvas/VillageScatter.jsx"() {
-      import_react16 = __toESM(require_react());
+      import_react15 = __toESM(require_react());
       init_three_module();
       init_mapStore();
       init_drei();
@@ -89891,11 +90381,11 @@ ${indent})`;
     const closeContextMenu = useMapStore((state2) => state2.closeContextMenu);
     const addTacticalRoute = useMapStore((state2) => state2.addTacticalRoute);
     const postAlarm = useMapStore((state2) => state2.postAlarm);
-    const [showPings, setShowPings] = (0, import_react17.useState)(false);
+    const [showPings, setShowPings] = (0, import_react16.useState)(false);
     const activeUI = useMapStore((state2) => state2.activeUI);
     const bringToFront = useMapStore((state2) => state2.bringToFront);
     const isFront = activeUI === "contextMenu";
-    (0, import_react17.useEffect)(() => {
+    (0, import_react16.useEffect)(() => {
       if (!contextMenu.isOpen) {
         setShowPings(false);
         return;
@@ -89981,7 +90471,7 @@ ${indent})`;
       }
       closeContextMenu();
     };
-    return /* @__PURE__ */ import_react17.default.createElement(
+    return /* @__PURE__ */ import_react16.default.createElement(
       "div",
       {
         onPointerDownCapture: (e2) => {
@@ -90006,7 +90496,7 @@ ${indent})`;
           width: "180px"
         }
       },
-      /* @__PURE__ */ import_react17.default.createElement("style", null, `
+      /* @__PURE__ */ import_react16.default.createElement("style", null, `
         .ctx-btn {
           background: transparent;
           border: none;
@@ -90037,7 +90527,7 @@ ${indent})`;
           background: rgba(0, 242, 254, 0.2);
         }
       `),
-      /* @__PURE__ */ import_react17.default.createElement("div", { style: {
+      /* @__PURE__ */ import_react16.default.createElement("div", { style: {
         fontSize: "11px",
         color: "#a4b0be",
         borderBottom: "1px solid rgba(255,255,255,0.1)",
@@ -90047,35 +90537,35 @@ ${indent})`;
         fontWeight: "bold",
         letterSpacing: "1px"
       } }, "SECTOR [", contextMenu.tileCoords[0], "|", contextMenu.tileCoords[1], "]"),
-      /* @__PURE__ */ import_react17.default.createElement(
+      /* @__PURE__ */ import_react16.default.createElement(
         "div",
         {
           style: { display: "flex", flexDirection: "column" },
           onMouseEnter: () => setShowPings(true),
           onMouseLeave: () => setShowPings(false)
         },
-        /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn", style: { width: "100%" } }, "\u{1F3AF} Ping Target ", showPings ? "\u25BE" : "\u25B8"),
-        showPings && /* @__PURE__ */ import_react17.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" } }, /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn ping-subbtn", onClick: () => handlePing("Call Off") }, "\u2694\uFE0F Call Off"), /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn ping-subbtn", onClick: () => handlePing("Call Def") }, "\u{1F6E1}\uFE0F Call Def"), /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn ping-subbtn", onClick: () => handlePing("Req Scout") }, "\u{1F441}\uFE0F Req Scout"))
+        /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn", style: { width: "100%" } }, "\u{1F3AF} Ping Target ", showPings ? "\u25BE" : "\u25B8"),
+        showPings && /* @__PURE__ */ import_react16.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" } }, /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn ping-subbtn", onClick: () => handlePing("Call Off") }, "\u2694\uFE0F Call Off"), /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn ping-subbtn", onClick: () => handlePing("Call Def") }, "\u{1F6E1}\uFE0F Call Def"), /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn ping-subbtn", onClick: () => handlePing("Req Scout") }, "\u{1F441}\uFE0F Req Scout"))
       ),
-      /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn", onClick: openTravian }, "\u{1F517} View in Travian"),
-      /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn", onClick: handleDrawRoute }, "\u{1F4CD} Draw Route Here"),
-      /* @__PURE__ */ import_react17.default.createElement("button", { className: "ctx-btn", onClick: () => {
+      /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn", onClick: openTravian }, "\u{1F517} View in Travian"),
+      /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn", onClick: handleDrawRoute }, "\u{1F4CD} Draw Route Here"),
+      /* @__PURE__ */ import_react16.default.createElement("button", { className: "ctx-btn", onClick: () => {
         navigator.clipboard.writeText(`[${contextMenu.tileCoords[0]}|${contextMenu.tileCoords[1]}]`);
         closeContextMenu();
       } }, "\u{1F4CB} Copy Coordinates")
     );
   }
-  var import_react17;
+  var import_react16;
   var init_ContextMenu = __esm({
     "3dmapengine/components/ui/ContextMenu.jsx"() {
-      import_react17 = __toESM(require_react());
+      import_react16 = __toESM(require_react());
       init_mapStore();
     }
   });
 
   // 3dmapengine/components/ui/NotificationBell.jsx
   function NotificationBell() {
-    const [isOpen, setIsOpen] = (0, import_react18.useState)(false);
+    const [isOpen, setIsOpen] = (0, import_react17.useState)(false);
     const unreadAlarms = useMapStore((state2) => state2.unreadAlarms);
     const alarmList = useMapStore((state2) => state2.alarmList);
     const markAlarmRead = useMapStore((state2) => state2.markAlarmRead);
@@ -90090,13 +90580,13 @@ ${indent})`;
         setPanTarget({ x: alarm.x, y: alarm.y });
       }
     };
-    return /* @__PURE__ */ import_react18.default.createElement(
+    return /* @__PURE__ */ import_react17.default.createElement(
       "div",
       {
         onPointerDownCapture: () => bringToFront("notificationBell"),
         style: { position: "absolute", top: "20px", right: "20px", zIndex: isFront ? 9999 : 1e3 }
       },
-      /* @__PURE__ */ import_react18.default.createElement(
+      /* @__PURE__ */ import_react17.default.createElement(
         "div",
         {
           style: {
@@ -90126,8 +90616,8 @@ ${indent})`;
           },
           onClick: () => setIsOpen(!isOpen)
         },
-        /* @__PURE__ */ import_react18.default.createElement("span", { style: { fontSize: "20px" } }, "\u{1F514}"),
-        unreadAlarms > 0 && /* @__PURE__ */ import_react18.default.createElement("div", { style: {
+        /* @__PURE__ */ import_react17.default.createElement("span", { style: { fontSize: "20px" } }, "\u{1F514}"),
+        unreadAlarms > 0 && /* @__PURE__ */ import_react17.default.createElement("div", { style: {
           position: "absolute",
           top: "-2px",
           right: "-2px",
@@ -90144,7 +90634,7 @@ ${indent})`;
           boxShadow: "0 0 10px rgba(255, 71, 87, 0.6)"
         } }, unreadAlarms)
       ),
-      isOpen && /* @__PURE__ */ import_react18.default.createElement("div", { style: {
+      isOpen && /* @__PURE__ */ import_react17.default.createElement("div", { style: {
         position: "absolute",
         top: "55px",
         right: "0",
@@ -90159,7 +90649,7 @@ ${indent})`;
         display: "flex",
         flexDirection: "column",
         padding: "10px"
-      } }, /* @__PURE__ */ import_react18.default.createElement("h3", { style: { margin: "0 0 10px 5px", color: "#00f2fe", fontFamily: "Inter, sans-serif", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px" } }, "Tactical Alarms"), alarmList.length === 0 ? /* @__PURE__ */ import_react18.default.createElement("div", { style: { padding: "20px", textAlign: "center", color: "#a4b0be", fontFamily: "Inter, sans-serif", fontSize: "13px" } }, "No active alarms for your sector.") : alarmList.map((alarm, i3) => /* @__PURE__ */ import_react18.default.createElement(
+      } }, /* @__PURE__ */ import_react17.default.createElement("h3", { style: { margin: "0 0 10px 5px", color: "#00f2fe", fontFamily: "Inter, sans-serif", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px" } }, "Tactical Alarms"), alarmList.length === 0 ? /* @__PURE__ */ import_react17.default.createElement("div", { style: { padding: "20px", textAlign: "center", color: "#a4b0be", fontFamily: "Inter, sans-serif", fontSize: "13px" } }, "No active alarms for your sector.") : alarmList.map((alarm, i3) => /* @__PURE__ */ import_react17.default.createElement(
         "div",
         {
           key: alarm.id || i3,
@@ -90179,16 +90669,16 @@ ${indent})`;
           onMouseEnter: (e2) => e2.currentTarget.style.background = "rgba(0, 242, 254, 0.1)",
           onMouseLeave: (e2) => e2.currentTarget.style.background = alarm.isRead ? "transparent" : "rgba(255, 71, 87, 0.1)"
         },
-        /* @__PURE__ */ import_react18.default.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ import_react18.default.createElement("span", { style: { color: alarm.isRead ? "#dfe4ea" : "#fff", fontWeight: alarm.isRead ? "normal" : "bold", fontSize: "14px" } }, alarm.title || "Tactical Alert"), /* @__PURE__ */ import_react18.default.createElement("span", { style: { fontSize: "11px", color: "#747d8c" } }, new Date(alarm.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))),
-        /* @__PURE__ */ import_react18.default.createElement("div", { style: { color: "#a4b0be", fontSize: "12px" } }, alarm.message),
-        alarm.x !== void 0 && alarm.y !== void 0 && /* @__PURE__ */ import_react18.default.createElement("div", { style: { color: "#00f2fe", fontSize: "11px", marginTop: "4px", fontWeight: 600 } }, "\u{1F3AF} [", alarm.x, ", ", alarm.y, "]")
+        /* @__PURE__ */ import_react17.default.createElement("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, /* @__PURE__ */ import_react17.default.createElement("span", { style: { color: alarm.isRead ? "#dfe4ea" : "#fff", fontWeight: alarm.isRead ? "normal" : "bold", fontSize: "14px" } }, alarm.title || "Tactical Alert"), /* @__PURE__ */ import_react17.default.createElement("span", { style: { fontSize: "11px", color: "#747d8c" } }, new Date(alarm.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))),
+        /* @__PURE__ */ import_react17.default.createElement("div", { style: { color: "#a4b0be", fontSize: "12px" } }, alarm.message),
+        alarm.x !== void 0 && alarm.y !== void 0 && /* @__PURE__ */ import_react17.default.createElement("div", { style: { color: "#00f2fe", fontSize: "11px", marginTop: "4px", fontWeight: 600 } }, "\u{1F3AF} [", alarm.x, ", ", alarm.y, "]")
       )))
     );
   }
-  var import_react18;
+  var import_react17;
   var init_NotificationBell = __esm({
     "3dmapengine/components/ui/NotificationBell.jsx"() {
-      import_react18 = __toESM(require_react());
+      import_react17 = __toESM(require_react());
       init_mapStore();
     }
   });
@@ -90201,7 +90691,7 @@ ${indent})`;
     const activeUI = useMapStore((state2) => state2.activeUI);
     const bringToFront = useMapStore((state2) => state2.bringToFront);
     const isFront = activeUI === "tacticalFilters";
-    return /* @__PURE__ */ import_react19.default.createElement(
+    return /* @__PURE__ */ import_react18.default.createElement(
       "div",
       {
         onPointerDownCapture: () => bringToFront("tacticalFilters"),
@@ -90211,7 +90701,7 @@ ${indent})`;
           top: "50%",
           transform: "translateY(-50%)",
           zIndex: isFront ? 9999 : 1e3,
-          background: "rgba(40, 41, 54, 0.9)",
+          background: "rgba(40, 41, 54, 0.6)",
           border: "1px solid #00f2fe",
           borderRadius: "8px",
           padding: "20px",
@@ -90225,8 +90715,8 @@ ${indent})`;
           gap: "16px"
         }
       },
-      /* @__PURE__ */ import_react19.default.createElement("h3", { style: { margin: 0, fontSize: "16px", fontWeight: 600, color: "#00f2fe", textTransform: "uppercase", letterSpacing: "1px" } }, "Tactical Filters"),
-      /* @__PURE__ */ import_react19.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } }, /* @__PURE__ */ import_react19.default.createElement("label", { style: { fontSize: "12px", color: "#a0a0b0" } }, "TARGET ALLIANCE"), /* @__PURE__ */ import_react19.default.createElement(
+      /* @__PURE__ */ import_react18.default.createElement("h3", { style: { margin: 0, fontSize: "16px", fontWeight: 600, color: "#00f2fe", textTransform: "uppercase", letterSpacing: "1px" } }, "Tactical Filters"),
+      /* @__PURE__ */ import_react18.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } }, /* @__PURE__ */ import_react18.default.createElement("label", { style: { fontSize: "12px", color: "#a0a0b0" } }, "TARGET ALLIANCE"), /* @__PURE__ */ import_react18.default.createElement(
         "input",
         {
           type: "text",
@@ -90248,7 +90738,7 @@ ${indent})`;
           onBlur: (e2) => e2.target.style.borderColor = "#4a4b5d"
         }
       )),
-      /* @__PURE__ */ import_react19.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: "10px", marginTop: "4px" } }, /* @__PURE__ */ import_react19.default.createElement(
+      /* @__PURE__ */ import_react18.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: "10px", marginTop: "4px" } }, /* @__PURE__ */ import_react18.default.createElement(
         "input",
         {
           type: "checkbox",
@@ -90257,8 +90747,8 @@ ${indent})`;
           onChange: (e2) => setFilters({ showOnly15Croppers: e2.target.checked }),
           style: { cursor: "pointer" }
         }
-      ), /* @__PURE__ */ import_react19.default.createElement("label", { htmlFor: "croppers", style: { fontSize: "13px", color: "#e0e0e0", cursor: "pointer" } }, "Highlight 15 Croppers")),
-      /* @__PURE__ */ import_react19.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: "10px", marginTop: "4px" } }, /* @__PURE__ */ import_react19.default.createElement(
+      ), /* @__PURE__ */ import_react18.default.createElement("label", { htmlFor: "croppers", style: { fontSize: "13px", color: "#e0e0e0", cursor: "pointer" } }, "Highlight 15 Croppers")),
+      /* @__PURE__ */ import_react18.default.createElement("div", { style: { display: "flex", alignItems: "center", gap: "10px", marginTop: "4px" } }, /* @__PURE__ */ import_react18.default.createElement(
         "input",
         {
           type: "checkbox",
@@ -90267,8 +90757,8 @@ ${indent})`;
           onChange: useMapStore((state2) => state2.toggleTerritories),
           style: { cursor: "pointer" }
         }
-      ), /* @__PURE__ */ import_react19.default.createElement("label", { htmlFor: "territories", style: { fontSize: "13px", color: "#00f2fe", cursor: "pointer", fontWeight: 600 } }, "\u{1F310} Show Territory Borders")),
-      /* @__PURE__ */ import_react19.default.createElement("div", { style: { marginTop: "8px", borderTop: "1px solid #4a4b5d", paddingTop: "16px" } }, /* @__PURE__ */ import_react19.default.createElement(
+      ), /* @__PURE__ */ import_react18.default.createElement("label", { htmlFor: "territories", style: { fontSize: "13px", color: "#00f2fe", cursor: "pointer", fontWeight: 600 } }, "\u{1F310} Show Territory Borders")),
+      /* @__PURE__ */ import_react18.default.createElement("div", { style: { marginTop: "8px", borderTop: "1px solid #4a4b5d", paddingTop: "16px" } }, /* @__PURE__ */ import_react18.default.createElement(
         "button",
         {
           onClick: hydrateData,
@@ -90298,28 +90788,33 @@ ${indent})`;
             e2.currentTarget.style.boxShadow = "none";
           }
         },
-        /* @__PURE__ */ import_react19.default.createElement("span", null, "\u{1F504}"),
+        /* @__PURE__ */ import_react18.default.createElement("span", null, "\u{1F504}"),
         " Refresh Intel"
       ))
     );
   }
-  var import_react19;
+  var import_react18;
   var init_TacticalFilters = __esm({
     "3dmapengine/components/ui/TacticalFilters.jsx"() {
-      import_react19 = __toESM(require_react());
+      import_react18 = __toESM(require_react());
       init_mapStore();
     }
   });
 
   // 3dmapengine/components/ui/SettingsPanel.jsx
   function SettingsPanel() {
-    const [isOpen, setIsOpen] = (0, import_react20.useState)(false);
+    const [isOpen, setIsOpen] = (0, import_react19.useState)(false);
     const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
     const setGraphicsQuality = useMapStore((state2) => state2.setGraphicsQuality);
     const shadowsEnabled = useMapStore((state2) => state2.shadowsEnabled);
     const environmentEnabled = useMapStore((state2) => state2.environmentEnabled);
     const setCustomGraphicOption = useMapStore((state2) => state2.setCustomGraphicOption);
-    return /* @__PURE__ */ import_react20.default.createElement(import_react20.default.Fragment, null, /* @__PURE__ */ import_react20.default.createElement(
+    const engineConfig = useMapStore((state2) => state2.engineConfig);
+    const setEngineConfig = useMapStore((state2) => state2.setEngineConfig);
+    const handleOverride = (updates) => {
+      setEngineConfig(updates);
+    };
+    return /* @__PURE__ */ import_react19.default.createElement(import_react19.default.Fragment, null, /* @__PURE__ */ import_react19.default.createElement(
       "div",
       {
         onClick: () => setIsOpen(!isOpen),
@@ -90354,7 +90849,7 @@ ${indent})`;
         }
       },
       "\u2699\uFE0F"
-    ), isOpen && /* @__PURE__ */ import_react20.default.createElement("div", { style: {
+    ), isOpen && /* @__PURE__ */ import_react19.default.createElement("div", { style: {
       position: "absolute",
       top: "74px",
       right: "80px",
@@ -90371,86 +90866,23 @@ ${indent})`;
       display: "flex",
       flexDirection: "column",
       gap: "12px"
-    } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: { margin: 0, fontSize: "14px", fontWeight: 600, color: "#00f2fe", textTransform: "uppercase", letterSpacing: "1px" } }, "Graphics"), /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" } }, ["low", "mid", "high", "custom"].map((level) => /* @__PURE__ */ import_react20.default.createElement("label", { key: level, style: { display: "flex", alignItems: "center", gap: "8px", cursor: level === "custom" ? "default" : "pointer", fontSize: "13px", color: "#e0e0e0", opacity: level === "custom" && graphicsQuality !== "custom" ? 0.5 : 1 } }, /* @__PURE__ */ import_react20.default.createElement(
+    } }, /* @__PURE__ */ import_react19.default.createElement("h3", { style: { margin: 0, fontSize: "14px", fontWeight: 600, color: "#00f2fe", textTransform: "uppercase", letterSpacing: "1px" } }, "Graphics"), /* @__PURE__ */ import_react19.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" } }, ["low", "mid", "high"].map((level) => /* @__PURE__ */ import_react19.default.createElement("label", { key: level, style: { display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "13px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement(
       "input",
       {
         type: "radio",
         name: "graphicsQuality",
         value: level,
         checked: graphicsQuality === level,
-        onChange: () => {
-          if (level !== "custom") setGraphicsQuality(level);
-        },
-        disabled: level === "custom",
-        style: { cursor: level === "custom" ? "default" : "pointer" }
+        onChange: () => setGraphicsQuality(level),
+        style: { cursor: "pointer" }
       }
-    ), level.charAt(0).toUpperCase() + level.slice(1)))), /* @__PURE__ */ import_react20.default.createElement("div", { style: { height: "1px", background: "#4a4b5d", width: "100%", marginBottom: "8px" } }), /* @__PURE__ */ import_react20.default.createElement("h3", { style: { margin: 0, fontSize: "12px", fontWeight: 500, color: "#a0a0b0", textTransform: "uppercase" } }, "Advanced Options"), /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } }, /* @__PURE__ */ import_react20.default.createElement("div", { className: "flex flex-col gap-2" }, /* @__PURE__ */ import_react20.default.createElement("label", { className: "flex items-center gap-2 text-sm text-[#e0e0e0]" }, /* @__PURE__ */ import_react20.default.createElement(
-      "input",
-      {
-        type: "checkbox",
-        checked: shadowsEnabled,
-        onChange: (e2) => setShadowsEnabled(e2.target.checked),
-        className: "rounded bg-[#2a2d36] border-[#4a4d56] text-[#00aaff]"
-      }
-    ), "Dynamic Shadows")))));
+    ), level.charAt(0).toUpperCase() + level.slice(1)))), /* @__PURE__ */ import_react19.default.createElement("div", { style: { height: "1px", background: "#4a4b5d", width: "100%", marginBottom: "8px" } }), /* @__PURE__ */ import_react19.default.createElement("h3", { style: { margin: 0, fontSize: "12px", fontWeight: 500, color: "#a0a0b0", textTransform: "uppercase" } }, "Custom Overrides"), /* @__PURE__ */ import_react19.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px", maxHeight: "200px", overflowY: "auto", paddingRight: "4px" } }, /* @__PURE__ */ import_react19.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement("input", { type: "checkbox", checked: engineConfig.enableZoomAnimation, onChange: (e2) => handleOverride({ enableZoomAnimation: e2.target.checked }) }), "Zoom Animation"), /* @__PURE__ */ import_react19.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement("input", { type: "checkbox", checked: engineConfig.enableBloom, onChange: (e2) => handleOverride({ enableBloom: e2.target.checked }) }), "Bloom (Neon Glow)"), /* @__PURE__ */ import_react19.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement("input", { type: "checkbox", checked: engineConfig.enableVignette, onChange: (e2) => handleOverride({ enableVignette: e2.target.checked }) }), "Vignette Effect"), /* @__PURE__ */ import_react19.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement("input", { type: "checkbox", checked: engineConfig.enablePostProcessing, onChange: (e2) => handleOverride({ enablePostProcessing: e2.target.checked }) }), "Post-Processing Pipeline"), /* @__PURE__ */ import_react19.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement("input", { type: "checkbox", checked: engineConfig.enableNear, onChange: (e2) => handleOverride({ enableNear: e2.target.checked }) }), "Near Sun (Shadows)"), engineConfig.enableNear && /* @__PURE__ */ import_react19.default.createElement("select", { value: engineConfig.shadowMapSize, onChange: (e2) => handleOverride({ shadowMapSize: parseInt(e2.target.value) }), style: { background: "#2a2d36", color: "#fff", fontSize: "11px", padding: "2px", border: "1px solid #4a4b5d", marginLeft: "24px" } }, /* @__PURE__ */ import_react19.default.createElement("option", { value: "512" }, "Low (512)"), /* @__PURE__ */ import_react19.default.createElement("option", { value: "1024" }, "Mid (1024)"), /* @__PURE__ */ import_react19.default.createElement("option", { value: "2048" }, "High (2048)"), /* @__PURE__ */ import_react19.default.createElement("option", { value: "4096" }, "Ultra (4096)")), /* @__PURE__ */ import_react19.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react19.default.createElement("input", { type: "checkbox", checked: engineConfig.enableFar, onChange: (e2) => handleOverride({ enableFar: e2.target.checked }) }), "Far Sun (Global Light)"))));
   }
-  var import_react20;
+  var import_react19;
   var init_SettingsPanel = __esm({
     "3dmapengine/components/ui/SettingsPanel.jsx"() {
-      import_react20 = __toESM(require_react());
+      import_react19 = __toESM(require_react());
       init_mapStore();
-    }
-  });
-
-  // 3dmapengine/store/scene-presets/Scenario_1_Noon_Preset.json
-  var Scenario_1_Noon_Preset_default;
-  var init_Scenario_1_Noon_Preset = __esm({
-    "3dmapengine/store/scene-presets/Scenario_1_Noon_Preset.json"() {
-      Scenario_1_Noon_Preset_default = {
-        enableNear: true,
-        enableFar: true,
-        lightDirX: -2.67,
-        lightDirY: -2.82,
-        lightDirZ: 1.98,
-        intensity: 2.12,
-        nearMargin: 133,
-        nearSize: 10,
-        nearNear: 9.11,
-        nearFar: 320,
-        nearMapSize: 4096,
-        nearBias: -1e-4,
-        farMargin: 400,
-        farSize: 100,
-        farNear: 109,
-        farFar: 1270,
-        farMapSize: 1024,
-        farBias: -8e-4,
-        displayHelper: true,
-        enablePostProcessing: true,
-        enableColorGrading: true,
-        brightness: 0,
-        contrast: 0,
-        hue: 0,
-        saturation: 0.12,
-        enableBloom: true,
-        bloomIntensity: 0.5,
-        bloomLuminanceThreshold: 0.8,
-        enableVignette: true,
-        vignetteOffset: 0.5,
-        vignetteDarkness: 0.48,
-        presetName: "Scenario_1_Noon"
-      };
-    }
-  });
-
-  // 3dmapengine/store/scene-presets/index.js
-  var PRESETS;
-  var init_scene_presets = __esm({
-    "3dmapengine/store/scene-presets/index.js"() {
-      init_Scenario_1_Noon_Preset();
-      PRESETS = {
-        "Scenario_1_Noon": Scenario_1_Noon_Preset_default
-      };
     }
   });
 
@@ -90459,11 +90891,11 @@ ${indent})`;
     const userRole = useMapStore((state2) => state2.userRole);
     const config = useMapStore((state2) => state2.engineConfig);
     const setConfig = useMapStore((state2) => state2.setEngineConfig);
-    const [activeTab, setActiveTab] = (0, import_react21.useState)("lighting");
-    const [isOpen, setIsOpen] = (0, import_react21.useState)(true);
+    const [activeTab, setActiveTab] = (0, import_react20.useState)("lighting");
+    const [isOpen, setIsOpen] = (0, import_react20.useState)(false);
     if (userRole !== "Owner") return null;
     if (!isOpen) {
-      return /* @__PURE__ */ import_react21.default.createElement("div", { style: { position: "absolute", top: "16px", right: "140px", zIndex: 1e3 } }, /* @__PURE__ */ import_react21.default.createElement(
+      return /* @__PURE__ */ import_react20.default.createElement("div", { style: { position: "absolute", top: "16px", right: "140px", zIndex: 1e3 } }, /* @__PURE__ */ import_react20.default.createElement(
         "button",
         {
           onClick: () => setIsOpen(true),
@@ -90549,7 +90981,7 @@ ${indent})`;
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
     };
-    return /* @__PURE__ */ import_react21.default.createElement(
+    return /* @__PURE__ */ import_react20.default.createElement(
       "div",
       {
         style: containerStyle,
@@ -90558,9 +90990,9 @@ ${indent})`;
         onPointerUpCapture: (e2) => e2.stopPropagation(),
         onWheelCapture: (e2) => e2.stopPropagation()
       },
-      /* @__PURE__ */ import_react21.default.createElement("div", { style: headerStyle }, /* @__PURE__ */ import_react21.default.createElement("h2", { style: { margin: 0, fontSize: "14px", fontWeight: "bold", color: "#00f2fe", textTransform: "uppercase", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "8px" } }, /* @__PURE__ */ import_react21.default.createElement("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#00f2fe", display: "inline-block" } }), "God Mode"), /* @__PURE__ */ import_react21.default.createElement("button", { onClick: () => setIsOpen(false), style: { background: "none", border: "none", color: "#a0a0b0", cursor: "pointer", fontSize: "14px" } }, "\u2715")),
-      /* @__PURE__ */ import_react21.default.createElement("div", { style: tabContainerStyle }, /* @__PURE__ */ import_react21.default.createElement("button", { style: getTabStyle("lighting"), onClick: () => setActiveTab("lighting") }, "Lighting"), /* @__PURE__ */ import_react21.default.createElement("button", { style: getTabStyle("post"), onClick: () => setActiveTab("post") }, "Post-Proc"), /* @__PURE__ */ import_react21.default.createElement("button", { style: getTabStyle("scenarios"), onClick: () => setActiveTab("scenarios") }, "Scenarios")),
-      /* @__PURE__ */ import_react21.default.createElement("div", { style: contentStyle }, activeTab === "lighting" && /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "16px" } }, /* @__PURE__ */ import_react21.default.createElement("div", null, /* @__PURE__ */ import_react21.default.createElement("h3", { style: sectionTitleStyle }, "Global Sun"), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Direction X", prop: "lightDirX", min: -5, max: 5, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Direction Y", prop: "lightDirY", min: -5, max: 5, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Direction Z", prop: "lightDirZ", min: -5, max: 5, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Intensity", prop: "intensity", min: 0, max: 5, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Toggle, { label: "Show Debug Helper Lines", prop: "displayHelper", config, setConfig })), /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react21.default.createElement("h3", { style: sectionTitleStyle }, "Near Cascade (High Res)", /* @__PURE__ */ import_react21.default.createElement("input", { type: "checkbox", checked: config.enableNear, onChange: (e2) => setConfig({ enableNear: e2.target.checked }) })), config.enableNear && /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Frustum Box Size", prop: "nearSize", min: 10, max: 200, step: 1, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Frustum Margin (Offset)", prop: "nearMargin", min: 10, max: 500, step: 1, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Shadow Camera Near", prop: "nearNear", min: 0.01, max: 50, step: 0.1, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Shadow Camera Far", prop: "nearFar", min: 100, max: 1e3, step: 10, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Shadow Bias", prop: "nearBias", min: -5e-3, max: 5e-3, step: 1e-4, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" } }, /* @__PURE__ */ import_react21.default.createElement("span", { style: { fontSize: "11px", color: "#e0e0e0" } }, "Shadow Map Resolution"), /* @__PURE__ */ import_react21.default.createElement("select", { value: config.nearMapSize, onChange: (e2) => setConfig({ nearMapSize: parseInt(e2.target.value) }), style: { background: "#2a2d36", color: "#fff", border: "1px solid #4a4d56", borderRadius: "4px", padding: "4px", fontSize: "12px" } }, /* @__PURE__ */ import_react21.default.createElement("option", { value: "512" }, "512"), /* @__PURE__ */ import_react21.default.createElement("option", { value: "1024" }, "1024"), /* @__PURE__ */ import_react21.default.createElement("option", { value: "2048" }, "2048"), /* @__PURE__ */ import_react21.default.createElement("option", { value: "4096" }, "4096"))))), /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react21.default.createElement("h3", { style: sectionTitleStyle }, "Far Cascade (Low Res)", /* @__PURE__ */ import_react21.default.createElement("input", { type: "checkbox", checked: config.enableFar, onChange: (e2) => setConfig({ enableFar: e2.target.checked }) })), config.enableFar && /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Frustum Box Size", prop: "farSize", min: 100, max: 1500, step: 10, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Frustum Margin (Offset)", prop: "farMargin", min: 100, max: 1500, step: 10, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Shadow Camera Near", prop: "farNear", min: 1, max: 500, step: 1, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Shadow Camera Far", prop: "farFar", min: 500, max: 3e3, step: 10, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Shadow Bias", prop: "farBias", min: -5e-3, max: 5e-3, step: 1e-4, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" } }, /* @__PURE__ */ import_react21.default.createElement("span", { style: { fontSize: "11px", color: "#e0e0e0" } }, "Shadow Map Resolution"), /* @__PURE__ */ import_react21.default.createElement("select", { value: config.farMapSize, onChange: (e2) => setConfig({ farMapSize: parseInt(e2.target.value) }), style: { background: "#2a2d36", color: "#fff", border: "1px solid #4a4d56", borderRadius: "4px", padding: "4px", fontSize: "12px" } }, /* @__PURE__ */ import_react21.default.createElement("option", { value: "256" }, "256"), /* @__PURE__ */ import_react21.default.createElement("option", { value: "512" }, "512"), /* @__PURE__ */ import_react21.default.createElement("option", { value: "1024" }, "1024")))))), activeTab === "post" && /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "16px" } }, /* @__PURE__ */ import_react21.default.createElement(Toggle, { label: "Master Enable Post-Processing", prop: "enablePostProcessing", config, setConfig }), config.enablePostProcessing && /* @__PURE__ */ import_react21.default.createElement(import_react21.default.Fragment, null, /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react21.default.createElement("h3", { style: sectionTitleStyle }, "Color Grading", /* @__PURE__ */ import_react21.default.createElement("input", { type: "checkbox", checked: config.enableColorGrading, onChange: (e2) => setConfig({ enableColorGrading: e2.target.checked }) })), config.enableColorGrading && /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Brightness", prop: "brightness", min: -1, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Contrast", prop: "contrast", min: -1, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Saturation", prop: "saturation", min: -1, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Hue", prop: "hue", min: -Math.PI, max: Math.PI, step: 0.01, config, setConfig }))), /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react21.default.createElement("h3", { style: sectionTitleStyle }, "Bloom (Glow)", /* @__PURE__ */ import_react21.default.createElement("input", { type: "checkbox", checked: config.enableBloom, onChange: (e2) => setConfig({ enableBloom: e2.target.checked }) })), config.enableBloom && /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Intensity", prop: "bloomIntensity", min: 0, max: 5, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Luminance Threshold", prop: "bloomLuminanceThreshold", min: 0, max: 1, step: 0.01, config, setConfig }))), /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react21.default.createElement("h3", { style: sectionTitleStyle }, "Vignette", /* @__PURE__ */ import_react21.default.createElement("input", { type: "checkbox", checked: config.enableVignette, onChange: (e2) => setConfig({ enableVignette: e2.target.checked }) })), config.enableVignette && /* @__PURE__ */ import_react21.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Darkness", prop: "vignetteDarkness", min: 0, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react21.default.createElement(Slider, { label: "Offset", prop: "vignetteOffset", min: 0, max: 1, step: 0.01, config, setConfig }))))), activeTab === "scenarios" && /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "16px" } }, /* @__PURE__ */ import_react21.default.createElement("h3", { style: { fontSize: "12px", fontWeight: "bold", color: "#00f2fe", margin: 0, textTransform: "uppercase" } }, "Load Scenario Preset"), /* @__PURE__ */ import_react21.default.createElement("p", { style: { fontSize: "12px", color: "#a0a0b0", margin: 0 } }, "Select a pre-configured scenario to instantly apply lighting and post-processing settings."), /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } }, Object.keys(PRESETS).map((presetKey) => /* @__PURE__ */ import_react21.default.createElement(
+      /* @__PURE__ */ import_react20.default.createElement("div", { style: headerStyle }, /* @__PURE__ */ import_react20.default.createElement("h2", { style: { margin: 0, fontSize: "14px", fontWeight: "bold", color: "#00f2fe", textTransform: "uppercase", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "8px" } }, /* @__PURE__ */ import_react20.default.createElement("span", { style: { width: "8px", height: "8px", borderRadius: "50%", background: "#00f2fe", display: "inline-block" } }), "God Mode"), /* @__PURE__ */ import_react20.default.createElement("button", { onClick: () => setIsOpen(false), style: { background: "none", border: "none", color: "#a0a0b0", cursor: "pointer", fontSize: "14px" } }, "\u2715")),
+      /* @__PURE__ */ import_react20.default.createElement("div", { style: tabContainerStyle }, /* @__PURE__ */ import_react20.default.createElement("button", { style: getTabStyle("lighting"), onClick: () => setActiveTab("lighting") }, "Lighting"), /* @__PURE__ */ import_react20.default.createElement("button", { style: getTabStyle("post"), onClick: () => setActiveTab("post") }, "Post-Proc"), /* @__PURE__ */ import_react20.default.createElement("button", { style: getTabStyle("scenarios"), onClick: () => setActiveTab("scenarios") }, "Scenarios")),
+      /* @__PURE__ */ import_react20.default.createElement("div", { style: contentStyle }, activeTab === "lighting" && /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "16px" } }, /* @__PURE__ */ import_react20.default.createElement("div", null, /* @__PURE__ */ import_react20.default.createElement("h3", { style: sectionTitleStyle }, "Global Sun"), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Direction X", prop: "lightDirX", min: -5, max: 5, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Direction Y", prop: "lightDirY", min: -5, max: 5, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Direction Z", prop: "lightDirZ", min: -5, max: 5, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Intensity", prop: "intensity", min: 0, max: 5, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Toggle, { label: "Show Debug Helper Lines", prop: "displayHelper", config, setConfig })), /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: sectionTitleStyle }, "Near Cascade (High Res)", /* @__PURE__ */ import_react20.default.createElement("input", { type: "checkbox", checked: config.enableNear, onChange: (e2) => setConfig({ enableNear: e2.target.checked }) })), config.enableNear && /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Frustum Box Size", prop: "nearSize", min: 10, max: 200, step: 1, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Frustum Margin (Offset)", prop: "nearMargin", min: 10, max: 500, step: 1, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Shadow Camera Near", prop: "nearNear", min: 0.01, max: 50, step: 0.1, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Shadow Camera Far", prop: "nearFar", min: 100, max: 1e3, step: 10, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Shadow Bias", prop: "nearBias", min: -5e-3, max: 5e-3, step: 1e-4, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" } }, /* @__PURE__ */ import_react20.default.createElement("span", { style: { fontSize: "11px", color: "#e0e0e0" } }, "Shadow Map Resolution"), /* @__PURE__ */ import_react20.default.createElement("select", { value: config.nearMapSize, onChange: (e2) => setConfig({ nearMapSize: parseInt(e2.target.value) }), style: { background: "#2a2d36", color: "#fff", border: "1px solid #4a4d56", borderRadius: "4px", padding: "4px", fontSize: "12px" } }, /* @__PURE__ */ import_react20.default.createElement("option", { value: "512" }, "512"), /* @__PURE__ */ import_react20.default.createElement("option", { value: "1024" }, "1024"), /* @__PURE__ */ import_react20.default.createElement("option", { value: "2048" }, "2048"), /* @__PURE__ */ import_react20.default.createElement("option", { value: "4096" }, "4096"))))), /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: sectionTitleStyle }, "Far Cascade (Low Res)", /* @__PURE__ */ import_react20.default.createElement("input", { type: "checkbox", checked: config.enableFar, onChange: (e2) => setConfig({ enableFar: e2.target.checked }) })), config.enableFar && /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Frustum Box Size", prop: "farSize", min: 100, max: 1500, step: 10, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Frustum Margin (Offset)", prop: "farMargin", min: 100, max: 1500, step: 10, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Shadow Camera Near", prop: "farNear", min: 1, max: 500, step: 1, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Shadow Camera Far", prop: "farFar", min: 500, max: 3e3, step: 10, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Shadow Bias", prop: "farBias", min: -5e-3, max: 5e-3, step: 1e-4, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "8px" } }, /* @__PURE__ */ import_react20.default.createElement("span", { style: { fontSize: "11px", color: "#e0e0e0" } }, "Shadow Map Resolution"), /* @__PURE__ */ import_react20.default.createElement("select", { value: config.farMapSize, onChange: (e2) => setConfig({ farMapSize: parseInt(e2.target.value) }), style: { background: "#2a2d36", color: "#fff", border: "1px solid #4a4d56", borderRadius: "4px", padding: "4px", fontSize: "12px" } }, /* @__PURE__ */ import_react20.default.createElement("option", { value: "256" }, "256"), /* @__PURE__ */ import_react20.default.createElement("option", { value: "512" }, "512"), /* @__PURE__ */ import_react20.default.createElement("option", { value: "1024" }, "1024")))))), activeTab === "post" && /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "16px" } }, /* @__PURE__ */ import_react20.default.createElement(Toggle, { label: "Master Enable Post-Processing", prop: "enablePostProcessing", config, setConfig }), config.enablePostProcessing && /* @__PURE__ */ import_react20.default.createElement(import_react20.default.Fragment, null, /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: sectionTitleStyle }, "Color Grading", /* @__PURE__ */ import_react20.default.createElement("input", { type: "checkbox", checked: config.enableColorGrading, onChange: (e2) => setConfig({ enableColorGrading: e2.target.checked }) })), config.enableColorGrading && /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Brightness", prop: "brightness", min: -1, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Contrast", prop: "contrast", min: -1, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Saturation", prop: "saturation", min: -1, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Hue", prop: "hue", min: -Math.PI, max: Math.PI, step: 0.01, config, setConfig }))), /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: sectionTitleStyle }, "Bloom (Glow)", /* @__PURE__ */ import_react20.default.createElement("input", { type: "checkbox", checked: config.enableBloom, onChange: (e2) => setConfig({ enableBloom: e2.target.checked }) })), config.enableBloom && /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Intensity", prop: "bloomIntensity", min: 0, max: 5, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Luminance Threshold", prop: "bloomLuminanceThreshold", min: 0, max: 1, step: 0.01, config, setConfig }))), /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingTop: "12px", borderTop: "1px solid #2a2d36" } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: sectionTitleStyle }, "Vignette", /* @__PURE__ */ import_react20.default.createElement("input", { type: "checkbox", checked: config.enableVignette, onChange: (e2) => setConfig({ enableVignette: e2.target.checked }) })), config.enableVignette && /* @__PURE__ */ import_react20.default.createElement("div", { style: { paddingLeft: "8px", borderLeft: "2px solid #2a2d36", marginTop: "8px" } }, /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Darkness", prop: "vignetteDarkness", min: 0, max: 1, step: 0.01, config, setConfig }), /* @__PURE__ */ import_react20.default.createElement(Slider, { label: "Offset", prop: "vignetteOffset", min: 0, max: 1, step: 0.01, config, setConfig }))))), activeTab === "scenarios" && /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "16px" } }, /* @__PURE__ */ import_react20.default.createElement("h3", { style: { fontSize: "12px", fontWeight: "bold", color: "#00f2fe", margin: 0, textTransform: "uppercase" } }, "Load Scenario Preset"), /* @__PURE__ */ import_react20.default.createElement("p", { style: { fontSize: "12px", color: "#a0a0b0", margin: 0 } }, "Select a pre-configured scenario to instantly apply lighting and post-processing settings."), /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "8px" } }, Object.keys(PRESETS).map((presetKey) => /* @__PURE__ */ import_react20.default.createElement(
         "button",
         {
           key: presetKey,
@@ -90588,9 +91020,9 @@ ${indent})`;
             e2.currentTarget.style.color = "#fff";
           }
         },
-        /* @__PURE__ */ import_react21.default.createElement("span", null, presetKey),
-        /* @__PURE__ */ import_react21.default.createElement("span", { style: { fontSize: "16px" } }, "\u25B6")
-      )), Object.keys(PRESETS).length === 0 && /* @__PURE__ */ import_react21.default.createElement("div", { style: { color: "#a0a0b0", fontSize: "12px", fontStyle: "italic", padding: "8px" } }, "No presets loaded yet.")), /* @__PURE__ */ import_react21.default.createElement("div", { style: { height: "1px", background: "#2a2d36", margin: "8px 0" } }), /* @__PURE__ */ import_react21.default.createElement("h3", { style: { fontSize: "12px", fontWeight: "bold", color: "#a0a0b0", margin: 0, textTransform: "uppercase" } }, "Save Configuration"), /* @__PURE__ */ import_react21.default.createElement("p", { style: { fontSize: "12px", color: "#a0a0b0", margin: 0 } }, "Export your perfect setup to a single JSON file. Drop it into ", /* @__PURE__ */ import_react21.default.createElement("code", null, "store/scene-presets/"), " to use it."), /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } }, /* @__PURE__ */ import_react21.default.createElement("span", { style: { fontSize: "11px", color: "#e0e0e0" } }, "Preset Name"), /* @__PURE__ */ import_react21.default.createElement(
+        /* @__PURE__ */ import_react20.default.createElement("span", null, presetKey),
+        /* @__PURE__ */ import_react20.default.createElement("span", { style: { fontSize: "16px" } }, "\u25B6")
+      )), Object.keys(PRESETS).length === 0 && /* @__PURE__ */ import_react20.default.createElement("div", { style: { color: "#a0a0b0", fontSize: "12px", fontStyle: "italic", padding: "8px" } }, "No presets loaded yet.")), /* @__PURE__ */ import_react20.default.createElement("div", { style: { height: "1px", background: "#2a2d36", margin: "8px 0" } }), /* @__PURE__ */ import_react20.default.createElement("h3", { style: { fontSize: "12px", fontWeight: "bold", color: "#a0a0b0", margin: 0, textTransform: "uppercase" } }, "Save Configuration"), /* @__PURE__ */ import_react20.default.createElement("p", { style: { fontSize: "12px", color: "#a0a0b0", margin: 0 } }, "Export your perfect setup to a single JSON file. Drop it into ", /* @__PURE__ */ import_react20.default.createElement("code", null, "store/scene-presets/"), " to use it."), /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px" } }, /* @__PURE__ */ import_react20.default.createElement("span", { style: { fontSize: "11px", color: "#e0e0e0" } }, "Preset Name"), /* @__PURE__ */ import_react20.default.createElement(
         "input",
         {
           type: "text",
@@ -90598,7 +91030,7 @@ ${indent})`;
           onChange: (e2) => setConfig({ presetName: e2.target.value }),
           style: { background: "rgba(20, 21, 30, 0.8)", border: "1px solid #4a4b5d", borderRadius: "4px", padding: "8px", color: "#fff", fontSize: "13px", outline: "none" }
         }
-      )), /* @__PURE__ */ import_react21.default.createElement(
+      )), /* @__PURE__ */ import_react20.default.createElement(
         "button",
         {
           onClick: handleExport,
@@ -90625,10 +91057,10 @@ ${indent})`;
       )))
     );
   }
-  var import_react21, inputStyle, Slider, Toggle;
+  var import_react20, inputStyle, Slider, Toggle;
   var init_OwnerPanel = __esm({
     "3dmapengine/components/ui/OwnerPanel.jsx"() {
-      import_react21 = __toESM(require_react());
+      import_react20 = __toESM(require_react());
       init_mapStore();
       init_scene_presets();
       inputStyle = {
@@ -90637,7 +91069,7 @@ ${indent})`;
         marginBottom: "8px",
         accentColor: "#00f2fe"
       };
-      Slider = ({ label, prop, min, max, step = 0.01, config, setConfig }) => /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" } }, /* @__PURE__ */ import_react21.default.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react21.default.createElement("span", null, label), /* @__PURE__ */ import_react21.default.createElement("span", { style: { color: "#00f2fe" } }, config[prop])), /* @__PURE__ */ import_react21.default.createElement(
+      Slider = ({ label, prop, min, max, step = 0.01, config, setConfig }) => /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: "4px", marginBottom: "12px" } }, /* @__PURE__ */ import_react20.default.createElement("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#e0e0e0" } }, /* @__PURE__ */ import_react20.default.createElement("span", null, label), /* @__PURE__ */ import_react20.default.createElement("span", { style: { color: "#00f2fe" } }, config[prop])), /* @__PURE__ */ import_react20.default.createElement(
         "input",
         {
           type: "range",
@@ -90649,7 +91081,7 @@ ${indent})`;
           style: inputStyle
         }
       ));
-      Toggle = ({ label, prop, config, setConfig }) => /* @__PURE__ */ import_react21.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#fff", marginBottom: "12px", cursor: "pointer" } }, /* @__PURE__ */ import_react21.default.createElement(
+      Toggle = ({ label, prop, config, setConfig }) => /* @__PURE__ */ import_react20.default.createElement("label", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#fff", marginBottom: "12px", cursor: "pointer" } }, /* @__PURE__ */ import_react20.default.createElement(
         "input",
         {
           type: "checkbox",
@@ -90658,6 +91090,160 @@ ${indent})`;
           style: { cursor: "pointer" }
         }
       ), label);
+    }
+  });
+
+  // 3dmapengine/components/ui/ZoomSpeedLines.jsx
+  function ZoomSpeedLines() {
+    const isZooming = useMapStore((state2) => state2.isZooming);
+    const [renderEffect, setRenderEffect] = (0, import_react21.useState)(false);
+    (0, import_react21.useEffect)(() => {
+      if (isZooming) {
+        setRenderEffect(true);
+      } else {
+        const timer = setTimeout(() => setRenderEffect(false), 200);
+        return () => clearTimeout(timer);
+      }
+    }, [isZooming]);
+    const conicBackground = (0, import_react21.useMemo)(() => {
+      let stops = [];
+      for (let i3 = 0; i3 < 360; i3 += 4) {
+        if (Math.random() > 0.4) {
+          const color2 = Math.random() > 0.6 ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 242, 254, 0.7)";
+          const width = 0.05 + Math.random() * 0.15;
+          stops.push(`transparent ${i3}deg`);
+          stops.push(`${color2} ${i3}deg`);
+          stops.push(`${color2} ${i3 + width}deg`);
+          stops.push(`transparent ${i3 + width}deg`);
+        }
+      }
+      return `conic-gradient(from 0deg, ${stops.join(", ")})`;
+    }, []);
+    if (!renderEffect) return null;
+    return /* @__PURE__ */ import_react21.default.createElement(
+      "div",
+      {
+        style: {
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 50,
+          opacity: isZooming ? 1 : 0,
+          transition: "opacity 0.15s ease-out",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          overflow: "hidden",
+          // Dark dramatic vignette that pops in
+          boxShadow: isZooming ? "inset 0 0 250px rgba(0,0,0,0.6)" : "inset 0 0 0px rgba(0,0,0,0)",
+          transitionProperty: "opacity, box-shadow"
+        }
+      },
+      /* @__PURE__ */ import_react21.default.createElement("div", { style: {
+        position: "absolute",
+        width: "250vw",
+        height: "250vh",
+        background: conicBackground,
+        maskImage: "radial-gradient(circle, transparent 15%, black 60%)",
+        WebkitMaskImage: "radial-gradient(circle, transparent 15%, black 60%)",
+        animation: "zoomWarp 0.2s linear infinite"
+      } }),
+      /* @__PURE__ */ import_react21.default.createElement("div", { style: {
+        position: "absolute",
+        width: "250vw",
+        height: "250vh",
+        background: conicBackground,
+        maskImage: "radial-gradient(circle, transparent 25%, black 80%)",
+        WebkitMaskImage: "radial-gradient(circle, transparent 25%, black 80%)",
+        animation: "zoomWarpFast 0.12s linear infinite",
+        opacity: 0.6
+      } }),
+      /* @__PURE__ */ import_react21.default.createElement("style", null, `
+        @keyframes zoomWarp {
+          0% { transform: scale(0.5); }
+          100% { transform: scale(1.5); }
+        }
+        @keyframes zoomWarpFast {
+          0% { transform: scale(0.8) rotate(15deg); }
+          100% { transform: scale(2.0) rotate(15deg); }
+        }
+      `)
+    );
+  }
+  var import_react21;
+  var init_ZoomSpeedLines = __esm({
+    "3dmapengine/components/ui/ZoomSpeedLines.jsx"() {
+      import_react21 = __toESM(require_react());
+      init_mapStore();
+    }
+  });
+
+  // 3dmapengine/components/ui/TileInfoPanel.jsx
+  function TileInfoPanel() {
+    const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
+    const selectedTile = useMapStore((state2) => state2.selectedTile);
+    const currentCenterCoords = useMapStore((state2) => state2.currentCenterCoords);
+    const mapData = useMapStore((state2) => state2.mapData);
+    let targetTileCoords = null;
+    if (graphicsQuality === "mid" && selectedTile) {
+      targetTileCoords = { x: selectedTile.x, y: selectedTile.y };
+    } else if (graphicsQuality === "high" || graphicsQuality === "low") {
+      targetTileCoords = currentCenterCoords;
+    }
+    if (!targetTileCoords) return null;
+    const tileData = mapData[`${targetTileCoords.x},${targetTileCoords.y}`];
+    let intelStatus = { text: "Unexplored Sector - No Intel", color: "#a4b0be" };
+    let intelDetails = null;
+    if (tileData) {
+      const isOccupied = tileData.villageId || tileData.playerId || tileData.playerName || tileData.allianceName;
+      const isOasis = tileData.isOasis || tileData.type && tileData.type.includes("oasis") || tileData.villageName && tileData.villageName.toLowerCase().includes("oasis");
+      if (isOasis) {
+        if (isOccupied) {
+          intelStatus = { text: `Occupied Oasis - ${tileData.oasisType || "wood"}`, color: "#ff4757" };
+        } else {
+          intelStatus = { text: `Free Oasis - ${tileData.oasisType || "wood"}`, color: "#2ed573" };
+        }
+        if (isOccupied) {
+          intelDetails = /* @__PURE__ */ import_react22.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#dfe4ea", marginBottom: "2px" } }, "\u{1F464} ", tileData.playerName || "Nature"), /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#00f2fe", marginBottom: "2px" } }, "\u{1F6E1}\uFE0F ", tileData.allianceName || "No Alliance"));
+        } else {
+          intelDetails = /* @__PURE__ */ import_react22.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#2ed573", marginBottom: "2px" } }, "\u{1F33F} ", tileData.bonus || "Unknown Bonus"));
+        }
+      } else if (isOccupied) {
+        intelStatus = { text: "Active Settlement", color: "#ff4757" };
+        intelDetails = /* @__PURE__ */ import_react22.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#dfe4ea", marginBottom: "2px" } }, "\u{1F464} ", tileData.playerName || "Unknown"), /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#00f2fe", marginBottom: "2px" } }, "\u{1F6E1}\uFE0F ", tileData.allianceName || "No Alliance"), /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#eccc68" } }, "\u{1F465} Pop: ", tileData.population || tileData.pop || "?"));
+      } else {
+        intelStatus = { text: "Empty Terrain", color: "#747d8c" };
+        if (tileData.terrain) {
+          intelDetails = /* @__PURE__ */ import_react22.default.createElement("div", { style: { marginTop: "8px", fontSize: "11px", textAlign: "left", width: "100%", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px" } }, /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#747d8c", marginBottom: "2px" } }, "\u26F0\uFE0F Terrain: ", tileData.terrain));
+        }
+      }
+    }
+    return /* @__PURE__ */ import_react22.default.createElement("div", { style: {
+      position: "absolute",
+      top: "24px",
+      left: "24px",
+      zIndex: 50,
+      background: "rgba(15, 20, 30, 0.6)",
+      border: "1px solid #00f2fe",
+      boxShadow: "0 4px 20px rgba(0, 242, 254, 0.15)",
+      borderRadius: "8px",
+      padding: "16px",
+      width: "220px",
+      color: "#fff",
+      fontFamily: "Inter, sans-serif",
+      pointerEvents: "auto",
+      userSelect: "none",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      backdropFilter: "blur(10px)"
+    } }, /* @__PURE__ */ import_react22.default.createElement("div", { style: { fontSize: "10px", color: "#00f2fe", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "4px" } }, "SECTOR COORDS"), /* @__PURE__ */ import_react22.default.createElement("div", { style: { fontSize: "20px", fontWeight: "bold", color: "#fff", marginBottom: "12px" } }, "[", targetTileCoords.x, ", ", targetTileCoords.y, "]"), /* @__PURE__ */ import_react22.default.createElement("div", { style: { fontSize: "12px", color: intelStatus.color, fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" } }, /* @__PURE__ */ import_react22.default.createElement("span", { style: { display: "inline-block", width: "8px", height: "8px", background: intelStatus.color, borderRadius: "50%", boxShadow: `0 0 8px ${intelStatus.color}` } }), intelStatus.text), intelDetails);
+  }
+  var import_react22;
+  var init_TileInfoPanel = __esm({
+    "3dmapengine/components/ui/TileInfoPanel.jsx"() {
+      import_react22 = __toESM(require_react());
+      init_mapStore();
     }
   });
 
@@ -90671,7 +91257,9 @@ ${indent})`;
     const graphicsQuality = useMapStore((state2) => state2.graphicsQuality);
     const shadowsEnabled = useMapStore((state2) => state2.shadowsEnabled);
     const environmentEnabled = useMapStore((state2) => state2.environmentEnabled);
-    (0, import_react22.useEffect)(() => {
+    const currentCenterCoords = useMapStore((state2) => state2.currentCenterCoords);
+    const zoomLabel = useMapStore((state2) => state2.zoomLabel);
+    (0, import_react23.useEffect)(() => {
       hydrateData();
       fetchAlarms();
       const interval = setInterval(() => {
@@ -90679,7 +91267,7 @@ ${indent})`;
       }, 45e3);
       return () => clearInterval(interval);
     }, [hydrateData, fetchAlarms]);
-    return /* @__PURE__ */ import_react22.default.createElement("div", { style: { width: "100vw", height: "100vh", background: "#282936", overflow: "hidden", position: "relative" } }, /* @__PURE__ */ import_react22.default.createElement(
+    return /* @__PURE__ */ import_react23.default.createElement("div", { style: { width: "100vw", height: "100vh", background: "#282936", overflow: "hidden", position: "relative" } }, /* @__PURE__ */ import_react23.default.createElement(
       "div",
       {
         id: "loading-overlay",
@@ -90698,7 +91286,7 @@ ${indent})`;
           pointerEvents: isLoading ? "all" : "none"
         }
       },
-      /* @__PURE__ */ import_react22.default.createElement("div", { style: {
+      /* @__PURE__ */ import_react23.default.createElement("div", { style: {
         width: "50px",
         height: "50px",
         border: "3px solid rgba(255,255,255,0.05)",
@@ -90708,69 +91296,93 @@ ${indent})`;
         marginBottom: "15px",
         boxShadow: "0 0 20px rgba(231, 76, 60, 0.2)"
       } }),
-      /* @__PURE__ */ import_react22.default.createElement("style", null, `@keyframes spin { to { transform: rotate(360deg); } }`),
-      /* @__PURE__ */ import_react22.default.createElement("div", { style: { color: "#ff4757", fontWeight: 600, letterSpacing: "1px" } }, "Loading Map Intel...")
-    ), /* @__PURE__ */ import_react22.default.createElement(ContextMenu, null), /* @__PURE__ */ import_react22.default.createElement("div", { className: "absolute top-4 right-4 flex flex-col gap-4 items-end z-50 pointer-events-none" }, /* @__PURE__ */ import_react22.default.createElement("div", { className: "pointer-events-auto" }, /* @__PURE__ */ import_react22.default.createElement(SettingsPanel, null))), /* @__PURE__ */ import_react22.default.createElement(OwnerPanel, null), /* @__PURE__ */ import_react22.default.createElement(NotificationBell, null), /* @__PURE__ */ import_react22.default.createElement(TacticalFilters, null), /* @__PURE__ */ import_react22.default.createElement(
+      /* @__PURE__ */ import_react23.default.createElement("style", null, `@keyframes spin { to { transform: rotate(360deg); } }`),
+      /* @__PURE__ */ import_react23.default.createElement("div", { style: { color: "#ff4757", fontWeight: 600, letterSpacing: "1px" } }, "Loading Map Intel...")
+    ), /* @__PURE__ */ import_react23.default.createElement(ContextMenu, null), /* @__PURE__ */ import_react23.default.createElement(ZoomSpeedLines, null), /* @__PURE__ */ import_react23.default.createElement(TileInfoPanel, null), /* @__PURE__ */ import_react23.default.createElement("div", { className: "absolute top-4 right-4 flex flex-col gap-4 items-end z-50 pointer-events-none" }, /* @__PURE__ */ import_react23.default.createElement("div", { className: "pointer-events-auto" }, /* @__PURE__ */ import_react23.default.createElement(SettingsPanel, null))), /* @__PURE__ */ import_react23.default.createElement(OwnerPanel, null), /* @__PURE__ */ import_react23.default.createElement(NotificationBell, null), /* @__PURE__ */ import_react23.default.createElement(TacticalFilters, null), /* @__PURE__ */ import_react23.default.createElement("div", { style: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: "48px",
+      background: "rgba(21, 24, 30, 0.95)",
+      borderTop: "1px solid #2a2d36",
+      zIndex: 100,
+      display: "flex",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      padding: "0 24px",
+      gap: "24px",
+      backdropFilter: "blur(10px)",
+      boxShadow: "0 -4px 12px rgba(0,0,0,0.3)"
+    } }, /* @__PURE__ */ import_react23.default.createElement("div", { style: {
+      display: "flex",
+      gap: "16px",
+      fontFamily: "monospace",
+      fontSize: "14px",
+      fontWeight: "bold",
+      color: "#00f2fe",
+      background: "rgba(0, 242, 254, 0.1)",
+      padding: "6px 16px",
+      borderRadius: "4px",
+      border: "1px solid rgba(0, 242, 254, 0.3)"
+    } }, /* @__PURE__ */ import_react23.default.createElement("span", null, "\u{1F50D} ", zoomLabel), /* @__PURE__ */ import_react23.default.createElement("span", { style: { borderLeft: "1px solid rgba(0, 242, 254, 0.3)", paddingLeft: "16px" } }, "X: ", currentCenterCoords.x), /* @__PURE__ */ import_react23.default.createElement("span", null, "Y: ", currentCenterCoords.y)), /* @__PURE__ */ import_react23.default.createElement(
       "button",
       {
         onClick: toggleCameraMode,
         style: {
-          position: "absolute",
-          bottom: "24px",
-          right: "24px",
-          zIndex: 100,
           background: "rgba(40, 41, 54, 0.8)",
           border: "1px solid #00f2fe",
-          borderRadius: "8px",
-          padding: "12px 24px",
+          borderRadius: "4px",
+          padding: "8px 16px",
           color: "#fff",
           fontFamily: "Inter, sans-serif",
           fontWeight: "bold",
           cursor: "pointer",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.5)",
+          transition: "all 0.3s ease",
           display: "flex",
           alignItems: "center",
-          gap: "8px",
-          transition: "all 0.3s ease"
+          gap: "8px"
         },
         onMouseEnter: (e2) => e2.currentTarget.style.background = "rgba(0, 242, 254, 0.2)",
         onMouseLeave: (e2) => e2.currentTarget.style.background = "rgba(40, 41, 54, 0.8)"
       },
       cameraMode === "isometric" ? "\u{1F5FA}\uFE0F 2D Tactical" : "\u{1F310} 3D View"
-    ), /* @__PURE__ */ import_react22.default.createElement(
+    )), /* @__PURE__ */ import_react23.default.createElement(
       Canvas,
       {
-        shadows: { type: PCFShadowMap },
-        gl: { powerPreference: "high-performance", antialias: false },
-        dpr: [1, 1.5]
+        orthographic: true,
+        camera: CAMERA_CONFIG,
+        shadows: SHADOW_CONFIG,
+        gl: GL_CONFIG,
+        dpr: DPR_CONFIG
       },
-      /* @__PURE__ */ import_react22.default.createElement(CameraController, null),
-      /* @__PURE__ */ import_react22.default.createElement(OrthographicCamera2, { makeDefault: true, position: [100, 100, 100], zoom: 25, near: -1e3, far: 1e3 }),
-      /* @__PURE__ */ import_react22.default.createElement(
+      /* @__PURE__ */ import_react23.default.createElement(CameraController, null),
+      /* @__PURE__ */ import_react23.default.createElement(
         OrbitControls2,
         {
           makeDefault: true,
           enableRotate: false,
-          enableZoom: true,
-          enablePan: true
+          enableZoom: false,
+          enablePan: true,
+          enableDamping: false,
+          screenSpacePanning: false
         }
       ),
-      /* @__PURE__ */ import_react22.default.createElement("ambientLight", { intensity: 0.15 }),
-      /* @__PURE__ */ import_react22.default.createElement("hemisphereLight", { skyColor: "#ffffff", groundColor: "#222222", intensity: 0.25 }),
-      /* @__PURE__ */ import_react22.default.createElement(InstancedGrid, null),
-      cameraMode === "isometric" && /* @__PURE__ */ import_react22.default.createElement(import_react22.default.Fragment, null, shadowsEnabled && /* @__PURE__ */ import_react22.default.createElement("mesh", { receiveShadow: true, position: [0, 0.105, 0], rotation: [-Math.PI / 2, 0, 0] }, /* @__PURE__ */ import_react22.default.createElement("planeGeometry", { args: [1e3, 1e3] }), /* @__PURE__ */ import_react22.default.createElement("shadowMaterial", { transparent: true, opacity: 0.4 })), /* @__PURE__ */ import_react22.default.createElement(BiomeScatter, null), /* @__PURE__ */ import_react22.default.createElement(VillageScatter, null)),
-      /* @__PURE__ */ import_react22.default.createElement(ExtractedTile, null),
-      /* @__PURE__ */ import_react22.default.createElement(VectorOverlays, null),
-      /* @__PURE__ */ import_react22.default.createElement(RoleSprites, null),
-      /* @__PURE__ */ import_react22.default.createElement(DynamicSun, null),
-      /* @__PURE__ */ import_react22.default.createElement(PostProcessingManager, null)
+      /* @__PURE__ */ import_react23.default.createElement("ambientLight", { intensity: 0.15 }),
+      /* @__PURE__ */ import_react23.default.createElement("hemisphereLight", { skyColor: "#ffffff", groundColor: "#222222", intensity: 0.25 }),
+      /* @__PURE__ */ import_react23.default.createElement(InstancedGrid, null),
+      cameraMode === "isometric" && /* @__PURE__ */ import_react23.default.createElement(import_react23.default.Fragment, null, shadowsEnabled && /* @__PURE__ */ import_react23.default.createElement("mesh", { receiveShadow: true, position: [0, 0.105, 0], rotation: [-Math.PI / 2, 0, 0] }, /* @__PURE__ */ import_react23.default.createElement("planeGeometry", { args: [1e3, 1e3] }), /* @__PURE__ */ import_react23.default.createElement("shadowMaterial", { transparent: true, opacity: 0.4 })), /* @__PURE__ */ import_react23.default.createElement(BiomeScatter, null), /* @__PURE__ */ import_react23.default.createElement(VillageScatter, null)),
+      /* @__PURE__ */ import_react23.default.createElement(ExtractedTile, null),
+      /* @__PURE__ */ import_react23.default.createElement(VectorOverlays, null),
+      /* @__PURE__ */ import_react23.default.createElement(RoleSprites, null),
+      /* @__PURE__ */ import_react23.default.createElement(DynamicSun, null),
+      /* @__PURE__ */ import_react23.default.createElement(PostProcessingManager, null)
     ));
   }
-  var import_react22;
+  var import_react23, CAMERA_CONFIG, SHADOW_CONFIG, GL_CONFIG, DPR_CONFIG;
   var init_MapEngineApp = __esm({
     "3dmapengine/MapEngineApp.jsx"() {
-      import_react22 = __toESM(require_react());
+      import_react23 = __toESM(require_react());
       init_three_module();
       init_react_three_fiber_esm();
       init_drei();
@@ -90788,14 +91400,20 @@ ${indent})`;
       init_TacticalFilters();
       init_SettingsPanel();
       init_OwnerPanel();
+      init_ZoomSpeedLines();
+      init_TileInfoPanel();
       init_mapStore();
+      CAMERA_CONFIG = { position: [100, 100, 100], zoom: 45, near: -1e3, far: 1e3 };
+      SHADOW_CONFIG = { type: PCFShadowMap };
+      GL_CONFIG = { powerPreference: "high-performance", antialias: false };
+      DPR_CONFIG = [1, 1.5];
     }
   });
 
   // 3dmap.jsx
   var require_dmap = __commonJS({
     "3dmap.jsx"() {
-      var import_react23 = __toESM(require_react());
+      var import_react24 = __toESM(require_react());
       var import_client = __toESM(require_client());
       init_MapEngineApp();
       var originalWarn = console.warn;
@@ -90805,7 +91423,7 @@ ${indent})`;
       };
       var container = document.getElementById("root");
       var root = (0, import_client.createRoot)(container);
-      root.render(/* @__PURE__ */ import_react23.default.createElement(MapEngineApp, null));
+      root.render(/* @__PURE__ */ import_react24.default.createElement(MapEngineApp, null));
     }
   });
   require_dmap();

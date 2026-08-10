@@ -42,7 +42,7 @@ export default function OwnerPanel() {
   const setConfig = useMapStore(state => state.setEngineConfig);
   
   const [activeTab, setActiveTab] = useState('lighting');
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   if (userRole !== 'Owner') return null;
   if (!isOpen) {
