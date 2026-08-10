@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { OrthographicCamera, OrbitControls, Environment } from '@react-three/drei';
+import { OrthographicCamera, OrbitControls } from '@react-three/drei';
 import InstancedGrid from './components/canvas/InstancedGrid';
 import ExtractedTile from './components/canvas/ExtractedTile';
 import CameraController from './components/canvas/CameraController';
 import VectorOverlays from './components/canvas/VectorOverlays';
 import RoleSprites from './components/canvas/RoleSprites';
 import DynamicSun from './components/canvas/DynamicSun';
+import PostProcessingManager from './components/canvas/PostProcessingManager';
 import BiomeScatter from './components/canvas/BiomeScatter';
 import VillageScatter from './components/canvas/VillageScatter';
 import ContextMenu from './components/ui/ContextMenu';
 import NotificationBell from './components/ui/NotificationBell';
 import TacticalFilters from './components/ui/TacticalFilters';
 import SettingsPanel from './components/ui/SettingsPanel';
+import OwnerPanel from './components/ui/OwnerPanel';
 import { useMapStore } from './store/mapStore';
 
 export default function MapEngineApp() {
@@ -76,11 +78,18 @@ export default function MapEngineApp() {
       {/* Tactical Context Menu Overlay */}
       <ContextMenu />
       
+      {/* Configuration Panels */}
+      <div className="absolute top-4 right-4 flex flex-col gap-4 items-end z-50 pointer-events-none">
+        <div className="pointer-events-auto">
+          <SettingsPanel />
+        </div>
+      </div>
+      
+      {/* Render OwnerPanel directly since it handles its own positioning and collapse logic */}
+      <OwnerPanel />
+      
       {/* Notifications */}
       <NotificationBell />
-      
-      {/* Phase 11: Graphics Settings */}
-      <SettingsPanel />
       
       {/* Phase 8: Tactical Filters UI */}
       <TacticalFilters />
@@ -130,9 +139,6 @@ export default function MapEngineApp() {
           enablePan={true} 
         />
         
-        {/* PBR Environment for Realistic Reflections */}
-        {environmentEnabled && cameraMode === 'isometric' && <Environment preset="city" />}
-        
         <ambientLight intensity={0.15} />
         <hemisphereLight skyColor="#ffffff" groundColor="#222222" intensity={0.25} />
         {/* The DirectionalLight was removed because CSM creates its own lights */}
@@ -165,8 +171,11 @@ export default function MapEngineApp() {
         {/* Phase 10: Player Role Tags */}
         <RoleSprites />
 
-        {/* Phase 20: Dynamic Sun (Replaces Unstable CSM) */}
+        {/* Phase 20: Dynamic Sun V3 (Two Cascades) */}
         <DynamicSun />
+
+        {/* Phase 21: Post-Processing Engine */}
+        <PostProcessingManager />
       </Canvas>
     </div>
   );

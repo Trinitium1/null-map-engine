@@ -25,8 +25,8 @@
     "semantic_hash": "f69c514ccd31fcca97bd5b43a5d84248"
   },
   "extension/manifest.json": {
-    "mtime": 1786336727.9833882,
-    "ast_hash": "4af81eb322e274c639b5ea983b345c59",
+    "mtime": 1785721834.143189,
+    "ast_hash": "459d2964d4622251e4db7aae4b9beedf",
     "semantic_hash": ""
   },
   "extension/mapRenderer.js": {
@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.js": {
-    "mtime": 1785903106.253377,
-    "ast_hash": "98299173879967eca9c52cfb1aee0ff3",
+    "mtime": 1785730691.627467,
+    "ast_hash": "8f872058c62042b8ec01bdc94b733a54",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.js": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "extension/sidepanel.html": {
-    "mtime": 1785902137.0387075,
-    "ast_hash": "e2474e8744c8ed9ecf85b25e666b4611",
+    "mtime": 1785711101.7608418,
+    "ast_hash": "77313bfc817564a8baa48030b7f9e2d9",
     "semantic_hash": ""
   },
   "extension/troopsAnalyzer.html": {
@@ -232,181 +232,6 @@
   "extension/statsTerminal.html": {
     "mtime": 1785734788.3293295,
     "ast_hash": "df59940c3b573c049481da24d226201c",
-    "semantic_hash": ""
-  },
-  "extension/3dmap.bundle.js": {
-    "mtime": 1786336172.9363377,
-    "ast_hash": "9b43064053a7758612b6462921463d05",
-    "semantic_hash": ""
-  },
-  "extension/3dmap.jsx": {
-    "mtime": 1785903330.494264,
-    "ast_hash": "e10da9a825746dd28ffc88abd230b8c0",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/MapEngineApp.jsx": {
-    "mtime": 1786332747.3718724,
-    "ast_hash": "ce07d10ede920dcfdbdd85559d767b48",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/draco/gltf/draco_decoder.js": {
-    "mtime": 1785902078.824994,
-    "ast_hash": "5fcad04db3893d9fbb79418b1f8e44a1",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/draco/gltf/draco_wasm_wrapper.js": {
-    "mtime": 1785902078.8365817,
-    "ast_hash": "7a48a3fdc5785631621f4b20cd0937dc",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/Atmosphere.jsx": {
-    "mtime": 1785914536.2571535,
-    "ast_hash": "078941efb2ececad8c45dcc3f70d63e6",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/BiomeScatter.jsx": {
-    "mtime": 1786294146.492441,
-    "ast_hash": "24922436a57962f5eceec224bdd6e0a6",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/CameraController.jsx": {
-    "mtime": 1785989344.4194944,
-    "ast_hash": "fdbf78c07ba1be726eea3e5d067d4583",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/DynamicSun.jsx": {
-    "mtime": 1786335304.1733398,
-    "ast_hash": "951ee9f65427aead342c3f69c6b66820",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/ExtractedTile.jsx": {
-    "mtime": 1785990071.5763834,
-    "ast_hash": "e026187169bba1117aec344342b0c589",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/InstancedGrid.jsx": {
-    "mtime": 1786306687.2882502,
-    "ast_hash": "e1dec0447d7c30b167a4993c41accf90",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/PostProcessingManager.jsx": {
-    "mtime": 1786332774.217576,
-    "ast_hash": "5d0275304cdb1946e30c12a008792844",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/RoleSprites.jsx": {
-    "mtime": 1785984481.284973,
-    "ast_hash": "765d813e16e7886a0e722dd7ae0b662f",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/VectorOverlays.jsx": {
-    "mtime": 1785912319.5671842,
-    "ast_hash": "356eb7b03a2152b761cfcec97db1a425",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/canvas/VillageScatter.jsx": {
-    "mtime": 1786330665.856237,
-    "ast_hash": "7c9cc5131b43bf3311bb27a51d8cd938",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/ui/ContextMenu.jsx": {
-    "mtime": 1785989303.6313431,
-    "ast_hash": "8d8161f09538d0aaf165d6a9bcd52290",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/ui/NotificationBell.jsx": {
-    "mtime": 1785988607.5201159,
-    "ast_hash": "a6231ee4dcee59da59edea0f1c877df4",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/ui/OwnerPanel.jsx": {
-    "mtime": 1786336169.3171754,
-    "ast_hash": "410b9448bda57c4e0a5e56b5bf7bcb8c",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/ui/SettingsPanel.jsx": {
-    "mtime": 1786329607.076767,
-    "ast_hash": "06cec9b204bdb8ee4b497917a24eeb22",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/components/ui/TacticalFilters.jsx": {
-    "mtime": 1785988591.0365362,
-    "ast_hash": "2561b8d91d92edf2acd6f79e7fbebfef",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/store/mapStore.js": {
-    "mtime": 1786332666.7942107,
-    "ast_hash": "75dbe7154df26c503dcf68e03e4b81bb",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/store/scene-presets/Scenario_1_Noon_Preset.json": {
-    "mtime": 1786336370.8679328,
-    "ast_hash": "b4ac33ff7d3254042d82a707a910fd47",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/store/scene-presets/index.js": {
-    "mtime": 1786336167.2833154,
-    "ast_hash": "c7f237edaf8136649aeadc882c6f6912",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/utils/AssetManager.js": {
-    "mtime": 1786289014.5762815,
-    "ast_hash": "f22b65da186af9f1dd188bb8364cd814",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/utils/prng.js": {
-    "mtime": 1785902659.0916374,
-    "ast_hash": "d14d0cf5ac5de8aeb53eabf6d15aab55",
-    "semantic_hash": ""
-  },
-  "Docs/Releases/Inmersive Module.md": {
-    "mtime": 1785902120.9200401,
-    "ast_hash": "520ab640c074cf82a6f2092df523c8fa",
-    "semantic_hash": ""
-  },
-  "Docs/Releases/Release_v1.9.0.md": {
-    "mtime": 1785739586.6799228,
-    "ast_hash": "f5d4baa581f2daa6fc4d598bded6f462",
-    "semantic_hash": ""
-  },
-  "Docs/Releases/V2.1.md": {
-    "mtime": 1786336745.7605453,
-    "ast_hash": "2a7d37e6b232779c0104c729d4792a96",
-    "semantic_hash": ""
-  },
-  "extension/3dmap.html": {
-    "mtime": 1785902991.4799275,
-    "ast_hash": "ee3fe320ea6e27bc6f876cd0b1f4e091",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/Villages/Gauls/Village_Gauls_L.png": {
-    "mtime": 1786317992.546113,
-    "ast_hash": "fa9d11ed3cc4238bc7d98753e7fe055d",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/Villages/Gauls/Village_Gauls_M.png": {
-    "mtime": 1786317491.6037798,
-    "ast_hash": "a33cf21be3e87795a86c6d1ed0f6fd36",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/Villages/Gauls/Village_Gauls_S.png": {
-    "mtime": 1786316179.6818507,
-    "ast_hash": "811a5dccf543a91492b2d460e46083db",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/Villages/Romans/Village_Romans_L.png": {
-    "mtime": 1786262235.2798512,
-    "ast_hash": "c178485b86909ec81d48ddaab8974ac5",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/Villages/Romans/Village_Romans_M.png": {
-    "mtime": 1786159980.0430796,
-    "ast_hash": "d8a8f7f4b702b9e81e313b8d7a7051d3",
-    "semantic_hash": ""
-  },
-  "extension/3dmapengine/assets/Villages/Romans/Village_Romans_S.png": {
-    "mtime": 1786159016.6478796,
-    "ast_hash": "40cad668e68855eda104327f03f6036f",
     "semantic_hash": ""
   }
 }

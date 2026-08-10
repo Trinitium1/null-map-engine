@@ -93,22 +93,17 @@ export default function SettingsPanel() {
             Advanced Options
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#e0e0e0' }}>
-              <input 
-                type="checkbox" 
-                checked={shadowsEnabled}
-                onChange={(e) => setCustomGraphicOption('shadowsEnabled', e.target.checked)}
-              />
-              Dynamic Shadows
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#e0e0e0' }}>
-              <input 
-                type="checkbox" 
-                checked={environmentEnabled}
-                onChange={(e) => setCustomGraphicOption('environmentEnabled', e.target.checked)}
-              />
-              PBR Environment (HDRI)
-            </label>
+            <div className="flex flex-col gap-2">
+              <label className="flex items-center gap-2 text-sm text-[#e0e0e0]">
+                <input 
+                  type="checkbox" 
+                  checked={shadowsEnabled}
+                  onChange={(e) => setShadowsEnabled(e.target.checked)}
+                  className="rounded bg-[#2a2d36] border-[#4a4d56] text-[#00aaff]"
+                />
+                Dynamic Shadows
+              </label>
+            </div>
           </div>
         </div>
       )}

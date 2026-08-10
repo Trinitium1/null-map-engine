@@ -21,10 +21,37 @@ export const useMapStore = create((set, get) => ({
   
   // Phase 9: Tactical Vector Overlays
   tacticalRoutes: [],
-  
+  showTacticalFilters: true,
+  userRole: 'Owner', // 'Owner' or 'Player'
+
   // Phase 11: Graphics Settings
   graphicsQuality: 'high', // 'low', 'mid', 'high', 'custom'
   shadowsEnabled: true,
+
+  // Engine Configuration (Owner Presets)
+  engineConfig: {
+    // Dynamic Sun
+    enableNear: true,
+    enableFar: true,
+    lightDirX: -1,
+    lightDirY: -1.5,
+    lightDirZ: -1,
+    intensity: 1.0,
+    nearMargin: 150, nearSize: 60, nearNear: 0.1, nearFar: 300, nearMapSize: 2048, nearBias: -0.0005,
+    farMargin: 500, farSize: 500, farNear: 10, farFar: 1500, farMapSize: 512, farBias: -0.001,
+    displayHelper: false,
+    
+    // Post Processing
+    enablePostProcessing: true,
+    enableColorGrading: true,
+    brightness: 0.0, contrast: 0.1, hue: 0.0, saturation: 0.1,
+    enableBloom: true,
+    bloomIntensity: 0.5, bloomLuminanceThreshold: 0.8,
+    enableVignette: true,
+    vignetteOffset: 0.3, vignetteDarkness: 0.5,
+    
+    presetName: 'Escenario_1_Noon'
+  },
   environmentEnabled: true,
   
   // Phase 15: Tactical Outlines
@@ -58,6 +85,9 @@ export const useMapStore = create((set, get) => ({
     graphicsQuality: 'custom',
     [key]: value
   }),
+  setTacticalRoutes: (routes) => set({ tacticalRoutes: routes }),
+  setShowTacticalFilters: (show) => set({ showTacticalFilters: show }),
+  setEngineConfig: (newConfig) => set((state) => ({ engineConfig: { ...state.engineConfig, ...newConfig } })),
   addTacticalRoute: (route) => set((state) => ({
     tacticalRoutes: [...state.tacticalRoutes, route]
   })),
