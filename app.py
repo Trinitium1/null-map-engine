@@ -17,6 +17,7 @@ import numpy as np
 import matplotlib.patheffects as patheffects
 
 app = Flask(__name__)
+_cached_watermark = None
 
 def parse_color(c):
     if isinstance(c, str):
@@ -149,10 +150,11 @@ def render_map():
         
         if data.get('watermark'):
             global _cached_watermark
-            if '_cached_watermark' not in globals() or _cached_watermark is None:
+            if _cached_watermark is None:
                 try:
                     req = urllib.request.urlopen("https://i.ibb.co/35dnG0Lc/5519632.png", timeout=5)
-                    _cached_watermark = Image.open(req).convert("RGBA")
+                    img_data = req.read()
+                    _cached_watermark = Image.open(io.BytesIO(img_data)).convert("RGBA")
                 except Exception as e:
                     _cached_watermark = None
             
