@@ -148,16 +148,24 @@ def render_map():
         img = Image.open(buf).convert("RGBA")
         
         if data.get('watermark'):
-            req = urllib.request.urlopen("https://i.ibb.co/35dnG0Lc/5519632.png")
-            wm = Image.open(req).convert("RGBA")
-            wm_width = int(img.width * 0.15)
-            wm_height = int(wm_width * (wm.height / wm.width))
-            wm = wm.resize((wm_width, wm_height), Image.Resampling.LANCZOS)
-            wm_with_alpha = wm.copy()
-            alpha = wm_with_alpha.split()[3]
-            alpha = alpha.point(lambda p: p * 0.3)
-            wm_with_alpha.putalpha(alpha)
-            img.paste(wm_with_alpha, (img.width - wm.width - 15, 15), wm_with_alpha)
+            global _cached_watermark
+            if '_cached_watermark' not in globals() or _cached_watermark is None:
+                try:
+                    req = urllib.request.urlopen("https://i.ibb.co/35dnG0Lc/5519632.png", timeout=5)
+                    _cached_watermark = Image.open(req).convert("RGBA")
+                except Exception as e:
+                    _cached_watermark = None
+            
+            if _cached_watermark:
+                wm = _cached_watermark
+                wm_width = int(img.width * 0.15)
+                wm_height = int(wm_width * (wm.height / wm.width))
+                wm = wm.resize((wm_width, wm_height), Image.Resampling.LANCZOS)
+                wm_with_alpha = wm.copy()
+                alpha = wm_with_alpha.split()[3]
+                alpha = alpha.point(lambda p: p * 0.3)
+                wm_with_alpha.putalpha(alpha)
+                img.paste(wm_with_alpha, (img.width - wm.width - 15, 15), wm_with_alpha)
             
         final_buf = io.BytesIO()
         img.save(final_buf, format="PNG")
